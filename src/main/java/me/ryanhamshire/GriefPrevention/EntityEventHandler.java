@@ -205,7 +205,8 @@ public class EntityEventHandler implements Listener
             }
         }
 
-        //sand cannon fix - when the falling block doesn't fall straight down, take additional anti-grief steps
+        // ADDS META DATA FOR SHIT WE DON'T NEED
+        /*//sand cannon fix - when the falling block doesn't fall straight down, take additional anti-grief steps
         else if (event.getEntityType() == EntityType.FALLING_BLOCK)
         {
             FallingBlock entity = (FallingBlock) event.getEntity();
@@ -259,7 +260,7 @@ public class EntityEventHandler implements Listener
                     }
                 }
             }
-        }
+        }*/
     }
 
     private void handleProjectileChangeBlock(EntityChangeBlockEvent event, Projectile projectile)
