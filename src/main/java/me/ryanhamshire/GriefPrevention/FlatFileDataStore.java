@@ -493,7 +493,7 @@ public class FlatFileDataStore extends DataStore
         Location lesserBoundaryCorner = this.locationFromString(yaml.getString("Lesser Boundary Corner"), validWorlds);
         Location greaterBoundaryCorner = this.locationFromString(yaml.getString("Greater Boundary Corner"), validWorlds);
 
-        // JH - Set the lesser boundary corner Y value to -64 and the greater boundary corner Y value to 320
+        // JHarris - Set the lesser boundary corner Y value to -64 and the greater boundary corner Y value to 320
         lesserBoundaryCorner.setY(-66);
         greaterBoundaryCorner.setY(320);
 
