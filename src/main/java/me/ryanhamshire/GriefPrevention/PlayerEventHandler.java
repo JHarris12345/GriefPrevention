@@ -1813,10 +1813,11 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.COMPARATOR ||
                                 clickedBlockType == Material.REDSTONE_WIRE ||
                                 Tag.FLOWER_POTS.isTagged(clickedBlockType) ||
-                                Tag.CANDLES.isTagged(clickedBlockType) ||
+                                Tag.CANDLES.isTagged(clickedBlockType) //||
                                 // Only block interaction with un-editable signs to allow command signs to function.
                                 // TODO: When we are required to update Spigot API to 1.20 to support a change, swap to Sign#isWaxed
-                                Tag.SIGNS.isTagged(clickedBlockType) && clickedBlock.getState() instanceof Sign sign && sign.isEditable()
+                        // JHarris - Comment this out because it prevents ChestShop working and isn't necessary
+                        //Tag.SIGNS.isTagged(clickedBlockType) && clickedBlock.getState() instanceof Sign sign && sign.isEditable()
                 ))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
