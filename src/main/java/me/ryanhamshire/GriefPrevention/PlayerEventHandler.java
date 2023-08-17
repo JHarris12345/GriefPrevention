@@ -522,11 +522,22 @@ class PlayerEventHandler implements Listener
         String lowerCaseMessage = message.toLowerCase();
         for (String monitoredCommand : instance.config_claims_commandsRequiringAccessTrust)
         {
-            // JHarris - Changed .startsWith to .equalsIgnoreCase
-            if (lowerCaseMessage.equalsIgnoreCase(monitoredCommand))
+            if (lowerCaseMessage.startsWith(monitoredCommand))
             {
-                isMonitoredCommand = true;
-                break;
+                // JHarris - Make sure the command is not whitelisted
+                boolean skip = false;
+                for (String whitelistedCommand : instance.config_claims_commandsRequiringAccessTrustWhitelist) {
+                    if (lowerCaseMessage.startsWith(whitelistedCommand)) {
+                        skip = true;
+                        break;
+                    }
+                }
+
+                if (!skip) {
+                    if (instance.config_claims_commandsRequiringAccessTrustWhitelist.contains(lowerCaseMessage)) continue;
+                    isMonitoredCommand = true;
+                    break;
+                }
             }
         }
 
