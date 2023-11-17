@@ -2729,7 +2729,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //ignoreplayer
-        else if (cmd.getName().equalsIgnoreCase("ignoreplayer") && player != null)
+        /*else if (cmd.getName().equalsIgnoreCase("ignoreplayer") && player != null)
         {
             //requires target player name
             if (args.length < 1) return false;
@@ -2864,7 +2864,7 @@ public class GriefPrevention extends JavaPlugin
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.UnSeparateConfirmation);
 
             return true;
-        }
+        }*/
         return false;
     }
 
