@@ -547,7 +547,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 playerData.lastClaim = claim;
-                Supplier<String> reason = claim.checkPermission(player, ClaimPermission.Access, event);
+                Supplier<String> reason = claim.checkPermission(player, ClaimPermission.Build, event);
                 if (reason != null)
                 {
                     GriefPrevention.sendMessage(player, TextMode.Err, reason.get());
