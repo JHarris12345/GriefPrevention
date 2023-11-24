@@ -100,6 +100,10 @@ public class GriefPrevention extends JavaPlugin
     PlayerEventHandler playerEventHandler;
     //configuration variables, loaded/saved from a config.yml
 
+    // Map and value for sending timed messages
+    public static HashMap<UUID, Long> timedMessages = new HashMap<>(); // A map of UUID and the last time a message was sent so we know if a long enough time has passed to send another
+    public static long messageWaitTime = 1000; // The time in millis before a message can be sent to a player again
+
     //claim mode for each world
     public ConcurrentHashMap<World, ClaimsMode> config_claims_worldModes;
     private boolean config_creativeWorldsExist;                     //note on whether there are any creative mode worlds, to save cpu cycles on a common hash lookup
@@ -3381,6 +3385,12 @@ public class GriefPrevention extends JavaPlugin
     //sends a color-coded message to a player
     public static void sendMessage(Player player, ChatColor color, Messages messageID, String... args)
     {
+        long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), Long.valueOf(0));
+        long nextAllowedSend = lastSendTime + messageWaitTime;
+
+        if (System.currentTimeMillis() < nextAllowedSend) return;
+
+        timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
         sendMessage(player, color, messageID, 0, args);
     }
 
@@ -3402,6 +3412,12 @@ public class GriefPrevention extends JavaPlugin
         }
         else
         {
+            long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), Long.valueOf(0));
+            long nextAllowedSend = lastSendTime + messageWaitTime;
+
+            if (System.currentTimeMillis() < nextAllowedSend) return;
+
+            timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
             player.sendMessage(color + message);
         }
     }
