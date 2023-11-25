@@ -1216,7 +1216,7 @@ class PlayerEventHandler implements Listener
                         {
                             tameable.setOwner(playerData.petGiveawayRecipient);
                             playerData.petGiveawayRecipient = null;
-                            GriefPrevention.sendMessage(player, TextMode.Success, Messages.PetGiveawayConfirmation);
+                            if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Success, Messages.PetGiveawayConfirmation);
                             event.setCancelled(true);
                         }
 
@@ -1231,7 +1231,7 @@ class PlayerEventHandler implements Listener
                         String message = instance.dataStore.getMessage(Messages.NotYourPet, ownerName);
                         if (player.hasPermission("griefprevention.ignoreclaims"))
                             message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                        GriefPrevention.sendMessage(player, TextMode.Err, message);
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, message);
                         event.setCancelled(true);
                         return;
                     }
@@ -1255,7 +1255,7 @@ class PlayerEventHandler implements Listener
             String noBuildReason = instance.allowBuild(player, entity.getLocation(), Material.ITEM_FRAME);
             if (noBuildReason != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
                 event.setCancelled(true);
                 return;
             }
@@ -1271,7 +1271,7 @@ class PlayerEventHandler implements Listener
             String noEntitiesReason = claim.allowMoreEntities(false);
             if (noEntitiesReason != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, noEntitiesReason);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noEntitiesReason);
                 event.setCancelled(true);
                 return;
             }
@@ -1285,14 +1285,14 @@ class PlayerEventHandler implements Listener
         {
             if (playerData.siegeData != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeNoContainers);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeNoContainers);
                 event.setCancelled(true);
                 return;
             }
 
             if (playerData.inPvpCombat())
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PvPNoContainers);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.PvPNoContainers);
                 event.setCancelled(true);
                 return;
             }
@@ -1311,7 +1311,7 @@ class PlayerEventHandler implements Listener
                     Supplier<String> noContainersReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                     if (noContainersReason != null)
                     {
-                        GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
                         event.setCancelled(true);
                         return;
                     }
@@ -1337,7 +1337,7 @@ class PlayerEventHandler implements Listener
                 final Supplier<String> noContainersReason = claim.checkPermission(player, ClaimPermission.Inventory, event, override);
                 if (noContainersReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
                     event.setCancelled(true);
                     return;
                 }
@@ -1356,7 +1356,7 @@ class PlayerEventHandler implements Listener
                 if (failureReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, failureReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, failureReason.get());
                     return;
                 }
             }
@@ -1710,7 +1710,7 @@ class PlayerEventHandler implements Listener
             //block container use while under siege, so players can't hide items from attackers
             if (playerData.siegeData != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeNoContainers);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeNoContainers);
                 event.setCancelled(true);
                 return;
             }
@@ -1718,7 +1718,7 @@ class PlayerEventHandler implements Listener
             //block container use during pvp combat, same reason
             if (playerData.inPvpCombat())
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PvPNoContainers);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.PvPNoContainers);
                 event.setCancelled(true);
                 return;
             }
@@ -1733,7 +1733,7 @@ class PlayerEventHandler implements Listener
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason.get());
                     return;
                 }
             }
@@ -1743,7 +1743,7 @@ class PlayerEventHandler implements Listener
             if (playerData.pvpImmune)
             {
                 playerData.pvpImmune = false;
-                GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
+                if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
             }
         }
 
@@ -1770,7 +1770,7 @@ class PlayerEventHandler implements Listener
                 if (noAccessReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason.get());
                     return;
                 }
             }
@@ -1789,7 +1789,7 @@ class PlayerEventHandler implements Listener
                 if (noAccessReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason.get());
                     return;
                 }
             }
@@ -1808,7 +1808,7 @@ class PlayerEventHandler implements Listener
                 if (noContainerReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason.get());
                     return;
                 }
             }
@@ -1839,7 +1839,7 @@ class PlayerEventHandler implements Listener
                 if (noBuildReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
                     return;
                 }
             }
@@ -1885,7 +1885,7 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType);
                 if (noBuildReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
                     event.setCancelled(true);
                 }
 
@@ -1900,7 +1900,7 @@ class PlayerEventHandler implements Listener
                     Supplier<String> reason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                     if (reason != null)
                     {
-                        GriefPrevention.sendMessage(player, TextMode.Err, reason.get());
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, reason.get());
                         event.setCancelled(true);
                     }
                 }
@@ -1924,7 +1924,7 @@ class PlayerEventHandler implements Listener
                     Supplier<String> reason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                     if (reason != null)
                     {
-                        GriefPrevention.sendMessage(player, TextMode.Err, reason.get());
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, reason.get());
                         event.setCancelled(true);
                     }
                 }
@@ -1954,7 +1954,7 @@ class PlayerEventHandler implements Listener
                 String noBuildReason = instance.allowBuild(player, clickedBlock.getLocation(), Material.MINECART);
                 if (noBuildReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
                     event.setCancelled(true);
                     return;
                 }
@@ -1967,7 +1967,7 @@ class PlayerEventHandler implements Listener
                 String noEntitiesReason = claim.allowMoreEntities(false);
                 if (noEntitiesReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noEntitiesReason);
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, noEntitiesReason);
                     event.setCancelled(true);
                     return;
                 }
@@ -1994,7 +1994,7 @@ class PlayerEventHandler implements Listener
 
                     //visualize boundaries
                     BoundaryVisualization.visualizeNearbyClaims(player, inspectionEvent.getClaims(), player.getEyeLocation().getBlockY());
-                    GriefPrevention.sendMessage(player, TextMode.Info, Messages.ShowNearbyClaims, String.valueOf(claims.size()));
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Info, Messages.ShowNearbyClaims, String.valueOf(claims.size()));
 
                     return;
                 }
@@ -2018,7 +2018,7 @@ class PlayerEventHandler implements Listener
                 //air indicates too far away
                 if (clickedBlockType == Material.AIR)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.TooFarAway);
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.TooFarAway);
 
                     // Remove visualizations
                     playerData.setVisibleBoundaries(null);
@@ -2035,7 +2035,7 @@ class PlayerEventHandler implements Listener
                     Bukkit.getPluginManager().callEvent(inspectionEvent);
                     if (inspectionEvent.isCancelled()) return;
 
-                    GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockNotClaimed);
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockNotClaimed);
 
                     playerData.setVisibleBoundaries(null);
                 }
@@ -2049,14 +2049,14 @@ class PlayerEventHandler implements Listener
                     if (inspectionEvent.isCancelled()) return;
 
                     playerData.lastClaim = claim;
-                    GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
 
                     //visualize boundary
                     BoundaryVisualization.visualizeClaim(player, claim, VisualizationType.CLAIM);
 
                     if (player.hasPermission("griefprevention.seeclaimsize"))
                     {
-                        GriefPrevention.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
                     }
 
                     //if permission, tell about the player's offline time
@@ -2070,7 +2070,7 @@ class PlayerEventHandler implements Listener
                         Date now = new Date();
                         long daysElapsed = (now.getTime() - lastLogin.getTime()) / (1000 * 60 * 60 * 24);
 
-                        GriefPrevention.sendMessage(player, TextMode.Info, Messages.PlayerOfflineTime, String.valueOf(daysElapsed));
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Info, Messages.PlayerOfflineTime, String.valueOf(daysElapsed));
 
                         //drop the data we just loaded, if the player isn't online
                         if (instance.getServer().getPlayer(claim.ownerID) == null)
@@ -2125,7 +2125,7 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.BlockClaimed, claim.getOwnerName());
+                    if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Err, Messages.BlockClaimed, claim.getOwnerName());
                     BoundaryVisualization.visualizeClaim(player, claim, VisualizationType.CONFLICT_ZONE, clickedBlock);
                     return;
                 }
@@ -2337,7 +2337,7 @@ class PlayerEventHandler implements Listener
                     {
                         playerData.claimResizing = claim;
                         playerData.lastShovelLocation = clickedBlock.getLocation();
-                        GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ResizeStart);
+                        if (event.getHand() == EquipmentSlot.HAND) GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ResizeStart);
                     }
 
                     //if he didn't click on a corner and is in subdivision mode, he's creating a new subdivision

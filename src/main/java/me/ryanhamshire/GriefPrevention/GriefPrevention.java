@@ -3385,12 +3385,6 @@ public class GriefPrevention extends JavaPlugin
     //sends a color-coded message to a player
     public static void sendMessage(Player player, ChatColor color, Messages messageID, String... args)
     {
-        long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), Long.valueOf(0));
-        long nextAllowedSend = lastSendTime + messageWaitTime;
-
-        if (System.currentTimeMillis() < nextAllowedSend) return;
-
-        timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
         sendMessage(player, color, messageID, 0, args);
     }
 
@@ -3412,12 +3406,15 @@ public class GriefPrevention extends JavaPlugin
         }
         else
         {
-            long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), Long.valueOf(0));
-            long nextAllowedSend = lastSendTime + messageWaitTime;
+            if (message.toLowerCase().contains("permission to build here") || message.toLowerCase().contains("that belongs to")) {
+                long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), Long.valueOf(0));
+                long nextAllowedSend = lastSendTime + messageWaitTime;
 
-            if (System.currentTimeMillis() < nextAllowedSend) return;
+                if (System.currentTimeMillis() < nextAllowedSend) return;
 
-            timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
+                timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
+            }
+
             player.sendMessage(color + message);
         }
     }
