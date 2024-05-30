@@ -56,6 +56,7 @@ import me.ryanhamshire.GriefPrevention.tasks.SendPlayerMessageTask;
 import me.ryanhamshire.GriefPrevention.tasks.WelcomeTask;
 import me.ryanhamshire.GriefPrevention.utils.CustomLogger;
 import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
+import me.ryanhamshire.GriefPrevention.utils.Placeholders;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -91,6 +92,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -283,6 +285,8 @@ public class GriefPrevention extends JavaPlugin
     private String databaseUserName;
     private String databasePassword;
 
+    public DecimalFormat df = new DecimalFormat("#,###.##");
+
 
     //how far away to search from a tree trunk for its branch blocks
     public static final int TREE_RADIUS = 5;
@@ -321,6 +325,9 @@ public class GriefPrevention extends JavaPlugin
         this.customLogger = new CustomLogger();
 
         AddLogEntry("Finished loading configuration.");
+
+        // Register placeholders
+        new Placeholders(this).register();
 
         //when datastore initializes, it loads player and claim data, and posts some stats to the log
         if (this.databaseUrl.length() > 0)
