@@ -1,7 +1,7 @@
 package me.ryanhamshire.GriefPrevention.events;
 
 
-import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.objects.Claim;
 import org.bukkit.Warning;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.Event;
@@ -17,8 +17,8 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Narimm on 5/08/2018.
  */
-@Deprecated(forRemoval = true, since = "16.18")
-@Warning(value = true, reason = "ClaimModifiedEvent will be removed in favor of ClaimResizeEvent")
+//@Deprecated(forRemoval = true, since = "16.18")
+//@Warning(value = true, reason = "ClaimModifiedEvent will be removed in favor of ClaimResizeEvent")
 public class ClaimModifiedEvent extends ClaimResizeEvent
 {
 
