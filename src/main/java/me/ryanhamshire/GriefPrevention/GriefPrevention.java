@@ -325,6 +325,7 @@ public class GriefPrevention extends JavaPlugin
         //when datastore initializes, it loads player and claim data, and posts some stats to the log
         if (this.databaseUrl.length() > 0)
         {
+            this.getLogger().info("Using database storage");
             try
             {
                 DatabaseDataStore databaseStore = new DatabaseDataStore(this.databaseUrl, this.databaseUserName, this.databasePassword);
@@ -353,6 +354,8 @@ public class GriefPrevention extends JavaPlugin
         //this is the preferred method, as it's simpler than the database scenario
         if (this.dataStore == null)
         {
+            this.getLogger().info("Using file storage");
+
             File oldclaimdata = new File(getDataFolder(), "ClaimData");
             if (oldclaimdata.exists())
             {

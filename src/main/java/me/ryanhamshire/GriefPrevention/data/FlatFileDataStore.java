@@ -89,7 +89,9 @@ public class FlatFileDataStore extends DataStore
             this.setSchemaVersion(DataStore.latestSchemaVersion);
         }
 
+        // What is group data? Can't see any files starting with a $ like it filters for. Removed for now as it takes ~250ms to load but we can always add it back if needed
         //load group data into memory
+        /*long groupDataStart = System.currentTimeMillis();
         File[] files = playerDataFolder.listFiles();
         for (File file : files)
         {
@@ -125,6 +127,8 @@ public class FlatFileDataStore extends DataStore
             catch (IOException exception) {}
         }
 
+        GriefPrevention.instance.getLogger().info("Loaded group data in " + (System.currentTimeMillis() - groupDataStart) + "ms");*/
+
         //load next claim number from file
         File nextClaimIdFile = new File(nextClaimIdFilePath);
         if (nextClaimIdFile.exists())
@@ -149,9 +153,10 @@ public class FlatFileDataStore extends DataStore
             catch (IOException exception) {}
         }
 
+        // Don't need to do this as this happened years ago and none of our data needs converting
         //if converting up from schema version 0, rename player data files using UUIDs instead of player names
         //get a list of all the files in the claims data folder
-        if (this.getSchemaVersion() == 0)
+        /*if (this.getSchemaVersion() == 0)
         {
             files = playerDataFolder.listFiles();
             ArrayList<String> namesToConvert = new ArrayList<>();
@@ -202,11 +207,11 @@ public class FlatFileDataStore extends DataStore
                 }
                 catch (Exception ex) { }
             }
-        }
+        }*/
 
         //load claims data into memory
         //get a list of all the files in the claims data folder
-        files = claimDataFolder.listFiles();
+        File[] files = claimDataFolder.listFiles();
 
         if (this.getSchemaVersion() <= 1)
         {
@@ -399,6 +404,8 @@ public class FlatFileDataStore extends DataStore
 
     void loadClaimData(File[] files) throws Exception
     {
+        long claimDataStart = System.currentTimeMillis();
+
         ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<>();
         for (int i = 0; i < files.length; i++)
         {
@@ -417,20 +424,10 @@ public class FlatFileDataStore extends DataStore
                 //the filename is the claim ID.  try to parse it
                 long claimID;
 
-                try
-                {
+                try {
                     claimID = Long.parseLong(files[i].getName().split("\\.")[0]);
-                }
-
-                //because some older versions used a different file name pattern before claim IDs were introduced,
-                //those files need to be "converted" by renaming them to a unique ID
-                catch (Exception e)
-                {
-                    claimID = this.nextClaimID;
-                    this.incrementNextClaimID();
-                    File newFile = new File(claimDataFolderPath + File.separator + String.valueOf(this.nextClaimID) + ".yml");
-                    files[i].renameTo(newFile);
-                    files[i] = newFile;
+                } catch (Exception e) {
+                    continue;
                 }
 
                 try
@@ -474,6 +471,8 @@ public class FlatFileDataStore extends DataStore
                 this.addClaim(child, false);
             }
         }
+
+        GriefPrevention.instance.getLogger().info("Loaded the claim data in " + (System.currentTimeMillis() - claimDataStart) + "ms");
     }
 
     Claim loadClaim(File file, ArrayList<Long> out_parentID, long claimID) throws IOException, InvalidConfigurationException, Exception
