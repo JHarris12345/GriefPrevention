@@ -11,8 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public record Boundary(
         @NotNull BoundingBox bounds,
         @NotNull VisualizationType type,
-        @Nullable Claim claim)
-{
+        @Nullable Claim claim) {
 
     /**
      * Construct a new {@code Boundary} for a {@link BoundingBox} with the given visualization style.
@@ -20,8 +19,7 @@ public record Boundary(
      * @param bounds the {@code BoundingBox}
      * @param type the {@link VisualizationType}
      */
-    public Boundary(@NotNull BoundingBox bounds, @NotNull VisualizationType type)
-    {
+    public Boundary(@NotNull BoundingBox bounds, @NotNull VisualizationType type) {
         this(bounds, type, null);
     }
 
@@ -31,8 +29,7 @@ public record Boundary(
      * @param claim the {@code Claim}
      * @param type the {@link VisualizationType}
      */
-    public Boundary(@NotNull Claim claim, @NotNull VisualizationType type)
-    {
+    public Boundary(@NotNull Claim claim, @NotNull VisualizationType type) {
         this(new BoundingBox(claim), type, claim);
     }
 
@@ -42,8 +39,7 @@ public record Boundary(
      * @return the {@code Claim} or {@code null} if not present
      */
     @Override
-    public @Nullable Claim claim()
-    {
+    public @Nullable Claim claim() {
         return claim;
     }
 

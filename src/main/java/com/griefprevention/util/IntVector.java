@@ -12,16 +12,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An immutable integer-based vector.
  */
-public record IntVector(int x, int y, int z)
-{
+public record IntVector(int x, int y, int z) {
 
     /**
      * Construct a new {@code IntVector} representing the specified {@link Block}.
      *
      * @param block the {@code Block}
      */
-    public IntVector(@NotNull Block block)
-    {
+    public IntVector(@NotNull Block block) {
         this(block.getX(), block.getY(), block.getZ());
     }
 
@@ -30,8 +28,7 @@ public record IntVector(int x, int y, int z)
      *
      * @param location the {@code Location}
      */
-    public IntVector(@NotNull Location location)
-    {
+    public IntVector(@NotNull Location location) {
         this(location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
@@ -40,8 +37,7 @@ public record IntVector(int x, int y, int z)
      *
      * @param vector the {@code Vector}
      */
-    public IntVector(@NotNull Vector vector)
-    {
+    public IntVector(@NotNull Vector vector) {
         this(vector.getBlockX(), vector.getBlockY(), vector.getBlockZ());
     }
 
@@ -51,8 +47,7 @@ public record IntVector(int x, int y, int z)
      * @param world the {@code World}
      * @return the corresponding {@code Block}
      */
-    public @NotNull Block toBlock(@NotNull World world)
-    {
+    public @NotNull Block toBlock(@NotNull World world) {
         return world.getBlockAt(x(), y(), z());
     }
 
@@ -63,8 +58,7 @@ public record IntVector(int x, int y, int z)
      * @return the corresponding {@code Location}
      */
     @Contract("_ -> new")
-    public @NotNull Location toLocation(@Nullable World world)
-    {
+    public @NotNull Location toLocation(@Nullable World world) {
         return new Location(world, x(), y(), z());
     }
 
@@ -74,8 +68,7 @@ public record IntVector(int x, int y, int z)
      * @return the corresponding {@code BlockVector}
      */
     @Contract(" -> new")
-    public @NotNull BlockVector toVector()
-    {
+    public @NotNull BlockVector toVector() {
         return new BlockVector(x(), y(), z());
     }
 
@@ -88,8 +81,7 @@ public record IntVector(int x, int y, int z)
      * @return the {@code IntVector} created
      */
     @Contract("_, _, _ -> new")
-    public @NotNull IntVector add(int dX, int dY, int dZ)
-    {
+    public @NotNull IntVector add(int dX, int dY, int dZ) {
         return new IntVector(x() + dX, y() + dY, z() + dZ);
     }
 
@@ -100,8 +92,7 @@ public record IntVector(int x, int y, int z)
      * @return the {@code IntVector} created
      */
     @Contract("_ -> new")
-    public @NotNull IntVector add(@NotNull IntVector other)
-    {
+    public @NotNull IntVector add(@NotNull IntVector other) {
         return new IntVector(x() + other.x(), y() + other.y(), z() + other.z());
     }
 
@@ -111,8 +102,7 @@ public record IntVector(int x, int y, int z)
      * @param other the other {@code IntVector}
      * @return the squared distance
      */
-    public int distanceSquared(@NotNull IntVector other)
-    {
+    public int distanceSquared(@NotNull IntVector other) {
         int dX = x() - other.x();
         int dY = y() - other.y();
         int dZ = z() - other.z();
@@ -126,8 +116,7 @@ public record IntVector(int x, int y, int z)
      * @param world the {@link World}
      * @return true if the block is loaded
      */
-    public boolean isChunkLoaded(@NotNull World world)
-    {
+    public boolean isChunkLoaded(@NotNull World world) {
         // Note: Location#getChunk et cetera load the chunk!
         // Only World#isChunkLoaded is safe without a Chunk object.
         return world.isChunkLoaded(x() >> 4, z() >> 4);

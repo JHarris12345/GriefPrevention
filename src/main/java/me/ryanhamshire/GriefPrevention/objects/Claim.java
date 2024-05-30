@@ -18,14 +18,14 @@
 
 package me.ryanhamshire.GriefPrevention.objects;
 
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import me.ryanhamshire.GriefPrevention.data.DataStore;
+import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
-import me.ryanhamshire.GriefPrevention.data.DataStore;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
-import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -60,8 +60,7 @@ import java.util.function.Supplier;
 //represents a player claim
 //creating an instance doesn't make an effective claim
 //only claims which have been added to the datastore have any effect
-public class Claim
-{
+public class Claim {
     //two locations, which together define the boundaries of the claim
     //note that the upper Y value is always ignored, because claims ALWAYS extend up to the sky
     public Location lesserBoundaryCorner;
@@ -72,6 +71,9 @@ public class Claim
 
     //id number.  unique to this claim, never changes.
     public Long id = null;
+
+    // Players can name their claims so they appear more custom on /claimlist and other places claims can appear
+    public String name;
 
     //ownerID.  for admin claims, this is NULL
     //use getOwnerName() to get a friendly name (will be "an administrator" for admin claims)
@@ -110,28 +112,24 @@ public class Claim
 
     //whether or not this is an administrative claim
     //administrative claims are created and maintained by players with the griefprevention.adminclaims permission.
-    public boolean isAdminClaim()
-    {
+    public boolean isAdminClaim() {
         return this.getOwnerID() == null;
     }
 
     //accessor for ID
-    public Long getID()
-    {
+    public Long getID() {
         return this.id;
     }
 
     //basic constructor, just notes the creation time
     //see above declarations for other defaults
-    Claim()
-    {
+    Claim() {
         this.modifiedDate = Calendar.getInstance().getTime();
     }
 
     //players may only siege someone when he's not in an admin claim
     //and when he has some level of permission in the claim
-    public boolean canSiege(Player defender)
-    {
+    public boolean canSiege(Player defender) {
         if (this.isAdminClaim()) return false;
 
         if (this.checkPermission(defender, ClaimPermission.Access, null) != null) return false;
@@ -142,8 +140,7 @@ public class Claim
     //removes any lava above sea level in a claim
     //exclusionClaim is another claim indicating an sub-area to be excluded from this operation
     //it may be null
-    public void removeSurfaceFluids(Claim exclusionClaim)
-    {
+    public void removeSurfaceFluids(Claim exclusionClaim) {
         //don't do this for administrative claims
         if (this.isAdminClaim()) return;
 
@@ -164,18 +161,14 @@ public class Claim
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
             seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
-        for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++)
-        {
-            for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++)
-            {
-                for (int y = seaLevel - 1; y <= lesser.getWorld().getMaxHeight(); y++)
-                {
+        for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
+            for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
+                for (int y = seaLevel - 1; y <= lesser.getWorld().getMaxHeight(); y++) {
                     //dodge the exclusion claim
                     Block block = lesser.getWorld().getBlockAt(x, y, z);
                     if (exclusionClaim != null && exclusionClaim.contains(block.getLocation(), true, false)) continue;
 
-                    if (block.getType() == Material.LAVA || block.getType() == Material.WATER)
-                    {
+                    if (block.getType() == Material.LAVA || block.getType() == Material.WATER) {
                         block.setType(Material.AIR);
                     }
                 }
@@ -185,8 +178,7 @@ public class Claim
 
     //determines whether or not a claim has surface lava
     //used to warn players when they abandon their claims about automatic fluid cleanup
-    boolean hasSurfaceFluids()
-    {
+    boolean hasSurfaceFluids() {
         Location lesser = this.getLesserBoundaryCorner();
         Location greater = this.getGreaterBoundaryCorner();
 
@@ -199,17 +191,13 @@ public class Claim
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
             seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
-        for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++)
-        {
-            for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++)
-            {
-                for (int y = seaLevel - 1; y <= lesser.getWorld().getMaxHeight(); y++)
-                {
+        for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
+            for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
+                for (int y = seaLevel - 1; y <= lesser.getWorld().getMaxHeight(); y++) {
                     //dodge the exclusion claim
                     Block block = lesser.getWorld().getBlockAt(x, y, z);
 
-                    if (block.getType() == Material.WATER || block.getType() == Material.LAVA)
-                    {
+                    if (block.getType() == Material.WATER || block.getType() == Material.LAVA) {
                         return true;
                     }
                 }
@@ -220,10 +208,12 @@ public class Claim
     }
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, boolean inheritNothing, Long id)
-    {
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, boolean inheritNothing, Long id) {
         //modification date
         this.modifiedDate = Calendar.getInstance().getTime();
+
+        //name
+        this.name = name;
 
         //id
         this.id = id;
@@ -236,25 +226,20 @@ public class Claim
         this.ownerID = ownerID;
 
         //other permissions
-        for (String builderID : builderIDs)
-        {
+        for (String builderID : builderIDs) {
             this.setPermission(builderID, ClaimPermission.Build);
         }
 
-        for (String containerID : containerIDs)
-        {
+        for (String containerID : containerIDs) {
             this.setPermission(containerID, ClaimPermission.Inventory);
         }
 
-        for (String accessorID : accessorIDs)
-        {
+        for (String accessorID : accessorIDs) {
             this.setPermission(accessorID, ClaimPermission.Access);
         }
 
-        for (String managerID : managerIDs)
-        {
-            if (managerID != null && !managerID.isEmpty())
-            {
+        for (String managerID : managerIDs) {
+            if (managerID != null && !managerID.isEmpty()) {
                 this.managers.add(managerID);
             }
         }
@@ -262,9 +247,8 @@ public class Claim
         this.inheritNothing = inheritNothing;
     }
 
-    public Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id)
-    {
-        this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id) {
+        this(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
     //produces a copy of a claim.
@@ -283,42 +267,37 @@ public class Claim
         this.children = new ArrayList<>(claim.children);
         this.siegeData = claim.siegeData;
         this.doorsOpen = claim.doorsOpen;
+        this.name = claim.name;
     }
 
     //measurements.  all measurements are in blocks
-    public int getArea()
-    {
+    public int getArea() {
         int claimWidth = this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
         int claimHeight = this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
 
         return claimWidth * claimHeight;
     }
 
-    public int getWidth()
-    {
+    public int getWidth() {
         return this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
     }
 
-    public int getHeight()
-    {
+    public int getHeight() {
         return this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
     }
 
-    public boolean getSubclaimRestrictions()
-    {
+    public boolean getSubclaimRestrictions() {
         return inheritNothing;
     }
 
-    public void setSubclaimRestrictions(boolean inheritNothing)
-    {
+    public void setSubclaimRestrictions(boolean inheritNothing) {
         this.inheritNothing = inheritNothing;
     }
 
     //distance check for claims, distance in this case is a band around the outside of the claim rather then euclidean distance
-    public boolean isNear(Location location, int howNear)
-    {
+    public boolean isNear(Location location, int howNear) {
         Claim claim = new Claim
-                (new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
+                (null, new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
                         new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
                         null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
 
@@ -326,13 +305,12 @@ public class Claim
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Edit} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Edit} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
-    public @Nullable String allowEdit(@NotNull Player player)
-    {
+    public @Nullable String allowEdit(@NotNull Player player) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Edit, null);
         return supplier != null ? supplier.get() : null;
     }
@@ -350,55 +328,47 @@ public class Claim
             Material.CAVE_VINES,
             Material.CAVE_VINES_PLANT);
 
-    private static boolean placeableForFarming(Material material)
-    {
+    private static boolean placeableForFarming(Material material) {
         return PLACEABLE_FARMING_BLOCKS.contains(material);
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Build} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Build} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
     //build permission check
-    public @Nullable String allowBuild(@NotNull Player player, @NotNull Material material)
-    {
+    public @Nullable String allowBuild(@NotNull Player player, @NotNull Material material) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, false));
         return supplier != null ? supplier.get() : null;
     }
 
-    public static class CompatBuildBreakEvent extends Event
-    {
+    public static class CompatBuildBreakEvent extends Event {
         private final Material material;
         private final boolean isBreak;
 
-        private CompatBuildBreakEvent(Material material, boolean isBreak)
-        {
+        private CompatBuildBreakEvent(Material material, boolean isBreak) {
             this.material = material;
             this.isBreak = isBreak;
         }
 
-        public Material getMaterial()
-        {
+        public Material getMaterial() {
             return material;
         }
 
-        public boolean isBreak()
-        {
+        public boolean isBreak() {
             return isBreak;
         }
 
         @Override
-        public @NotNull HandlerList getHandlers()
-        {
+        public @NotNull HandlerList getHandlers() {
             return new HandlerList();
         }
 
     }
 
-    public boolean hasExplicitPermission(@NotNull UUID uuid, @NotNull ClaimPermission level)
-    {
+    public boolean hasExplicitPermission(@NotNull UUID uuid, @NotNull ClaimPermission level) {
         if (uuid.equals(this.getOwnerID())) return true;
 
         if (level == ClaimPermission.Manage) return this.managers.contains(uuid.toString());
@@ -406,16 +376,13 @@ public class Claim
         return level.isGrantedBy(this.playerIDToClaimPermissionMap.get(uuid.toString()));
     }
 
-    public boolean hasExplicitPermission(@NotNull Player player, @NotNull ClaimPermission level)
-    {
+    public boolean hasExplicitPermission(@NotNull Player player, @NotNull ClaimPermission level) {
         // Check explicit ClaimPermission for UUID
         if (this.hasExplicitPermission(player.getUniqueId(), level)) return true;
 
         // Special case managers - a separate list is used.
-        if (level == ClaimPermission.Manage)
-        {
-            for (String node : this.managers)
-            {
+        if (level == ClaimPermission.Manage) {
+            for (String node : this.managers) {
                 // Ensure valid permission format for permissions - [permission.node]
                 if (node.length() < 3 || node.charAt(0) != '[' || node.charAt(node.length() - 1) != ']') continue;
                 // Check if player has node
@@ -425,8 +392,7 @@ public class Claim
         }
 
         // Check permission-based ClaimPermission
-        for (Map.Entry<String, ClaimPermission> stringToPermission : this.playerIDToClaimPermissionMap.entrySet())
-        {
+        for (Map.Entry<String, ClaimPermission> stringToPermission : this.playerIDToClaimPermissionMap.entrySet()) {
             String node = stringToPermission.getKey();
             // Ensure valid permission format for permissions - [permission.node]
             if (node.length() < 3 || node.charAt(0) != '[' || node.charAt(node.length() - 1) != ']') continue;
@@ -451,8 +417,7 @@ public class Claim
     public @Nullable Supplier<String> checkPermission(
             @NotNull Player player,
             @NotNull ClaimPermission permission,
-            @Nullable Event event)
-    {
+            @Nullable Event event) {
         return checkPermission(player, permission, event, null);
     }
 
@@ -469,8 +434,7 @@ public class Claim
             @NotNull Player player,
             @NotNull ClaimPermission permission,
             @Nullable Event event,
-            @Nullable Supplier<String> denialOverride)
-    {
+            @Nullable Supplier<String> denialOverride) {
         return callPermissionCheck(new ClaimPermissionCheckEvent(player, this, permission, event), denialOverride);
     }
 
@@ -485,8 +449,7 @@ public class Claim
     public @Nullable Supplier<String> checkPermission(
             @NotNull UUID uuid,
             @NotNull ClaimPermission permission,
-            @Nullable Event event)
-    {
+            @Nullable Event event) {
         return callPermissionCheck(new ClaimPermissionCheckEvent(uuid, this, permission, event), null);
     }
 
@@ -499,8 +462,7 @@ public class Claim
      */
     private @Nullable Supplier<String> callPermissionCheck(
             @NotNull ClaimPermissionCheckEvent event,
-            @Nullable Supplier<String> denialOverride)
-    {
+            @Nullable Supplier<String> denialOverride) {
         // Set denial message (if any) using default behavior.
         Supplier<String> defaultDenial = getDefaultDenial(event.getCheckedPlayer(), event.getCheckedUUID(),
                 event.getRequiredPermission(), event.getTriggeringEvent());
@@ -529,13 +491,10 @@ public class Claim
             @Nullable Player player,
             @NotNull UUID uuid,
             @NotNull ClaimPermission permission,
-            @Nullable Event event)
-    {
-        if (player != null)
-        {
+            @Nullable Event event) {
+        if (player != null) {
             // Admin claims need adminclaims permission only.
-            if (this.isAdminClaim())
-            {
+            if (this.isAdminClaim()) {
                 if (player.hasPermission("griefprevention.adminclaims")) return null;
             }
 
@@ -551,12 +510,10 @@ public class Claim
             return null;
 
         // Look for explicit individual permission.
-        if (player != null)
-        {
+        if (player != null) {
             if (this.hasExplicitPermission(player, permission)) return null;
         }
-        else
-        {
+        else {
             if (this.hasExplicitPermission(uuid, permission)) return null;
         }
 
@@ -564,12 +521,10 @@ public class Claim
         if (permission.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 
         // Special building-only rules.
-        if (permission == ClaimPermission.Build)
-        {
+        if (permission == ClaimPermission.Build) {
             // No building while in PVP.
             PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(uuid);
-            if (playerData.inPvpCombat())
-            {
+            if (playerData.inPvpCombat()) {
                 return () -> GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
             }
 
@@ -584,8 +539,7 @@ public class Claim
         }
 
         // Permission inheritance for subdivisions.
-        if (this.parent != null)
-        {
+        if (this.parent != null) {
             if (!inheritNothing)
                 return this.parent.getDefaultDenial(player, uuid, permission, event);
         }
@@ -609,8 +563,7 @@ public class Claim
      * @return whether the player has the bypass node
      */
     @Contract("null, _ -> false")
-    private boolean hasBypassPermission(@Nullable Player player, @NotNull ClaimPermission permission)
-    {
+    private boolean hasBypassPermission(@Nullable Player player, @NotNull ClaimPermission permission) {
         if (player == null) return false;
 
         if (permission == ClaimPermission.Edit) return player.hasPermission("griefprevention.deleteclaims");
@@ -619,64 +572,58 @@ public class Claim
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Build} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Build} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
-    public @Nullable String allowBreak(@NotNull Player player, @NotNull Material material)
-    {
+    public @Nullable String allowBreak(@NotNull Player player, @NotNull Material material) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true));
         return supplier != null ? supplier.get() : null;
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Access} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Access} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
-    public @Nullable String allowAccess(@NotNull Player player)
-    {
+    public @Nullable String allowAccess(@NotNull Player player) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Access, null);
         return supplier != null ? supplier.get() : null;
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Inventory} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Inventory} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
-    public @Nullable String allowContainers(@NotNull Player player)
-    {
+    public @Nullable String allowContainers(@NotNull Player player) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Inventory, null);
         return supplier != null ? supplier.get() : null;
     }
 
     /**
-     * @deprecated Check {@link ClaimPermission#Manage} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      * @param player the Player
      * @return the denial message, or null if the action is allowed
+     * @deprecated Check {@link ClaimPermission#Manage} with {@link #checkPermission(Player, ClaimPermission, Event)}.
      */
     @Deprecated
-    public @Nullable String allowGrantPermission(@NotNull Player player)
-    {
+    public @Nullable String allowGrantPermission(@NotNull Player player) {
         Supplier<String> supplier = checkPermission(player, ClaimPermission.Manage, null);
         return supplier != null ? supplier.get() : null;
     }
 
     @Contract("null -> null")
-    public @Nullable ClaimPermission getPermission(@Nullable String playerID)
-    {
+    public @Nullable ClaimPermission getPermission(@Nullable String playerID) {
         if (playerID == null || playerID.isEmpty()) return null;
 
         return this.playerIDToClaimPermissionMap.get(playerID.toLowerCase());
     }
 
     //grants a permission for a player or the public
-    public void setPermission(@Nullable String playerID, @Nullable ClaimPermission permissionLevel)
-    {
+    public void setPermission(@Nullable String playerID, @Nullable ClaimPermission permissionLevel) {
         if (permissionLevel == ClaimPermission.Edit) throw new IllegalArgumentException("Cannot add editors!");
 
         if (playerID == null || playerID.isEmpty()) return;
@@ -690,48 +637,39 @@ public class Claim
     }
 
     //revokes a permission for a player or the public
-    public void dropPermission(@NotNull String playerID)
-    {
+    public void dropPermission(@NotNull String playerID) {
         playerID = playerID.toLowerCase();
         this.playerIDToClaimPermissionMap.remove(playerID);
         this.managers.remove(playerID);
 
-        for (Claim child : this.children)
-        {
+        for (Claim child : this.children) {
             child.dropPermission(playerID);
         }
     }
 
     //clears all permissions (except owner of course)
-    public void clearPermissions()
-    {
+    public void clearPermissions() {
         this.playerIDToClaimPermissionMap.clear();
         this.managers.clear();
 
-        for (Claim child : this.children)
-        {
+        for (Claim child : this.children) {
             child.clearPermissions();
         }
     }
 
     //gets ALL permissions
     //useful for  making copies of permissions during a claim resize and listing all permissions in a claim
-    public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers)
-    {
+    public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers) {
         //loop through all the entries in the hash map
-        for (Map.Entry<String, ClaimPermission> entry : this.playerIDToClaimPermissionMap.entrySet())
-        {
+        for (Map.Entry<String, ClaimPermission> entry : this.playerIDToClaimPermissionMap.entrySet()) {
             //build up a list for each permission level
-            if (entry.getValue() == ClaimPermission.Build)
-            {
+            if (entry.getValue() == ClaimPermission.Build) {
                 builders.add(entry.getKey());
             }
-            else if (entry.getValue() == ClaimPermission.Inventory)
-            {
+            else if (entry.getValue() == ClaimPermission.Inventory) {
                 containers.add(entry.getKey());
             }
-            else
-            {
+            else {
                 accessors.add(entry.getKey());
             }
         }
@@ -741,21 +679,18 @@ public class Claim
     }
 
     //returns a copy of the location representing lower x, y, z limits
-    public Location getLesserBoundaryCorner()
-    {
+    public Location getLesserBoundaryCorner() {
         return this.lesserBoundaryCorner.clone();
     }
 
     //returns a copy of the location representing upper x, y, z limits
     //NOTE: remember upper Y will always be ignored, all claims always extend to the sky
-    public Location getGreaterBoundaryCorner()
-    {
+    public Location getGreaterBoundaryCorner() {
         return this.greaterBoundaryCorner.clone();
     }
 
     //returns a friendly owner name (for admin claims, returns "an administrator" as the owner)
-    public String getOwnerName()
-    {
+    public String getOwnerName() {
         if (this.parent != null)
             return this.parent.getOwnerName();
 
@@ -765,10 +700,8 @@ public class Claim
         return GriefPrevention.lookupPlayerName(this.ownerID);
     }
 
-    public UUID getOwnerID()
-    {
-        if (this.parent != null)
-        {
+    public UUID getOwnerID() {
+        if (this.parent != null) {
             return this.parent.ownerID;
         }
         return this.ownerID;
@@ -777,8 +710,7 @@ public class Claim
     //whether or not a location is in a claim
     //ignoreHeight = true means location UNDER the claim will return TRUE
     //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE
-    public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions)
-    {
+    public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions) {
         //not in the same world implies false
         if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
 
@@ -787,13 +719,11 @@ public class Claim
         int z = location.getBlockZ();
 
         // If we're ignoring height, use 2D containment check.
-        if (ignoreHeight && !boundingBox.contains2d(x, z))
-        {
+        if (ignoreHeight && !boundingBox.contains2d(x, z)) {
             return false;
         }
         // Otherwise use full containment check.
-        else if (!ignoreHeight && !boundingBox.contains(x, location.getBlockY(), z))
-        {
+        else if (!ignoreHeight && !boundingBox.contains(x, location.getBlockY(), z)) {
             return false;
         }
 
@@ -801,20 +731,16 @@ public class Claim
         //you're only in a subdivision when you're also in its parent claim
         //NOTE: if a player creates subdivions then resizes the parent claim, it's possible that
         //a subdivision can reach outside of its parent's boundaries.  so this check is important!
-        if (this.parent != null)
-        {
+        if (this.parent != null) {
             return this.parent.contains(location, ignoreHeight, false);
         }
 
         //code to exclude subdivisions in this check
-        else if (excludeSubdivisions)
-        {
+        else if (excludeSubdivisions) {
             //search all subdivisions to see if the location is in any of them
-            for (Claim child : this.children)
-            {
+            for (Claim child : this.children) {
                 //if we find such a subdivision, return false
-                if (child.contains(location, ignoreHeight, true))
-                {
+                if (child.contains(location, ignoreHeight, true)) {
                     return false;
                 }
             }
@@ -826,16 +752,15 @@ public class Claim
 
     //whether or not two claims overlap
     //used internally to prevent overlaps when creating claims
-    public boolean overlaps(Claim otherClaim)
-    {
-        if (!Objects.equals(this.lesserBoundaryCorner.getWorld(), otherClaim.getLesserBoundaryCorner().getWorld())) return false;
+    public boolean overlaps(Claim otherClaim) {
+        if (!Objects.equals(this.lesserBoundaryCorner.getWorld(), otherClaim.getLesserBoundaryCorner().getWorld()))
+            return false;
 
         return new BoundingBox(this).intersects(new BoundingBox(otherClaim));
     }
 
     //whether more entities may be added to a claim
-    public String allowMoreEntities(boolean remove)
-    {
+    public String allowMoreEntities(boolean remove) {
         if (this.parent != null) return this.parent.allowMoreEntities(remove);
 
         //this rule only applies to creative mode worlds
@@ -854,13 +779,10 @@ public class Claim
         //count current entities (ignoring players)
         int totalEntities = 0;
         ArrayList<Chunk> chunks = this.getChunks();
-        for (Chunk chunk : chunks)
-        {
+        for (Chunk chunk : chunks) {
             Entity[] entities = chunk.getEntities();
-            for (Entity entity : entities)
-            {
-                if (!(entity instanceof Player) && this.contains(entity.getLocation(), false, false))
-                {
+            for (Entity entity : entities) {
+                if (!(entity instanceof Player) && this.contains(entity.getLocation(), false, false)) {
                     totalEntities++;
                     if (remove && totalEntities > maxEntities) entity.remove();
                 }
@@ -873,8 +795,7 @@ public class Claim
         return null;
     }
 
-    public String allowMoreActiveBlocks()
-    {
+    public String allowMoreActiveBlocks() {
         if (this.parent != null) return this.parent.allowMoreActiveBlocks();
 
         //determine maximum allowable entity count, based on claim size
@@ -885,15 +806,11 @@ public class Claim
         //count current actives
         int totalActives = 0;
         ArrayList<Chunk> chunks = this.getChunks();
-        for (Chunk chunk : chunks)
-        {
+        for (Chunk chunk : chunks) {
             BlockState[] actives = chunk.getTileEntities();
-            for (BlockState active : actives)
-            {
-                if (BlockEventHandler.isActiveBlock(active))
-                {
-                    if (this.contains(active.getLocation(), false, false))
-                    {
+            for (BlockState active : actives) {
+                if (BlockEventHandler.isActiveBlock(active)) {
+                    if (this.contains(active.getLocation(), false, false)) {
                         totalActives++;
                     }
                 }
@@ -907,8 +824,7 @@ public class Claim
     }
 
     //implements a strict ordering of claims, used to keep the claims collection sorted for faster searching
-    boolean greaterThan(Claim otherClaim)
-    {
+    boolean greaterThan(Claim otherClaim) {
         Location thisCorner = this.getLesserBoundaryCorner();
         Location otherCorner = otherClaim.getLesserBoundaryCorner();
 
@@ -924,8 +840,7 @@ public class Claim
     }
 
 
-    public long getPlayerInvestmentScore()
-    {
+    public long getPlayerInvestmentScore() {
         //decide which blocks will be considered player placed
         Location lesserBoundaryCorner = this.getLesserBoundaryCorner();
         Set<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
@@ -935,42 +850,31 @@ public class Claim
 
         boolean creativeMode = GriefPrevention.instance.creativeRulesApply(lesserBoundaryCorner);
 
-        for (int x = this.lesserBoundaryCorner.getBlockX(); x <= this.greaterBoundaryCorner.getBlockX(); x++)
-        {
-            for (int z = this.lesserBoundaryCorner.getBlockZ(); z <= this.greaterBoundaryCorner.getBlockZ(); z++)
-            {
+        for (int x = this.lesserBoundaryCorner.getBlockX(); x <= this.greaterBoundaryCorner.getBlockX(); x++) {
+            for (int z = this.lesserBoundaryCorner.getBlockZ(); z <= this.greaterBoundaryCorner.getBlockZ(); z++) {
                 int y = this.lesserBoundaryCorner.getBlockY();
-                for (; y < GriefPrevention.instance.getSeaLevel(this.lesserBoundaryCorner.getWorld()) - 5; y++)
-                {
+                for (; y < GriefPrevention.instance.getSeaLevel(this.lesserBoundaryCorner.getWorld()) - 5; y++) {
                     Block block = this.lesserBoundaryCorner.getWorld().getBlockAt(x, y, z);
-                    if (playerBlocks.contains(block.getType()))
-                    {
-                        if (block.getType() == Material.CHEST && !creativeMode)
-                        {
+                    if (playerBlocks.contains(block.getType())) {
+                        if (block.getType() == Material.CHEST && !creativeMode) {
                             score += 10;
                         }
-                        else
-                        {
+                        else {
                             score += .5;
                         }
                     }
                 }
 
-                for (; y < this.lesserBoundaryCorner.getWorld().getMaxHeight(); y++)
-                {
+                for (; y < this.lesserBoundaryCorner.getWorld().getMaxHeight(); y++) {
                     Block block = this.lesserBoundaryCorner.getWorld().getBlockAt(x, y, z);
-                    if (playerBlocks.contains(block.getType()))
-                    {
-                        if (block.getType() == Material.CHEST && !creativeMode)
-                        {
+                    if (playerBlocks.contains(block.getType())) {
+                        if (block.getType() == Material.CHEST && !creativeMode) {
                             score += 10;
                         }
-                        else if (creativeMode && (block.getType() == Material.LAVA))
-                        {
+                        else if (creativeMode && (block.getType() == Material.LAVA)) {
                             score -= 10;
                         }
-                        else
-                        {
+                        else {
                             score += 1;
                         }
                     }
@@ -981,18 +885,15 @@ public class Claim
         return (long) score;
     }
 
-    public ArrayList<Chunk> getChunks()
-    {
+    public ArrayList<Chunk> getChunks() {
         ArrayList<Chunk> chunks = new ArrayList<>();
 
         World world = this.getLesserBoundaryCorner().getWorld();
         Chunk lesserChunk = this.getLesserBoundaryCorner().getChunk();
         Chunk greaterChunk = this.getGreaterBoundaryCorner().getChunk();
 
-        for (int x = lesserChunk.getX(); x <= greaterChunk.getX(); x++)
-        {
-            for (int z = lesserChunk.getZ(); z <= greaterChunk.getZ(); z++)
-            {
+        for (int x = lesserChunk.getX(); x <= greaterChunk.getX(); x++) {
+            for (int z = lesserChunk.getZ(); z <= greaterChunk.getZ(); z++) {
                 chunks.add(world.getChunkAt(x, z));
             }
         }
@@ -1000,8 +901,7 @@ public class Claim
         return chunks;
     }
 
-    public ArrayList<Long> getChunkHashes()
-    {
+    public ArrayList<Long> getChunkHashes() {
         return DataStore.getChunkHashes(this);
     }
 }

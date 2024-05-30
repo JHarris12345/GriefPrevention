@@ -11,8 +11,7 @@ import java.util.Objects;
 /**
  * An element of a {@link BlockBoundaryVisualization}.
  */
-public abstract class BlockElement
-{
+public abstract class BlockElement {
 
     private final @NotNull IntVector coordinate;
 
@@ -30,8 +29,7 @@ public abstract class BlockElement
      *
      * @return the coordinate
      */
-    public @NotNull IntVector getCoordinate()
-    {
+    public @NotNull IntVector getCoordinate() {
         return coordinate;
     }
 
@@ -52,8 +50,7 @@ public abstract class BlockElement
     protected abstract void erase(@NotNull Player player, @NotNull World world);
 
     @Override
-    public boolean equals(@Nullable Object other)
-    {
+    public boolean equals(@Nullable Object other) {
         if (this == other) return true;
         if (other == null || !getClass().isAssignableFrom(other.getClass())) return false;
         BlockElement that = (BlockElement) other;
@@ -61,8 +58,7 @@ public abstract class BlockElement
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return Objects.hash(coordinate);
     }
 

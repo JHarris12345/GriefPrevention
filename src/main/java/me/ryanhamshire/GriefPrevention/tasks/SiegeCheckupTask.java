@@ -19,9 +19,9 @@
 package me.ryanhamshire.GriefPrevention.tasks;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.objects.SiegeData;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.SiegeData;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import org.bukkit.entity.Player;
 
@@ -29,18 +29,15 @@ import java.util.function.Supplier;
 
 //checks to see whether or not a siege should end based on the locations of the players
 //for example, defender escaped or attacker gave up and left
-public class SiegeCheckupTask implements Runnable
-{
+public class SiegeCheckupTask implements Runnable {
     private final SiegeData siegeData;
 
-    public SiegeCheckupTask(SiegeData siegeData)
-    {
+    public SiegeCheckupTask(SiegeData siegeData) {
         this.siegeData = siegeData;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         DataStore dataStore = GriefPrevention.instance.dataStore;
         Player defender = this.siegeData.defender;
         Player attacker = this.siegeData.attacker;
@@ -49,11 +46,9 @@ public class SiegeCheckupTask implements Runnable
         Claim defenderClaim = dataStore.getClaimAt(defender.getLocation(), false, null);
 
         //if this is a new claim and he has some permission there, extend the siege to include it
-        if (defenderClaim != null)
-        {
+        if (defenderClaim != null) {
             Supplier<String> noAccessReason = defenderClaim.checkPermission(defender, ClaimPermission.Access, null);
-            if (defenderClaim.canSiege(defender) && noAccessReason == null)
-            {
+            if (defenderClaim.canSiege(defender) && noAccessReason == null) {
                 this.siegeData.claims.add(defenderClaim);
                 defenderClaim.siegeData = this.siegeData;
             }
@@ -64,20 +59,17 @@ public class SiegeCheckupTask implements Runnable
         boolean defenderRemains = this.playerRemains(defender);
 
         //if they're both here, just plan to come check again later
-        if (attackerRemains && defenderRemains)
-        {
+        if (attackerRemains && defenderRemains) {
             this.scheduleAnotherCheck();
         }
 
         //otherwise attacker wins if the defender runs away
-        else if (attackerRemains && !defenderRemains)
-        {
+        else if (attackerRemains && !defenderRemains) {
             dataStore.endSiege(this.siegeData, attacker.getName(), defender.getName(), null);
         }
 
         //or defender wins if the attacker leaves
-        else if (!attackerRemains && defenderRemains)
-        {
+        else if (!attackerRemains && defenderRemains) {
             dataStore.endSiege(this.siegeData, defender.getName(), attacker.getName(), null);
         }
 
@@ -88,20 +80,16 @@ public class SiegeCheckupTask implements Runnable
         }
 
         //otherwise they both left and aren't close to each other, so call the attacker the winner (defender escaped, possibly after a chase)
-        else
-        {
+        else {
             dataStore.endSiege(this.siegeData, attacker.getName(), defender.getName(), null);
         }
     }
 
     //a player has to be within 25 blocks of the edge of a besieged claim to be considered still in the fight
-    private boolean playerRemains(Player player)
-    {
-        for (int i = 0; i < this.siegeData.claims.size(); i++)
-        {
+    private boolean playerRemains(Player player) {
+        for (int i = 0; i < this.siegeData.claims.size(); i++) {
             Claim claim = this.siegeData.claims.get(i);
-            if (claim.isNear(player.getLocation(), 25))
-            {
+            if (claim.isNear(player.getLocation(), 25)) {
                 return true;
             }
         }
@@ -110,8 +98,7 @@ public class SiegeCheckupTask implements Runnable
     }
 
     //schedules another checkup later
-    private void scheduleAnotherCheck()
-    {
+    private void scheduleAnotherCheck() {
         this.siegeData.checkupTaskID = GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, this, 20L * 30);
     }
 }

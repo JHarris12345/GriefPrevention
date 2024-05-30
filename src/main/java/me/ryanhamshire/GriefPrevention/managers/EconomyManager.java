@@ -11,15 +11,13 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 /**
  * Listener for events which may result in a change in the active Economy.
  */
-public class EconomyManager implements Listener
-{
+public class EconomyManager implements Listener {
 
     private final GriefPrevention instance;
     private boolean setupDone = false;
     private EconomyWrapper economy = null;
 
-    public EconomyManager(GriefPrevention instance)
-    {
+    public EconomyManager(GriefPrevention instance) {
         this.instance = instance;
     }
 
@@ -28,8 +26,7 @@ public class EconomyManager implements Listener
      *
      * @return the current wrapped Economy or null if no Economy is active
      */
-    public EconomyWrapper getWrapper()
-    {
+    public EconomyWrapper getWrapper() {
         // Attempt to load the Economy if it is not already set up.
         loadEconomy(false);
 
@@ -42,8 +39,7 @@ public class EconomyManager implements Listener
      * @param event the PluginEnableEvent
      */
     @EventHandler
-    private void onPluginEnable(PluginEnableEvent event)
-    {
+    private void onPluginEnable(PluginEnableEvent event) {
         loadEconomy(true);
     }
 
@@ -53,8 +49,7 @@ public class EconomyManager implements Listener
      * @param event the PluginDisableEvent
      */
     @EventHandler
-    private void onPluginDisable(PluginDisableEvent event)
-    {
+    private void onPluginDisable(PluginDisableEvent event) {
         loadEconomy(true);
     }
 
@@ -64,25 +59,21 @@ public class EconomyManager implements Listener
      *
      * @param setupState the expected setup state
      */
-    private void loadEconomy(boolean setupState)
-    {
+    private void loadEconomy(boolean setupState) {
         // If no change is likely, have we already obtained the Economy?
         if (setupState != setupDone) return;
 
         // Are we configured to allow transactions?
-        if (!(instance.config_economy_claimBlocksPurchaseCost > 0 || instance.config_economy_claimBlocksSellValue > 0))
-        {
+        if (!(instance.config_economy_claimBlocksPurchaseCost > 0 || instance.config_economy_claimBlocksSellValue > 0)) {
             finishSetup(false, null);
             return;
         }
 
         // Ensure Vault present.
-        try
-        {
+        try {
             Class.forName("net.milkbowl.vault.economy.Economy");
         }
-        catch (ClassNotFoundException e)
-        {
+        catch (ClassNotFoundException e) {
             finishSetup(false, "ERROR: GriefPrevention requires Vault for economy integration.");
             return;
         }
@@ -90,8 +81,7 @@ public class EconomyManager implements Listener
         RegisteredServiceProvider<Economy> registration = instance.getServer().getServicesManager().getRegistration(Economy.class);
 
         // Ensure an Economy is available.
-        if (registration == null)
-        {
+        if (registration == null) {
             finishSetup(false, "ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
             return;
         }
@@ -120,18 +110,15 @@ public class EconomyManager implements Listener
      * Wrapper class used to prevent Bukkit from logging an error and
      * preventing registering events for the listener when Vault is not loaded.
      */
-    public static class EconomyWrapper
-    {
+    public static class EconomyWrapper {
 
         private final Economy economy;
 
-        private EconomyWrapper(Economy economy)
-        {
+        private EconomyWrapper(Economy economy) {
             this.economy = economy;
         }
 
-        public Economy getEconomy()
-        {
+        public Economy getEconomy() {
             return this.economy;
         }
 

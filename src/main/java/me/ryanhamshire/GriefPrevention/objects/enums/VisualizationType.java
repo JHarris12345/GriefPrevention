@@ -23,18 +23,15 @@ import org.bukkit.block.data.BlockData;
 /**
  * @deprecated {@link com.griefprevention.visualization.VisualizationType}
  */
-public enum VisualizationType
-{
+public enum VisualizationType {
     Claim,
     Subdivision,
     ErrorClaim,
     RestoreNature,
     AdminClaim;
 
-    public com.griefprevention.visualization.VisualizationType convert()
-    {
-        return switch (this)
-        {
+    public com.griefprevention.visualization.VisualizationType convert() {
+        return switch (this) {
             case Claim -> com.griefprevention.visualization.VisualizationType.CLAIM;
             case Subdivision -> com.griefprevention.visualization.VisualizationType.SUBDIVISION;
             case ErrorClaim -> com.griefprevention.visualization.VisualizationType.CONFLICT_ZONE;

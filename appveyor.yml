@@ -25,5 +25,5 @@ test_script:
 cache:
   - C:\Users\appveyor\.m2
 artifacts:
-- path: target/GriefPrevention.jar
-  name: GriefPrevention
+  - path: target/GriefPrevention.jar
+    name: GriefPrevention

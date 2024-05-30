@@ -8,8 +8,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * An {@link org.bukkit.event.Event Event} called when a {@link Claim} is resized.
  */
-public class ClaimResizeEvent extends ClaimChangeEvent
-{
+public class ClaimResizeEvent extends ClaimChangeEvent {
 
     private final @Nullable CommandSender modifier;
 
@@ -22,8 +21,7 @@ public class ClaimResizeEvent extends ClaimChangeEvent
      * @param to the resulting {@code Claim}
      * @param modifier the {@link CommandSender} causing modification
      */
-    public ClaimResizeEvent(@NotNull Claim from, @NotNull Claim to, @Nullable CommandSender modifier)
-    {
+    public ClaimResizeEvent(@NotNull Claim from, @NotNull Claim to, @Nullable CommandSender modifier) {
         super(from, to);
         this.modifier = modifier;
     }
@@ -33,8 +31,7 @@ public class ClaimResizeEvent extends ClaimChangeEvent
      *
      * @return the actor causing creation
      */
-    public @Nullable CommandSender getModifier()
-    {
+    public @Nullable CommandSender getModifier() {
         return modifier;
     }
 
@@ -45,8 +42,7 @@ public class ClaimResizeEvent extends ClaimChangeEvent
      * @deprecated Use {@link #getTo()} instead.
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public @NotNull Claim getClaim()
-    {
+    public @NotNull Claim getClaim() {
         return getTo();
     }
 }

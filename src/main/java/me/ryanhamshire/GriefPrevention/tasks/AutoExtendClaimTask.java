@@ -22,16 +22,14 @@ import java.util.Objects;
 import java.util.Set;
 
 //automatically extends a claim downward based on block types detected
-public class AutoExtendClaimTask implements Runnable
-{
+public class AutoExtendClaimTask implements Runnable {
 
     /**
      * Assemble information and schedule a task to update claim depth to include existing structures.
      *
      * @param claim the claim to extend the depth of
      */
-    public static void scheduleAsync(Claim claim)
-    {
+    public static void scheduleAsync(Claim claim) {
         Location lesserCorner = claim.getLesserBoundaryCorner();
         Location greaterCorner = claim.getGreaterBoundaryCorner();
         World world = lesserCorner.getWorld();
@@ -40,17 +38,13 @@ public class AutoExtendClaimTask implements Runnable
 
         int lowestLootableTile = lesserCorner.getBlockY();
         ArrayList<ChunkSnapshot> snapshots = new ArrayList<>();
-        for (int chunkX = lesserCorner.getBlockX() / 16; chunkX <= greaterCorner.getBlockX() / 16; chunkX++)
-        {
-            for (int chunkZ = lesserCorner.getBlockZ() / 16; chunkZ <= greaterCorner.getBlockZ() / 16; chunkZ++)
-            {
-                if (world.isChunkLoaded(chunkX, chunkZ))
-                {
+        for (int chunkX = lesserCorner.getBlockX() / 16; chunkX <= greaterCorner.getBlockX() / 16; chunkX++) {
+            for (int chunkZ = lesserCorner.getBlockZ() / 16; chunkZ <= greaterCorner.getBlockZ() / 16; chunkZ++) {
+                if (world.isChunkLoaded(chunkX, chunkZ)) {
                     Chunk chunk = world.getChunkAt(chunkX, chunkZ);
 
                     // If we're on the main thread, access to tile entities will speed up the process.
-                    if (Bukkit.isPrimaryThread())
-                    {
+                    if (Bukkit.isPrimaryThread()) {
                         // Find the lowest non-natural storage block in the chunk.
                         // This way chests, barrels, etc. are always protected even if player block definitions are lacking.
                         lowestLootableTile = Math.min(lowestLootableTile, Arrays.stream(chunk.getTileEntities())
@@ -85,8 +79,7 @@ public class AutoExtendClaimTask implements Runnable
             @NotNull Claim claim,
             @NotNull ArrayList<@NotNull ChunkSnapshot> chunks,
             @NotNull Environment worldType,
-            int lowestExistingY)
-    {
+            int lowestExistingY) {
         this.claim = claim;
         this.chunks = chunks;
         this.worldType = worldType;
@@ -97,23 +90,19 @@ public class AutoExtendClaimTask implements Runnable
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         int newY = this.getLowestBuiltY();
-        if (newY < this.claim.getLesserBoundaryCorner().getBlockY())
-        {
+        if (newY < this.claim.getLesserBoundaryCorner().getBlockY()) {
             Bukkit.getScheduler().runTask(GriefPrevention.instance, new ExecuteExtendClaimTask(claim, newY));
         }
     }
 
-    private int getLowestBuiltY()
-    {
+    private int getLowestBuiltY() {
         int y = this.lowestExistingY;
 
         if (yTooSmall(y)) return this.minY;
 
-        for (ChunkSnapshot chunk : this.chunks)
-        {
+        for (ChunkSnapshot chunk : this.chunks) {
             y = findLowerBuiltY(chunk, y);
 
             // If already at minimum Y, stop searching.
@@ -123,15 +112,12 @@ public class AutoExtendClaimTask implements Runnable
         return y;
     }
 
-    private int findLowerBuiltY(ChunkSnapshot chunkSnapshot, int y)
-    {
+    private int findLowerBuiltY(ChunkSnapshot chunkSnapshot, int y) {
         // Specifically not using yTooSmall here to allow protecting bottom layer.
-        nextY: for (int newY = y - 1; newY >= this.minY; newY--)
-        {
-            for (int x = 0; x < 16; x++)
-            {
-                for (int z = 0; z < 16; z++)
-                {
+        nextY:
+        for (int newY = y - 1; newY >= this.minY; newY--) {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
                     // If the block is natural, ignore it and continue searching the same Y level.
                     if (!isPlayerBlock(chunkSnapshot, x, newY, z)) continue;
 
@@ -139,8 +125,7 @@ public class AutoExtendClaimTask implements Runnable
                     if (yTooSmall(y)) return this.minY;
 
                     // Because we found a player block, repeatedly check the next block in the column.
-                    while (isPlayerBlock(chunkSnapshot, x, newY--, z))
-                    {
+                    while (isPlayerBlock(chunkSnapshot, x, newY--, z)) {
                         // If we've hit minimum Y we're done searching.
                         if (yTooSmall(y)) return this.minY;
                     }
@@ -161,30 +146,25 @@ public class AutoExtendClaimTask implements Runnable
         return y;
     }
 
-    private boolean yTooSmall(int y)
-    {
+    private boolean yTooSmall(int y) {
         return y <= this.minY;
     }
 
-    private boolean isPlayerBlock(ChunkSnapshot chunkSnapshot, int x, int y, int z)
-    {
+    private boolean isPlayerBlock(ChunkSnapshot chunkSnapshot, int x, int y, int z) {
         Material blockType = chunkSnapshot.getBlockType(x, y, z);
         Biome biome = chunkSnapshot.getBiome(x, y, z);
 
         return this.getBiomePlayerBlocks(biome).contains(blockType);
     }
 
-    private Set<Material> getBiomePlayerBlocks(Biome biome)
-    {
+    private Set<Material> getBiomePlayerBlocks(Biome biome) {
         return biomePlayerMaterials.computeIfAbsent(biome, newBiome -> RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, newBiome));
     }
 
     //runs in the main execution thread, where it can safely change claims and save those changes
-    private record ExecuteExtendClaimTask(Claim claim, int newY) implements Runnable
-    {
+    private record ExecuteExtendClaimTask(Claim claim, int newY) implements Runnable {
         @Override
-        public void run()
-        {
+        public void run() {
             GriefPrevention.instance.dataStore.extendClaim(claim, newY);
         }
     }

@@ -23,11 +23,11 @@ import java.util.Set;
  * @deprecated Replaced with {@link BoundaryVisualizationEvent}
  */
 @Deprecated(forRemoval = true, since = "16.18")
-public class VisualizationEvent extends PlayerEvent
-{
+public class VisualizationEvent extends PlayerEvent {
 
     private final @Nullable Visualization visualization;
-    private final @NotNull @Unmodifiable Collection<Claim> claims;
+    private final @NotNull
+    @Unmodifiable Collection<Claim> claims;
     private final boolean showSubdivides;
     private final boolean visualizingNearbyClaims;
 
@@ -38,8 +38,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param visualization the {@link Visualization} to send
      * @param claim the {@code Claim} being visualized with subdivisions
      */
-    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Claim claim)
-    {
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Claim claim) {
         super(player);
         this.visualization = visualization;
         this.claims = Collections.singleton(claim);
@@ -54,8 +53,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param visualization the {@link Visualization} to send
      * @param claims the {@code Claims} being visualized without subdivisions
      */
-    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims)
-    {
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims) {
         this(player, visualization, claims, false);
     }
 
@@ -67,8 +65,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param claims the {@code Claims} being visualized without subdivisions
      * @param visualizingNearbyClaims whether the visualization includes area claims or just the target location
      */
-    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims, boolean visualizingNearbyClaims)
-    {
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims, boolean visualizingNearbyClaims) {
         super(player);
         this.visualization = visualization;
         this.claims = Collections.unmodifiableCollection(new HashSet<>(claims));
@@ -81,8 +78,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return the {@code Visualization} object
      */
-    public @Nullable Visualization getVisualization()
-    {
+    public @Nullable Visualization getVisualization() {
         return visualization;
     }
 
@@ -93,8 +89,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return an unmodifiable {@code Collection} of {@code Claims}
      */
-    public @NotNull @Unmodifiable Collection<Claim> getClaims()
-    {
+    public @NotNull @Unmodifiable Collection<Claim> getClaims() {
         return claims;
     }
 
@@ -103,8 +98,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return true if subdivisions are displayed
      */
-    public boolean showSubdivides()
-    {
+    public boolean showSubdivides() {
         return showSubdivides;
     }
 
@@ -114,8 +108,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return true if nearby {@code Claims} are displayed
      */
-    public boolean isVisualizingNearbyClaims()
-    {
+    public boolean isVisualizingNearbyClaims() {
         return visualizingNearbyClaims;
     }
 
@@ -124,8 +117,7 @@ public class VisualizationEvent extends PlayerEvent
         private final Set<String> nags = new HashSet<>();
 
         @Override
-        public synchronized void register(@NotNull RegisteredListener listener)
-        {
+        public synchronized void register(@NotNull RegisteredListener listener) {
             Plugin plugin = listener.getPlugin();
 
             if (nags.add(plugin.getName()))
@@ -137,14 +129,12 @@ public class VisualizationEvent extends PlayerEvent
         }
     };
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

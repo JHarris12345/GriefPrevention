@@ -15,8 +15,7 @@ import java.util.UUID;
  * @author bertek41 on 10/30/2021
  */
 
-public class ClaimTransferEvent extends ClaimEvent implements Cancellable
-{
+public class ClaimTransferEvent extends ClaimEvent implements Cancellable {
 
     private @Nullable UUID newOwner;
 
@@ -37,8 +36,7 @@ public class ClaimTransferEvent extends ClaimEvent implements Cancellable
      *
      * @return the {@code UUID} of the new owner
      */
-    public @Nullable UUID getNewOwner()
-    {
+    public @Nullable UUID getNewOwner() {
         return newOwner;
     }
 
@@ -48,22 +46,19 @@ public class ClaimTransferEvent extends ClaimEvent implements Cancellable
      *
      * @param newOwner the {@code UUID} of the new owner
      */
-    public void setNewOwner(@Nullable UUID newOwner)
-    {
+    public void setNewOwner(@Nullable UUID newOwner) {
         this.newOwner = newOwner;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -71,14 +66,12 @@ public class ClaimTransferEvent extends ClaimEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

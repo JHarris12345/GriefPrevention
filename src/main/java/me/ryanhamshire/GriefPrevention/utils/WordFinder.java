@@ -4,26 +4,21 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WordFinder
-{
+public class WordFinder {
     private Pattern pattern;
 
-    WordFinder(List<String> wordsToFind)
-    {
+    WordFinder(List<String> wordsToFind) {
         if (wordsToFind.size() == 0) return;
 
         StringBuilder patternBuilder = new StringBuilder();
-        for (String word : wordsToFind)
-        {
-            if (!word.isEmpty() && !word.trim().isEmpty())
-            {
+        for (String word : wordsToFind) {
+            if (!word.isEmpty() && !word.trim().isEmpty()) {
                 patternBuilder.append("|(([^\\w]|^)").append(Pattern.quote(word)).append("([^\\w]|$))");
             }
         }
 
         String patternString = patternBuilder.toString();
-        if (patternString.length() > 1)
-        {
+        if (patternString.length() > 1) {
             //trim extraneous leading pipe (|)
             patternString = patternString.substring(1);
         }
@@ -33,8 +28,7 @@ public class WordFinder
         this.pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }
 
-    boolean hasMatch(String input)
-    {
+    boolean hasMatch(String input) {
         if (this.pattern == null) return false;
 
         Matcher matcher = this.pattern.matcher(input);

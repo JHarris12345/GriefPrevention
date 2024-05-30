@@ -11,30 +11,26 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Tux2
  */
-public class ClaimDeletedEvent extends ClaimEvent
-{
+public class ClaimDeletedEvent extends ClaimEvent {
 
     /**
      * Construct a new {@code ClaimDeletedEvent}.
      *
      * @param claim the {@link Claim} being deleted
      */
-    public ClaimDeletedEvent(@NotNull Claim claim)
-    {
+    public ClaimDeletedEvent(@NotNull Claim claim) {
         super(claim);
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

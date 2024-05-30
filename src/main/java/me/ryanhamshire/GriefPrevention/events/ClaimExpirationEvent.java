@@ -10,30 +10,26 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>If cancelled, deletion will be prevented.
  */
-public class ClaimExpirationEvent extends ClaimEvent implements Cancellable
-{
+public class ClaimExpirationEvent extends ClaimEvent implements Cancellable {
 
     /**
      * Construct a new {@code ClaimExpirationEvent}.
      *
      * @param claim the {@link Claim} expiring
      */
-    public ClaimExpirationEvent(@NotNull Claim claim)
-    {
+    public ClaimExpirationEvent(@NotNull Claim claim) {
         super(claim);
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -41,14 +37,12 @@ public class ClaimExpirationEvent extends ClaimEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

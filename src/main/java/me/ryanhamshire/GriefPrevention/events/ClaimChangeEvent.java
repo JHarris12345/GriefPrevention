@@ -15,8 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * apply changes to the {@link #getFrom() existing claim} for better compatibility with add-ons holding instances.
  * Additionally, while the new claim is modifiable, modifications will not necessarily be respected by implementations.
  */
-public class ClaimChangeEvent extends Event implements Cancellable
-{
+public class ClaimChangeEvent extends Event implements Cancellable {
 
     private final @NotNull Claim from;
     private final @NotNull Claim to;
@@ -27,8 +26,7 @@ public class ClaimChangeEvent extends Event implements Cancellable
      * @param from the original {@link Claim}
      * @param to the resulting {@code Claim}
      */
-    public ClaimChangeEvent(@NotNull Claim from, @NotNull Claim to)
-    {
+    public ClaimChangeEvent(@NotNull Claim from, @NotNull Claim to) {
         this.from = from;
         this.to = to;
     }
@@ -38,8 +36,7 @@ public class ClaimChangeEvent extends Event implements Cancellable
      *
      * @return the initial {@code Claim}
      */
-    public @NotNull Claim getFrom()
-    {
+    public @NotNull Claim getFrom() {
         return from;
     }
 
@@ -48,22 +45,19 @@ public class ClaimChangeEvent extends Event implements Cancellable
      *
      * @return the resulting {@code Claim}
      */
-    public @NotNull Claim getTo()
-    {
+    public @NotNull Claim getTo() {
         return to;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -71,14 +65,12 @@ public class ClaimChangeEvent extends Event implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

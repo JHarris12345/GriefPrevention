@@ -1,7 +1,6 @@
 package me.ryanhamshire.GriefPrevention.objects.enums;
 
-public enum CommandCategory
-{
+public enum CommandCategory {
     Chat,
     Whisper,
     None

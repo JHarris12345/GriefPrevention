@@ -21,32 +21,29 @@ package me.ryanhamshire.GriefPrevention.tasks;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
-import me.ryanhamshire.GriefPrevention.objects.PlayerData;
-import me.ryanhamshire.GriefPrevention.objects.enums.ShovelMode;
-import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.PlayerData;
+import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
+import me.ryanhamshire.GriefPrevention.objects.enums.ShovelMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
 //tells a player about how many claim blocks he has, etc
 //implemented as a task so that it can be delayed
 //otherwise, it's spammy when players mouse-wheel past the shovel in their hot bars
-public class EquipShovelProcessingTask implements Runnable
-{
+public class EquipShovelProcessingTask implements Runnable {
     //player data
     private final Player player;
 
-    public EquipShovelProcessingTask(Player player)
-    {
+    public EquipShovelProcessingTask(Player player) {
         this.player = player;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         //if he's not holding the golden shovel anymore, do nothing
         if (GriefPrevention.instance.getItemInHand(player, EquipmentSlot.HAND).getType() != GriefPrevention.instance.config_claims_modificationTool)
             return;
@@ -58,8 +55,7 @@ public class EquipShovelProcessingTask implements Runnable
         playerData.claimResizing = null;
 
         //always reset to basic claims mode
-        if (playerData.shovelMode != ShovelMode.Basic)
-        {
+        if (playerData.shovelMode != ShovelMode.Basic) {
             playerData.shovelMode = ShovelMode.Basic;
             GriefPrevention.sendMessage(player, TextMode.Info, Messages.ShovelBasicClaimMode);
         }
@@ -69,19 +65,16 @@ public class EquipShovelProcessingTask implements Runnable
         GriefPrevention.sendMessage(player, TextMode.Instr, Messages.RemainingBlocks, String.valueOf(remainingBlocks));
 
         //link to a video demo of land claiming, based on world type
-        if (GriefPrevention.instance.creativeRulesApply(player.getLocation()))
-        {
+        if (GriefPrevention.instance.creativeRulesApply(player.getLocation())) {
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
         }
-        else if (GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
-        {
+        else if (GriefPrevention.instance.claimsEnabledForWorld(player.getWorld())) {
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
         }
 
         //if standing in a claim owned by the player, visualize it
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
-        if (claim != null && claim.checkPermission(player, ClaimPermission.Edit, null) == null)
-        {
+        if (claim != null && claim.checkPermission(player, ClaimPermission.Edit, null) == null) {
             playerData.lastClaim = claim;
             BoundaryVisualization.visualizeClaim(player, claim, VisualizationType.CLAIM);
         }

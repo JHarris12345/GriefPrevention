@@ -8,8 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A provider for {@link BoundaryVisualization BoundaryVisualizations}.
  */
-public interface VisualizationProvider
-{
+public interface VisualizationProvider {
 
     /**
      * Construct a new {@link BoundaryVisualization} with the given parameters.
@@ -20,6 +19,7 @@ public interface VisualizationProvider
      * @return the resulting visualization
      */
     @Contract(pure = true, value = "_, _, _ -> new")
-    @NotNull BoundaryVisualization create(@NotNull World world, @NotNull IntVector visualizeFrom, int height);
+    @NotNull
+    BoundaryVisualization create(@NotNull World world, @NotNull IntVector visualizeFrom, int height);
 
 }

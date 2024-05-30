@@ -7,8 +7,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * An {@link Event} involving a {@link Claim}.
  */
-public abstract class ClaimEvent extends Event
-{
+public abstract class ClaimEvent extends Event {
 
     private final @NotNull Claim claim;
 
@@ -17,8 +16,7 @@ public abstract class ClaimEvent extends Event
      *
      * @param claim the {@link Claim} involved
      */
-    protected ClaimEvent(@NotNull Claim claim)
-    {
+    protected ClaimEvent(@NotNull Claim claim) {
         this.claim = claim;
     }
 
@@ -27,8 +25,7 @@ public abstract class ClaimEvent extends Event
      *
      * @return the {@code Claim}
      */
-    public final @NotNull Claim getClaim()
-    {
+    public final @NotNull Claim getClaim() {
         return this.claim;
     }
 

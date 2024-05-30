@@ -1,7 +1,7 @@
 package com.griefprevention.visualization.impl;
 
-import com.griefprevention.visualization.BlockElement;
 import com.griefprevention.util.IntVector;
+import com.griefprevention.visualization.BlockElement;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * A {@link BlockElement} that displays itself as a clientside block.
  */
-final class FakeBlockElement extends BlockElement
-{
+final class FakeBlockElement extends BlockElement {
 
     private final @NotNull BlockData realBlock;
     private final @NotNull BlockData visualizedBlock;
@@ -19,16 +18,14 @@ final class FakeBlockElement extends BlockElement
     FakeBlockElement(
             @NotNull IntVector intVector,
             @NotNull BlockData realBlock,
-            @NotNull BlockData visualizedBlock)
-    {
+            @NotNull BlockData visualizedBlock) {
         super(intVector);
         this.realBlock = realBlock;
         this.visualizedBlock = visualizedBlock;
     }
 
     @Override
-    protected void draw(@NotNull Player player, @NotNull World world)
-    {
+    protected void draw(@NotNull Player player, @NotNull World world) {
         // Send the player a fake block change event only if the chunk is loaded.
         if (!getCoordinate().isChunkLoaded(world)) return;
 
@@ -36,14 +33,12 @@ final class FakeBlockElement extends BlockElement
     }
 
     @Override
-    protected void erase(@NotNull Player player, @NotNull World world)
-    {
+    protected void erase(@NotNull Player player, @NotNull World world) {
         player.sendBlockChange(getCoordinate().toLocation(world), realBlock);
     }
 
     @Override
-    public boolean equals(Object other)
-    {
+    public boolean equals(Object other) {
         if (this == other) return true;
         if (!super.equals(other)) return false;
         if (getClass() != other.getClass()) return false;
@@ -52,8 +47,7 @@ final class FakeBlockElement extends BlockElement
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         /*
          * We specifically use the BlockElement hashcode because we
          * want elements at conflicting locations to be overwritten

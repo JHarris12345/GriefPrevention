@@ -10,29 +10,36 @@
 <a href="#support"><img alt="Get Help" src="https://img.shields.io/badge/Get%20Help-yellow?logo=amazoncloudwatch&logoColor=white" height="70px"></a>
 
 </p>
-  
-Stop _responding_ to grief and prevent it instead. GriefPrevention stops grief before it starts automatically without any effort from administrators, and with very little (self service) effort from players.
 
+Stop _responding_ to grief and prevent it instead. GriefPrevention stops grief before it starts automatically without
+any effort from administrators, and with very little (self service) effort from players.
 
 ##### [Watch this video](https://www.youtube.com/watch?v=hKrA6NXn7Sc) to learn more how GriefPrevention works in-game.
+
 [![GriefPrevention Youtube Tutorial](https://img.youtube.com/vi/hKrA6NXn7Sc/0.jpg)](https://www.youtube.com/watch?v=hKrA6NXn7Sc)
 
 ---
 
 #### Supported Platforms: Spigot, Paper, Purpur, and any other server implementing the Bukkit API.
+
 ###### GriefPrevention is targeted to support the latest available version of these platforms. Older versions of GriefPrevention can be found on [BukkitDev](https://dev.bukkit.org/projects/grief-prevention/files). Note that these older versions are not supported.
 
 ---
 
 ## Support
+
 #### [Issue Tracker](https://github.com/TechFortress/GriefPrevention/issues) - Got a problem or bug you can reliably reproduce? Report it on the issue tracker.
+
 ###### Be sure to check if your issue already exists before posting
+
 #### [GitHub Discussions](https://github.com/TechFortress/GriefPrevention/discussions) - New ideas, feature requests, or other general discussions.
+
 #### [IRC Chat](https://griefprevention.com/chat/) or [Discord](https://r.griefprevention.com/dumcord/)
 
 ---
 
 ## Addons
+
 #### Addons provide additional features to GriefPrevention. Some of these addons are listed in [GitHub Discussions](https://github.com/TechFortress/GriefPrevention/discussions/categories/addons)
 
 ---

@@ -12,8 +12,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author FrankHeijden
  */
-public class ClaimExtendEvent extends ClaimChangeEvent
-{
+public class ClaimExtendEvent extends ClaimChangeEvent {
 
     private int newDepth;
 
@@ -23,12 +22,10 @@ public class ClaimExtendEvent extends ClaimChangeEvent
      * @param claim the {@link Claim} extending downwards
      * @param newDepth the new depth of the {@code Claim}
      */
-    public ClaimExtendEvent(@NotNull Claim claim, int newDepth)
-    {
+    public ClaimExtendEvent(@NotNull Claim claim, int newDepth) {
         super(claim, new Claim(claim) {
             @Override
-            public Location getLesserBoundaryCorner()
-            {
+            public Location getLesserBoundaryCorner() {
                 Location lesserBoundaryCorner = super.getLesserBoundaryCorner();
                 lesserBoundaryCorner.setY(newDepth);
                 return lesserBoundaryCorner;
@@ -44,8 +41,7 @@ public class ClaimExtendEvent extends ClaimChangeEvent
      * @deprecated Use {@link #getTo() getTo} instead.
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public @NotNull Claim getClaim()
-    {
+    public @NotNull Claim getClaim() {
         return getTo();
     }
 
@@ -54,8 +50,7 @@ public class ClaimExtendEvent extends ClaimChangeEvent
      *
      * @return the new depth
      */
-    public int getNewDepth()
-    {
+    public int getNewDepth() {
         return newDepth;
     }
 

@@ -26,16 +26,15 @@ import org.bukkit.block.data.BlockData;
 /**
  * Represents a fake {@link org.bukkit.block.Block Block} sent to a
  * {@link org.bukkit.entity.Player Player} as part of a {@link Visualization}
+ *
  * @deprecated replaced by {@link BlockElement}
  */
-public class VisualizationElement
-{
+public class VisualizationElement {
     public Location location;
     public BlockData visualizedBlock;
     public BlockData realBlock;
 
-    public VisualizationElement(Location location, BlockData visualizedBlock, BlockData realBlock)
-    {
+    public VisualizationElement(Location location, BlockData visualizedBlock, BlockData realBlock) {
         this.location = location;
         this.visualizedBlock = visualizedBlock;
         this.realBlock = realBlock;

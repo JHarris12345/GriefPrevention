@@ -18,13 +18,11 @@ import java.util.HashSet;
 /**
  * An {@link org.bukkit.event.Event Event} called when a {@link Player} receives {@link Boundary} visuals.
  */
-public class BoundaryVisualizationEvent extends PlayerEvent
-{
+public class BoundaryVisualizationEvent extends PlayerEvent {
 
     public static final VisualizationProvider DEFAULT_PROVIDER = (world, visualizeFrom, height) ->
     {
-        if (GriefPrevention.instance.config_visualizationAntiCheatCompat)
-        {
+        if (GriefPrevention.instance.config_visualizationAntiCheatCompat) {
             return new AntiCheatCompatVisualization(world, visualizeFrom, height);
         }
         return new FakeBlockVisualization(world, visualizeFrom, height);
@@ -51,7 +49,6 @@ public class BoundaryVisualizationEvent extends PlayerEvent
     }
 
     /**
-     *
      * Construct a new {@code BoundaryVisualizationEvent} for a group of {@link Boundary Boundaries}.
      *
      * @param player the {@link Player} receiving visuals
@@ -77,8 +74,7 @@ public class BoundaryVisualizationEvent extends PlayerEvent
      *
      * @return the {@code Boundaries} to visualize
      */
-    public @NotNull Collection<Boundary> getBoundaries()
-    {
+    public @NotNull Collection<Boundary> getBoundaries() {
         return boundaries;
     }
 
@@ -87,8 +83,7 @@ public class BoundaryVisualizationEvent extends PlayerEvent
      *
      * @return the coordinates of the center of the visualization
      */
-    public @NotNull IntVector getCenter()
-    {
+    public @NotNull IntVector getCenter() {
         return new IntVector(player.getLocation());
     }
 
@@ -97,8 +92,7 @@ public class BoundaryVisualizationEvent extends PlayerEvent
      *
      * @return the height at which the visualization was initiated
      */
-    public int getHeight()
-    {
+    public int getHeight() {
         return height;
     }
 
@@ -107,8 +101,7 @@ public class BoundaryVisualizationEvent extends PlayerEvent
      *
      * @return the {@code VisualizationProvider}
      */
-    public @NotNull VisualizationProvider getProvider()
-    {
+    public @NotNull VisualizationProvider getProvider() {
         return provider;
     }
 
@@ -117,22 +110,19 @@ public class BoundaryVisualizationEvent extends PlayerEvent
      *
      * @param provider the {@code VisualizationProvider}
      */
-    public void setProvider(@NotNull VisualizationProvider provider)
-    {
+    public void setProvider(@NotNull VisualizationProvider provider) {
         this.provider = provider;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 

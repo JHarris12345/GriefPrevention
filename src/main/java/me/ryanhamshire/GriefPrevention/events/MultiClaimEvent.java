@@ -11,19 +11,15 @@ import java.util.HashSet;
 /**
  * An {@link Event} involving multiple {@link Claim Claims}.
  */
-public abstract class MultiClaimEvent extends Event
-{
+public abstract class MultiClaimEvent extends Event {
 
     private final @NotNull Collection<Claim> claims;
 
-    public MultiClaimEvent(@Nullable Collection<Claim> claims)
-    {
-        if (claims == null)
-        {
+    public MultiClaimEvent(@Nullable Collection<Claim> claims) {
+        if (claims == null) {
             this.claims = new HashSet<>();
         }
-        else
-        {
+        else {
             this.claims = new HashSet<>(claims);
         }
     }
@@ -33,8 +29,7 @@ public abstract class MultiClaimEvent extends Event
      *
      * @return the affected claims
      */
-    public @NotNull Collection<Claim> getClaims()
-    {
+    public @NotNull Collection<Claim> getClaims() {
         return claims;
     }
 

@@ -23,8 +23,7 @@ import me.ryanhamshire.GriefPrevention.objects.Claim;
 /**
  * Enum representing the permissions available in a {@link Claim}.
  */
-public enum ClaimPermission
-{
+public enum ClaimPermission {
     /**
      * ClaimPermission used for owner-based checks. Cannot be granted and grants all other permissions.
      */
@@ -49,16 +48,14 @@ public enum ClaimPermission
 
     private final Messages denialMessage;
 
-    ClaimPermission(Messages messages)
-    {
+    ClaimPermission(Messages messages) {
         this.denialMessage = messages;
     }
 
     /**
      * @return the {@link Messages Message} used when alerting a user that they lack the ClaimPermission
      */
-    public Messages getDenialMessage()
-    {
+    public Messages getDenialMessage() {
         return denialMessage;
     }
 
@@ -68,8 +65,7 @@ public enum ClaimPermission
      * @param other the ClaimPermission to compare against
      * @return true if this ClaimPermission is equal or lesser than the provided ClaimPermission
      */
-    public boolean isGrantedBy(ClaimPermission other)
-    {
+    public boolean isGrantedBy(ClaimPermission other) {
         if (other == Manage || this == Manage) return other == this || other == Edit;
         // This uses declaration order to compare! If trust levels are reordered this method must be rewritten.
         return other != null && other.ordinal() <= this.ordinal();

@@ -18,14 +18,14 @@
 
 package me.ryanhamshire.GriefPrevention.utils;
 
+import com.griefprevention.events.BoundaryVisualizationEvent;
 import com.griefprevention.visualization.Boundary;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
-import com.griefprevention.events.BoundaryVisualizationEvent;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.objects.VisualizationElement;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
+import me.ryanhamshire.GriefPrevention.objects.VisualizationElement;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -44,8 +44,7 @@ import java.util.stream.Collectors;
 /**
  * @deprecated superseded by {@link BoundaryVisualization}
  */
-public class Visualization
-{
+public class Visualization {
 
     public ArrayList<VisualizationElement> elements = new ArrayList<>();
     private final Collection<Boundary> boundaries = new ArrayList<>();
@@ -56,27 +55,25 @@ public class Visualization
     /**
      * Send a visualization to a {@link Player}.
      *
-     * @deprecated Create a {@link BoundaryVisualizationEvent} and call
-     * {@link BoundaryVisualization#callAndVisualize(BoundaryVisualizationEvent)}
      * @param player the {@code Player}
      * @param visualization the {@code Visualization}
+     * @deprecated Create a {@link BoundaryVisualizationEvent} and call
+     * {@link BoundaryVisualization#callAndVisualize(BoundaryVisualizationEvent)}
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public static void Apply(Player player, Visualization visualization)
-    {
+    public static void Apply(Player player, Visualization visualization) {
         if (player != null) apply(player, visualization);
     }
 
     /**
      * Revert the active visualization for a {@link Player}.
      *
+     * @param player the {@code Player}
      * @deprecated Use {@link PlayerData#setVisibleBoundaries(BoundaryVisualization)} with a {@code null} parameter to
      * revert current visualization.
-     * @param player the {@code Player}
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public static void Revert(Player player)
-    {
+    public static void Revert(Player player) {
         if (player != null && player.isOnline())
             GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
     }
@@ -84,12 +81,12 @@ public class Visualization
     /**
      * convenience method to build a visualization from a claim
      * visualizationType determines the style (gold blocks, silver, red, diamond, etc)
+     *
      * @deprecated Use {@link BoundaryVisualization#visualizeClaim(Player, Claim, VisualizationType)} or
      * {@link BoundaryVisualization#visualizeClaim(Player, Claim, VisualizationType, Block)}
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public static Visualization FromClaim(Claim claim, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType visualizationType, Location locality)
-    {
+    public static Visualization FromClaim(Claim claim, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType visualizationType, Location locality) {
         if (claim.parent != null) claim = claim.parent;
 
         VisualizationType type = visualizationType.convert();
@@ -108,19 +105,16 @@ public class Visualization
     /**
      * Send a visualization to a {@link Player}.
      *
-     * @deprecated Create a {@link BoundaryVisualizationEvent} and call
-     * {@link BoundaryVisualization#callAndVisualize(BoundaryVisualizationEvent)}
      * @param player the {@code Player}
      * @param visualization the {@code Visualization}
+     * @deprecated Create a {@link BoundaryVisualizationEvent} and call
+     * {@link BoundaryVisualization#callAndVisualize(BoundaryVisualizationEvent)}
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public static void apply(@NotNull Player player, @Nullable Visualization visualization)
-    {
+    public static void apply(@NotNull Player player, @Nullable Visualization visualization) {
         // If the visualization is null, revert existing visualizations.
-        if (visualization == null)
-        {
-            if (player.isOnline())
-            {
+        if (visualization == null) {
+            if (player.isOnline()) {
                 GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
             }
             return;
@@ -134,11 +128,11 @@ public class Visualization
      * adds a claim's visualization to the current visualization
      * handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
      * locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
+     *
      * @deprecated Add all desired elements to the list of boundaries ({@link BoundaryVisualizationEvent#getBoundaries()})
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public void addClaimElements(Claim claim, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType visualizationType, Location locality)
-    {
+    public void addClaimElements(Claim claim, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType visualizationType, Location locality) {
         this.boundaries.add(new Boundary(claim, visualizationType.convert()));
     }
 
@@ -146,6 +140,7 @@ public class Visualization
      * adds a claim's visualization to the current visualization
      * handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
      * locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
+     *
      * @deprecated Add all desired elements to the list of boundaries ({@link BoundaryVisualizationEvent#getBoundaries()})
      */
     @Deprecated(forRemoval = true, since = "16.18")
@@ -158,8 +153,7 @@ public class Visualization
      * @deprecated Add all desired elements to the list of boundaries ({@link BoundaryVisualizationEvent#getBoundaries()})
      */
     @Deprecated(forRemoval = true, since = "16.18")
-    public static Visualization fromClaims(Iterable<Claim> claims, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType type, Location locality)
-    {
+    public static Visualization fromClaims(Iterable<Claim> claims, int height, me.ryanhamshire.GriefPrevention.objects.enums.VisualizationType type, Location locality) {
         Visualization visualization = new Visualization();
         claims.forEach(claim -> visualization.addClaimElements(claim, height, type, locality));
         return visualization;

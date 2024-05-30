@@ -12,8 +12,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author RoboMWM on 11/15/2016
  */
-public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
-{
+public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable {
 
     private int blocksToAccrue;
     private boolean isIdle;
@@ -33,8 +32,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      * @deprecated Use {@link #AccrueClaimBlocksEvent(Player, int, boolean)} instead
      */
     @Deprecated
-    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccruePerHour)
-    {
+    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccruePerHour) {
         this(player, blocksToAccruePerHour, false);
     }
 
@@ -52,8 +50,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      * @param isIdle whether player is detected as idle
      * @see #setBlocksToAccruePerHour(int)
      */
-    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccruePerHour, boolean isIdle)
-    {
+    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccruePerHour, boolean isIdle) {
         super(player);
         this.blocksToAccrue = blocksToAccruePerHour / 6;
         this.isIdle = isIdle;
@@ -64,8 +61,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      *
      * @return the number of new claim blocks
      */
-    public int getBlocksToAccrue()
-    {
+    public int getBlocksToAccrue() {
         return this.blocksToAccrue;
     }
 
@@ -74,8 +70,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      *
      * @param blocksToAccrue blocks to deliver
      */
-    public void setBlocksToAccrue(int blocksToAccrue)
-    {
+    public void setBlocksToAccrue(int blocksToAccrue) {
         this.blocksToAccrue = blocksToAccrue;
     }
 
@@ -86,8 +81,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      * @param blocksToAccruePerHour the per-hour rate of blocks to deliver
      * @see #setBlocksToAccrue(int)
      */
-    public void setBlocksToAccruePerHour(int blocksToAccruePerHour)
-    {
+    public void setBlocksToAccruePerHour(int blocksToAccruePerHour) {
         this.blocksToAccrue = blocksToAccruePerHour / 6;
     }
 
@@ -97,8 +91,7 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      *
      * @return whether the {@code Player} is idle
      */
-    public boolean isIdle()
-    {
+    public boolean isIdle() {
         return this.isIdle;
     }
 
@@ -107,22 +100,19 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
      *
      * @param idle whether the {@code Player} is idle
      */
-    public void setIdle(boolean idle)
-    {
+    public void setIdle(boolean idle) {
         isIdle = idle;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -130,14 +120,12 @@ public class AccrueClaimBlocksEvent extends PlayerEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

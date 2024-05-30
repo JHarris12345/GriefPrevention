@@ -19,9 +19,9 @@
 package me.ryanhamshire.GriefPrevention.tasks;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.SiegeData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
-import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import org.bukkit.entity.Player;
@@ -29,21 +29,17 @@ import org.bukkit.entity.Player;
 import java.util.Collection;
 
 //secures a claim after a siege looting window has closed
-public class SecureClaimTask implements Runnable
-{
+public class SecureClaimTask implements Runnable {
     private final SiegeData siegeData;
 
-    public SecureClaimTask(SiegeData siegeData)
-    {
+    public SecureClaimTask(SiegeData siegeData) {
         this.siegeData = siegeData;
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         //for each claim involved in this siege
-        for (int i = 0; i < this.siegeData.claims.size(); i++)
-        {
+        for (int i = 0; i < this.siegeData.claims.size(); i++) {
             //lock the doors
             Claim claim = this.siegeData.claims.get(i);
             claim.doorsOpen = false;
@@ -51,10 +47,8 @@ public class SecureClaimTask implements Runnable
             //eject bad guys
             @SuppressWarnings("unchecked")
             Collection<Player> onlinePlayers = (Collection<Player>) GriefPrevention.instance.getServer().getOnlinePlayers();
-            for (Player player : onlinePlayers)
-            {
-                if (claim.contains(player.getLocation(), false, false) && claim.checkPermission(player, ClaimPermission.Access, null) != null)
-                {
+            for (Player player : onlinePlayers) {
+                if (claim.contains(player.getLocation(), false, false) && claim.checkPermission(player, ClaimPermission.Access, null) != null) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeDoorsLockedEjection);
                     GriefPrevention.instance.ejectPlayer(player);
                 }

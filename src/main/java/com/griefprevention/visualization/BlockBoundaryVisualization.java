@@ -12,8 +12,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Consumer;
 
-public abstract class BlockBoundaryVisualization extends BoundaryVisualization
-{
+public abstract class BlockBoundaryVisualization extends BoundaryVisualization {
 
     private final int step;
     private final BoundingBox displayZoneArea;
@@ -27,8 +26,7 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
      * @param visualizeFrom the {@link IntVector} representing the world coordinate being visualized from
      * @param height the height of the visualization
      */
-    protected BlockBoundaryVisualization(@NotNull World world, @NotNull IntVector visualizeFrom, int height)
-    {
+    protected BlockBoundaryVisualization(@NotNull World world, @NotNull IntVector visualizeFrom, int height) {
         this(world, visualizeFrom, height, 10, 75);
     }
 
@@ -46,8 +44,7 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
             @NotNull IntVector visualizeFrom,
             int height,
             int step,
-            int displayZoneRadius)
-    {
+            int displayZoneRadius) {
         super(world, visualizeFrom, height);
         this.step = step;
         this.displayZoneArea = new BoundingBox(
@@ -62,8 +59,7 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
     }
 
     @Override
-    protected void draw(@NotNull Player player, @NotNull Boundary boundary)
-    {
+    protected void draw(@NotNull Player player, @NotNull Boundary boundary) {
         BoundingBox area = boundary.bounds();
 
         // Trim to area - allows for simplified display containment check later.
@@ -76,14 +72,12 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
         Consumer<@NotNull IntVector> addSide = addSideElements(boundary);
 
         // North and south boundaries
-        for (int x = Math.max(area.getMinX() + step, displayZone.getMinX()); x < area.getMaxX() - step / 2 && x < displayZone.getMaxX(); x += step)
-        {
+        for (int x = Math.max(area.getMinX() + step, displayZone.getMinX()); x < area.getMaxX() - step / 2 && x < displayZone.getMaxX(); x += step) {
             addDisplayed(displayZone, new IntVector(x, height, area.getMaxZ()), addSide);
             addDisplayed(displayZone, new IntVector(x, height, area.getMinZ()), addSide);
         }
         // First and last step are always directly adjacent to corners
-        if (area.getLength() > 2)
-        {
+        if (area.getLength() > 2) {
             addDisplayed(displayZone, new IntVector(area.getMinX() + 1, height, area.getMaxZ()), addSide);
             addDisplayed(displayZone, new IntVector(area.getMinX() + 1, height, area.getMinZ()), addSide);
             addDisplayed(displayZone, new IntVector(area.getMaxX() - 1, height, area.getMaxZ()), addSide);
@@ -91,13 +85,11 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
         }
 
         // East and west boundaries
-        for (int z = Math.max(area.getMinZ() + step, displayZone.getMinZ()); z < area.getMaxZ() - step / 2 && z < displayZone.getMaxZ(); z += step)
-        {
+        for (int z = Math.max(area.getMinZ() + step, displayZone.getMinZ()); z < area.getMaxZ() - step / 2 && z < displayZone.getMaxZ(); z += step) {
             addDisplayed(displayZone, new IntVector(area.getMinX(), height, z), addSide);
             addDisplayed(displayZone, new IntVector(area.getMaxX(), height, z), addSide);
         }
-        if (area.getWidth() > 2)
-        {
+        if (area.getWidth() > 2) {
             addDisplayed(displayZone, new IntVector(area.getMinX(), height, area.getMinZ() + 1), addSide);
             addDisplayed(displayZone, new IntVector(area.getMaxX(), height, area.getMinZ() + 1), addSide);
             addDisplayed(displayZone, new IntVector(area.getMinX(), height, area.getMaxZ() - 1), addSide);
@@ -127,8 +119,7 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
      */
     protected abstract @NotNull Consumer<@NotNull IntVector> addSideElements(@NotNull Boundary boundary);
 
-    protected boolean isAccessible(@NotNull BoundingBox displayZone, @NotNull IntVector coordinate)
-    {
+    protected boolean isAccessible(@NotNull BoundingBox displayZone, @NotNull IntVector coordinate) {
         return displayZone.contains2d(coordinate) && coordinate.isChunkLoaded(world);
     }
 
@@ -142,19 +133,16 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
     protected void addDisplayed(
             @NotNull BoundingBox displayZone,
             @NotNull IntVector coordinate,
-            @NotNull Consumer<@NotNull IntVector> addElement)
-    {
+            @NotNull Consumer<@NotNull IntVector> addElement) {
         if (isAccessible(displayZone, coordinate)) {
             addElement.accept(coordinate);
         }
     }
 
     @Override
-    public void revert(@Nullable Player player)
-    {
+    public void revert(@Nullable Player player) {
         // If the player cannot visualize the blocks, they should already be effectively reverted.
-        if (!canVisualize(player))
-        {
+        if (!canVisualize(player)) {
             return;
         }
 
@@ -163,8 +151,7 @@ public abstract class BlockBoundaryVisualization extends BoundaryVisualization
     }
 
     @Override
-    protected void erase(@NotNull Player player, @NotNull Boundary boundary)
-    {
+    protected void erase(@NotNull Player player, @NotNull Boundary boundary) {
         this.elements.forEach(element -> element.erase(player, world));
     }
 

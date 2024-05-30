@@ -15,8 +15,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Narimm on 5/08/2018.
  */
-public class ClaimCreatedEvent extends ClaimEvent implements Cancellable
-{
+public class ClaimCreatedEvent extends ClaimEvent implements Cancellable {
 
     private final @Nullable CommandSender creator;
 
@@ -26,8 +25,7 @@ public class ClaimCreatedEvent extends ClaimEvent implements Cancellable
      * @param claim the {@link Claim} being created
      * @param creator the {@link CommandSender} causing creation
      */
-    public ClaimCreatedEvent(@NotNull Claim claim, @Nullable CommandSender creator)
-    {
+    public ClaimCreatedEvent(@NotNull Claim claim, @Nullable CommandSender creator) {
         super(claim);
         this.creator = creator;
     }
@@ -37,22 +35,19 @@ public class ClaimCreatedEvent extends ClaimEvent implements Cancellable
      *
      * @return the actor causing creation
      */
-    public @Nullable CommandSender getCreator()
-    {
+    public @Nullable CommandSender getCreator() {
         return creator;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -60,14 +55,12 @@ public class ClaimCreatedEvent extends ClaimEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

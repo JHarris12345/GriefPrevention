@@ -34,25 +34,21 @@ import java.util.stream.Collectors;
 //...because the player has been gone a REALLY long time, and that expiration has been configured in config.yml
 
 //runs every 1 minute in the main thread
-public class FindUnusedClaimsTask implements Runnable
-{
+public class FindUnusedClaimsTask implements Runnable {
     private List<UUID> claimOwnerUUIDs;
     private Iterator<UUID> claimOwnerIterator;
 
-    public FindUnusedClaimsTask()
-    {
+    public FindUnusedClaimsTask() {
         refreshUUIDs();
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         //don't do anything when there are no claims
         if (claimOwnerUUIDs.isEmpty()) return;
 
         //wrap search around to beginning
-        if (!claimOwnerIterator.hasNext())
-        {
+        if (!claimOwnerIterator.hasNext()) {
             refreshUUIDs();
             return;
         }
@@ -60,14 +56,12 @@ public class FindUnusedClaimsTask implements Runnable
         GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
     }
 
-    public void refreshUUIDs()
-    {
+    public void refreshUUIDs() {
         // Fetch owner UUIDs from list of claims
         claimOwnerUUIDs = GriefPrevention.instance.dataStore.claims.stream().map(claim -> claim.ownerID)
                 .distinct().filter(Objects::nonNull).collect(Collectors.toList());
 
-        if (!claimOwnerUUIDs.isEmpty())
-        {
+        if (!claimOwnerUUIDs.isEmpty()) {
             // Randomize order
             Collections.shuffle(claimOwnerUUIDs);
         }

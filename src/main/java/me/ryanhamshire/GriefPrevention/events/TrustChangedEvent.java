@@ -17,8 +17,7 @@ import java.util.List;
  *
  * @author roinujnosde
  */
-public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
-{
+public class TrustChangedEvent extends MultiClaimEvent implements Cancellable {
 
     private final @NotNull Player changer;
     private final @Nullable ClaimPermission claimPermission;
@@ -39,8 +38,7 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
             @Nullable List<Claim> claims,
             @Nullable ClaimPermission claimPermission,
             boolean given,
-            @NotNull String identifier)
-    {
+            @NotNull String identifier) {
         super(claims);
         this.changer = changer;
         this.claimPermission = claimPermission;
@@ -62,8 +60,7 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
             @NotNull Claim claim,
             @Nullable ClaimPermission claimPermission,
             boolean given,
-            @NotNull String identifier)
-    {
+            @NotNull String identifier) {
         super(Collections.singleton(claim));
         this.changer = changer;
         this.claimPermission = claimPermission;
@@ -76,8 +73,7 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
      *
      * @return the changer
      */
-    public @NotNull Player getChanger()
-    {
+    public @NotNull Player getChanger() {
         return changer;
     }
 
@@ -86,8 +82,7 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
      *
      * @return the claim permission
      */
-    public @Nullable ClaimPermission getClaimPermission()
-    {
+    public @Nullable ClaimPermission getClaimPermission() {
         return claimPermission;
     }
 
@@ -96,8 +91,7 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
      *
      * @return true if given, false if taken
      */
-    public boolean isGiven()
-    {
+    public boolean isGiven() {
         return given;
     }
 
@@ -107,22 +101,19 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
      *
      * @return the identifier
      */
-    public @NotNull String getIdentifier()
-    {
+    public @NotNull String getIdentifier() {
         return identifier;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -130,14 +121,12 @@ public class TrustChangedEvent extends MultiClaimEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

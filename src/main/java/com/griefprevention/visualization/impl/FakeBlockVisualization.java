@@ -19,8 +19,7 @@ import java.util.function.Consumer;
  * A {@link BoundaryVisualization} implementation that displays clientside blocks along
  * {@link com.griefprevention.visualization.Boundary Boundaries}.
  */
-public class FakeBlockVisualization extends BlockBoundaryVisualization
-{
+public class FakeBlockVisualization extends BlockBoundaryVisualization {
 
     protected final boolean waterTransparent;
 
@@ -39,10 +38,8 @@ public class FakeBlockVisualization extends BlockBoundaryVisualization
     }
 
     @Override
-    protected @NotNull Consumer<@NotNull IntVector> addCornerElements(@NotNull Boundary boundary)
-    {
-        return addBlockElement(switch (boundary.type())
-        {
+    protected @NotNull Consumer<@NotNull IntVector> addCornerElements(@NotNull Boundary boundary) {
+        return addBlockElement(switch (boundary.type()) {
             case SUBDIVISION -> Material.IRON_BLOCK.createBlockData();
             case INITIALIZE_ZONE, NATURE_RESTORATION_ZONE -> Material.DIAMOND_BLOCK.createBlockData();
             case CONFLICT_ZONE -> {
@@ -56,11 +53,9 @@ public class FakeBlockVisualization extends BlockBoundaryVisualization
 
 
     @Override
-    protected @NotNull Consumer<@NotNull IntVector> addSideElements(@NotNull Boundary boundary)
-    {
+    protected @NotNull Consumer<@NotNull IntVector> addSideElements(@NotNull Boundary boundary) {
         // Determine BlockData from boundary type to cache for reuse in function.
-        return addBlockElement(switch (boundary.type())
-        {
+        return addBlockElement(switch (boundary.type()) {
             case ADMIN_CLAIM -> Material.PUMPKIN.createBlockData();
             case SUBDIVISION -> Material.WHITE_WOOL.createBlockData();
             case INITIALIZE_ZONE, NATURE_RESTORATION_ZONE -> Material.DIAMOND_BLOCK.createBlockData();
@@ -75,8 +70,7 @@ public class FakeBlockVisualization extends BlockBoundaryVisualization
      * @param fakeData the fake {@link BlockData}
      * @return the function for determining a visible fake block location
      */
-    private @NotNull Consumer<@NotNull IntVector> addBlockElement(@NotNull BlockData fakeData)
-    {
+    private @NotNull Consumer<@NotNull IntVector> addBlockElement(@NotNull BlockData fakeData) {
         return vector -> {
             // Obtain visible location from starting point.
             Block visibleLocation = getVisibleLocation(vector);
@@ -91,15 +85,13 @@ public class FakeBlockVisualization extends BlockBoundaryVisualization
      * @param vector the {@link IntVector} of the display location
      * @return the located {@link Block}
      */
-    private Block getVisibleLocation(@NotNull IntVector vector)
-    {
+    private Block getVisibleLocation(@NotNull IntVector vector) {
         Block block = vector.toBlock(world);
         BlockFace direction = (isTransparent(block)) ? BlockFace.DOWN : BlockFace.UP;
 
         while (block.getY() >= world.getMinHeight() &&
                 block.getY() < world.getMaxHeight() - 1 &&
-                (!isTransparent(block.getRelative(BlockFace.UP)) || isTransparent(block)))
-        {
+                (!isTransparent(block.getRelative(BlockFace.UP)) || isTransparent(block))) {
             block = block.getRelative(direction);
         }
 
@@ -112,13 +104,11 @@ public class FakeBlockVisualization extends BlockBoundaryVisualization
      * @param block the {@code Block}
      * @return true if transparent
      */
-    protected boolean isTransparent(@NotNull Block block)
-    {
+    protected boolean isTransparent(@NotNull Block block) {
         Material blockMaterial = block.getType();
 
         // Custom per-material definitions.
-        switch (blockMaterial)
-        {
+        switch (blockMaterial) {
             case WATER:
                 return waterTransparent;
             case SNOW:

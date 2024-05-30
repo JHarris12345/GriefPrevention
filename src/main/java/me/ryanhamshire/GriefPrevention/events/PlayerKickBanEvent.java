@@ -11,8 +11,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author BillyGalbreath on 03/10/2017
  */
-public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
-{
+public class PlayerKickBanEvent extends PlayerEvent implements Cancellable {
 
     private final @NotNull String reason;
     private final @NotNull String source;
@@ -26,8 +25,7 @@ public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
      * @param source the source of the kick/ban
      * @param ban whether the {@code Player} will be banned
      */
-    public PlayerKickBanEvent(Player player, @NotNull String reason, @NotNull String source, boolean ban)
-    {
+    public PlayerKickBanEvent(Player player, @NotNull String reason, @NotNull String source, boolean ban) {
         super(player);
         this.reason = reason;
         this.source = source;
@@ -39,8 +37,7 @@ public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
      *
      * @return the reason why the target is being kicked
      */
-    public @NotNull String getReason()
-    {
+    public @NotNull String getReason() {
         return this.reason;
     }
 
@@ -49,8 +46,7 @@ public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
      *
      * @return the source of the kick
      */
-    public @NotNull String getSource()
-    {
+    public @NotNull String getSource() {
         return this.source;
     }
 
@@ -59,34 +55,30 @@ public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
      *
      * @return whether the target will be banned
      */
-    public boolean isBan()
-    {
+    public boolean isBan() {
         return ban;
     }
 
     /**
      * Get whether the {@link Player} will also be banned.
      *
-     * @deprecated use {@link #isBan()}
      * @return whether the target will be banned
+     * @deprecated use {@link #isBan()}
      */
     @Deprecated
-    public boolean getBan()
-    {
+    public boolean getBan() {
         return this.isBan();
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -94,14 +86,12 @@ public class PlayerKickBanEvent extends PlayerEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 

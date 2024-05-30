@@ -18,8 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention.objects.enums;
 
-public enum Messages
-{
+public enum Messages {
     RespectingClaims,
     IgnoringClaims,
     SuccessfulAbandon,
@@ -241,6 +240,7 @@ public enum Messages
     IsIgnoringYou,
     MustHoldModificationToolForThat,
     StandInClaimToResize,
+    StandInClaimToRename,
     ClaimsExtendToSky,
     ClaimsAutoExtendDownward,
     MinimumRadius,

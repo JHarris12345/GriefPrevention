@@ -12,8 +12,7 @@ import org.jetbrains.annotations.Nullable;
  * An {@link org.bukkit.event.Event Event} called when GriefPrevention prevents PvP combat.
  * If cancelled, GriefPrevention will allow the event to complete normally.
  */
-public class PreventPvPEvent extends ClaimEvent implements Cancellable
-{
+public class PreventPvPEvent extends ClaimEvent implements Cancellable {
 
     private final @Nullable Player attacker;
     private final @NotNull Entity defender;
@@ -25,8 +24,7 @@ public class PreventPvPEvent extends ClaimEvent implements Cancellable
      * @param attacker the attacking {@link Player}
      * @param defender the {@link Entity} being attacked
      */
-    public PreventPvPEvent(@NotNull Claim claim, @Nullable Player attacker, @NotNull Entity defender)
-    {
+    public PreventPvPEvent(@NotNull Claim claim, @Nullable Player attacker, @NotNull Entity defender) {
         super(claim);
         this.attacker = attacker;
         this.defender = defender;
@@ -37,8 +35,7 @@ public class PreventPvPEvent extends ClaimEvent implements Cancellable
      *
      * @return the attacker
      */
-    public @Nullable Player getAttacker()
-    {
+    public @Nullable Player getAttacker() {
         return attacker;
     }
 
@@ -48,22 +45,19 @@ public class PreventPvPEvent extends ClaimEvent implements Cancellable
      *
      * @return the {@code Entity} being attacked
      */
-    public @NotNull Entity getDefender()
-    {
+    public @NotNull Entity getDefender() {
         return defender;
     }
 
     // Listenable event requirements
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public static HandlerList getHandlerList()
-    {
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
     @Override
-    public @NotNull HandlerList getHandlers()
-    {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
@@ -71,14 +65,12 @@ public class PreventPvPEvent extends ClaimEvent implements Cancellable
     private boolean cancelled = false;
 
     @Override
-    public boolean isCancelled()
-    {
+    public boolean isCancelled() {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean cancelled)
-    {
+    public void setCancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
 
