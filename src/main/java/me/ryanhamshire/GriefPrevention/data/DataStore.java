@@ -93,6 +93,7 @@ public abstract class DataStore {
     //in-memory cache for claim data
     public ArrayList<Claim> claims = new ArrayList<>();
     public ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<>();
+    public HashMap<Long, Claim> claimMap = new HashMap<>(); // JHarris added - Map of every claim ID and their claim for faster retrieving
 
     //in-memory cache for messages
     private String[] messages;
@@ -706,7 +707,7 @@ public abstract class DataStore {
 
     //finds a claim by ID
     public synchronized Claim getClaim(long id) {
-        for (Claim claim : this.claims) {
+        /*for (Claim claim : this.claims) {
             if (claim.inDataStore) {
                 if (claim.getID() == id)
                     return claim;
@@ -715,9 +716,9 @@ public abstract class DataStore {
                         return subClaim;
                 }
             }
-        }
+        }*/
 
-        return null;
+        return claimMap.getOrDefault(id, null);
     }
 
     //returns a read-only access point for the list of all land claims

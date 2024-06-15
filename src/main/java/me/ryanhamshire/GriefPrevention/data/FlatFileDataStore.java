@@ -489,6 +489,7 @@ public class FlatFileDataStore extends DataStore {
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
+        claimMap.put(claim.id, claim);
         return claim;
     }
 
