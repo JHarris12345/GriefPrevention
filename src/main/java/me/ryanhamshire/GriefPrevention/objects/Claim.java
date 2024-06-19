@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -691,13 +692,32 @@ public class Claim {
 
     //returns a friendly owner name (for admin claims, returns "an administrator" as the owner)
     public String getOwnerName() {
-        if (this.parent != null)
+        if (this.parent != null) {
             return this.parent.getOwnerName();
+        }
 
-        if (this.ownerID == null)
+        if (this.ownerID == null) {
             return GriefPrevention.instance.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
+        }
 
-        return GriefPrevention.lookupPlayerName(this.ownerID);
+        // Dunno what all this fuckery does
+        //return GriefPrevention.lookupPlayerName(this.ownerID);
+
+        String name = GriefPrevention.instance.uuidNameCache.getOrDefault(this.ownerID, null);
+        if (name != null) return name;
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(this.ownerID);
+        if (offlinePlayer.isOnline()) {
+            name = offlinePlayer.getPlayer().getName();
+            GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
+
+            return offlinePlayer.getPlayer().getName();
+        }
+
+        name = offlinePlayer.getName();
+        GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
+
+        return name;
     }
 
     public UUID getOwnerID() {

@@ -507,6 +507,7 @@ public class PlayerEventHandler implements Listener {
 
         //in case player has changed his name, on successful login, update UUID > Name mapping
         GriefPrevention.cacheUUIDNamePair(player.getUniqueId(), player.getName());
+        GriefPrevention.instance.uuidNameCache.put(player.getUniqueId(), player.getName());
 
         //create a thread to load ignore information
         new IgnoreLoaderThread(playerID, playerData.ignoredPlayers).start();

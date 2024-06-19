@@ -122,6 +122,9 @@ public class GriefPrevention extends JavaPlugin {
     public static HashMap<UUID, Long> timedMessages = new HashMap<>(); // A map of UUID and the last time a message was sent so we know if a long enough time has passed to send another
     public static long messageWaitTime = 1000; // The time in millis before a message can be sent to a player again
 
+    // Cache of names of UUIDs
+    public HashMap<UUID, String> uuidNameCache = new HashMap<>(); // A map of a player's UUID and their username
+
     //claim mode for each world
     public ConcurrentHashMap<World, ClaimsMode> config_claims_worldModes;
     private boolean config_creativeWorldsExist;                     //note on whether there are any creative mode worlds, to save cpu cycles on a common hash lookup
