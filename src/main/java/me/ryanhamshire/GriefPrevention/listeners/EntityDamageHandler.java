@@ -138,6 +138,9 @@ public class EntityDamageHandler implements Listener {
     }
 
     private void handleEntityDamageEvent(@NotNull EntityDamageEvent event, boolean sendMessages) {
+        // JHarris - Ignore NPCs
+        if (event.getEntity().hasMetadata("NPC")) return;
+
         //monsters are never protected
         if (isHostile(event.getEntity())) return;
 
@@ -146,12 +149,14 @@ public class EntityDamageHandler implements Listener {
         if (event.getEntity() instanceof Donkey && !instance.config_claims_protectDonkeys) return;
         if (event.getEntity() instanceof Mule && !instance.config_claims_protectDonkeys) return;
         if (event.getEntity() instanceof Llama && !instance.config_claims_protectLlamas) return;
+
+        // JHarris - Might as well not check this as it saves lag (we don't use it)
         //protected death loot can't be destroyed, only picked up or despawned due to expiration
-        if (event.getEntityType() == EntityType.DROPPED_ITEM) {
+        /*if (event.getEntityType() == EntityType.DROPPED_ITEM) {
             if (event.getEntity().hasMetadata("GP_ITEMOWNER")) {
                 event.setCancelled(true);
             }
-        }
+        }*/
 
         // Handle environmental damage to tamed animals that could easily be caused maliciously.
         if (handlePetDamageByEnvironment(event)) return;
@@ -244,12 +249,9 @@ public class EntityDamageHandler implements Listener {
      * @return true if the damage is handled
      */
     private boolean handlePetDamageByEnvironment(@NotNull EntityDamageEvent event) {
-        // If PVP is enabled, the damaged entity is not a pet, or the pet has no owner, allow.
-        if (instance.pvpRulesApply(event.getEntity().getWorld())
-                || !(event.getEntity() instanceof Tameable tameable)
-                || !tameable.isTamed()) {
-            return false;
-        }
+        // The damaged entity is not a pet, or the pet has no owner, allow.
+        if (!(event.getEntity() instanceof Tameable tameable) || !tameable.isTamed()) return false;
+
         switch (event.getCause()) {
             // Block environmental and easy-to-cause damage sources.
             case BLOCK_EXPLOSION,
