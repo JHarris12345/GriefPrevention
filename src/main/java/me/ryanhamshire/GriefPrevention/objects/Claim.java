@@ -87,7 +87,7 @@ public class Claim {
     private HashMap<String, ClaimPermission> playerIDToClaimPermissionMap = new HashMap<>();
 
     //whether or not this claim is in the data store
-    //if a claim instance isn't in the data store, it isn't "active" - players can't interract with it
+    //if a claim instance isn't in the data store, it isn't "active" - players can't interact with it
     //why keep this?  so that claims which have been removed from the data store can be correctly
     //ignored even though they may have references floating around
     public boolean inDataStore = false;
