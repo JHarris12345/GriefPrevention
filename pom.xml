@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.griefprevention</groupId>
+    <groupId>me.jharris</groupId>
     <artifactId>GriefPrevention</artifactId>
-    <version>16.18.2-SNAPSHOT</version>
+    <version>1.0</version>
 
     <name>GriefPrevention</name>
     <description>The official self-service anti-griefing Bukkit plugin for Minecraft servers since 2011.</description>
