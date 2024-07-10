@@ -282,7 +282,6 @@ public class GriefPrevention extends JavaPlugin {
 
     public HashMap<UUID, Integer> adminViewers = new HashMap<>(); // A map of admin players and whose claim (ID) menu they are currently viewing
 
-
     //how far away to search from a tree trunk for its branch blocks
     public static final int TREE_RADIUS = 5;
 
@@ -320,8 +319,7 @@ public class GriefPrevention extends JavaPlugin {
         new Placeholders(this).register();
 
         // Set up files
-        GUISettingsFile.setup();
-        MenuGUIFile.setup();
+        setupFiles();
 
         //when datastore initializes, it loads player and claim data, and posts some stats to the log
         if (this.databaseUrl.length() > 0) {
@@ -1776,5 +1774,10 @@ public class GriefPrevention extends JavaPlugin {
 
     public static GriefPrevention getInstance() {
         return plugin;
+    }
+
+    public void setupFiles() {
+        GUISettingsFile.setup();
+        MenuGUIFile.setup();
     }
 }

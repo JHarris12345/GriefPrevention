@@ -3,6 +3,7 @@ package me.ryanhamshire.GriefPrevention.commands;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
@@ -1567,6 +1568,8 @@ public class CommandHandler {
             plugin.loadConfig();
             plugin.dataStore.loadMessages();
             plugin.playerEventHandler.resetPattern();
+            plugin.setupFiles();
+
             if (player != null) {
                 GriefPrevention.sendMessage(player, TextMode.Success, "Configuration updated.  If you have updated your Grief Prevention JAR, you still need to /reload or reboot your server.");
             }
