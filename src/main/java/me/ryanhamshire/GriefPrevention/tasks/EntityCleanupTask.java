@@ -47,8 +47,8 @@ public class EntityCleanupTask implements Runnable {
     @Override
     public void run() {
         ArrayList<World> worlds = new ArrayList<>();
-        for (World world : GriefPrevention.instance.getServer().getWorlds()) {
-            if (GriefPrevention.instance.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
+        for (World world : GriefPrevention.plugin.getServer().getWorlds()) {
+            if (GriefPrevention.plugin.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
                 worlds.add(world);
             }
         }
@@ -90,7 +90,7 @@ public class EntityCleanupTask implements Runnable {
 
                 //all non-player entities must be in claims
                 else if (!(entity instanceof Player)) {
-                    Claim claim = GriefPrevention.instance.dataStore.getClaimAt(entity.getLocation(), false, cachedClaim);
+                    Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(entity.getLocation(), false, cachedClaim);
                     if (claim != null) {
                         cachedClaim = claim;
                     }
@@ -107,14 +107,14 @@ public class EntityCleanupTask implements Runnable {
         }
 
         //starting and stopping point.  each execution of the task scans 5% of the server's claims
-        List<Claim> claims = GriefPrevention.instance.dataStore.claims;
+        List<Claim> claims = GriefPrevention.plugin.dataStore.claims;
         int j = (int) (claims.size() * this.percentageStart);
         int k = (int) (claims.size() * (this.percentageStart + .05));
         for (; j < claims.size() && j < k; j++) {
             Claim claim = claims.get(j);
 
             //if it's a creative mode claim
-            if (GriefPrevention.instance.creativeRulesApply(claim.getLesserBoundaryCorner())) {
+            if (GriefPrevention.plugin.creativeRulesApply(claim.getLesserBoundaryCorner())) {
                 //check its entity count and remove any extras
                 claim.allowMoreEntities(true);
             }
@@ -127,6 +127,6 @@ public class EntityCleanupTask implements Runnable {
         }
 
         EntityCleanupTask task = new EntityCleanupTask(nextRunPercentageStart);
-        GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task, 20L * 60 * 1);
+        GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, task, 20L * 60 * 1);
     }
 }

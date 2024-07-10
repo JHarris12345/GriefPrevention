@@ -55,7 +55,7 @@ public class UUIDFetcher {
         GriefPrevention.AddLogEntry("UUID conversion process started.  Please be patient - this may take a while.");
 
         GriefPrevention.AddLogEntry("Mining your local world data to save calls to Mojang...");
-        OfflinePlayer[] players = GriefPrevention.instance.getServer().getOfflinePlayers();
+        OfflinePlayer[] players = GriefPrevention.plugin.getServer().getOfflinePlayers();
         for (OfflinePlayer player : players) {
             if (player.getName() != null && player.getUniqueId() != null) {
                 lookupCache.put(player.getName(), player.getUniqueId());
@@ -89,7 +89,7 @@ public class UUIDFetcher {
         names.removeIf(Objects::isNull);
 
         //for online mode, call Mojang to resolve the rest
-        if (GriefPrevention.instance.getServer().getOnlineMode()) {
+        if (GriefPrevention.plugin.getServer().getOnlineMode()) {
             Pattern validNamePattern = Pattern.compile("^\\w+$");
 
             // Don't bother requesting UUIDs for invalid names from Mojang.

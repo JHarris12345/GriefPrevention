@@ -156,7 +156,7 @@ public abstract class DataStore {
         //RoboMWM: ensure the nextClaimID is greater than any other claim ID. If not, data corruption occurred (out of storage space, usually).
         for (Claim claim : this.claims) {
             if (claim.id >= nextClaimID) {
-                GriefPrevention.instance.getLogger().severe("nextClaimID was lesser or equal to an already-existing claim ID!\n" +
+                GriefPrevention.plugin.getLogger().severe("nextClaimID was lesser or equal to an already-existing claim ID!\n" +
                         "This usually happens if you ran out of storage space.");
                 GriefPrevention.AddLogEntry("Changing nextClaimID from " + nextClaimID + " to " + claim.id, CustomLogEntryTypes.Debug, false);
                 nextClaimID = claim.id + 1;
@@ -331,7 +331,7 @@ public abstract class DataStore {
     //Bukkit doesn't allow for checking permissions of an offline player.
     //this will return 0 when he's offline, and the correct number when online.
     synchronized public int getGroupBonusBlocks(UUID playerID) {
-        Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
+        Player player = GriefPrevention.plugin.getServer().getPlayer(playerID);
 
         if (player == null) return 0;
 
@@ -792,8 +792,8 @@ public abstract class DataStore {
         int smallx, bigx, smally, bigy, smallz, bigz;
 
         int worldMinY = world.getMinHeight();
-        y1 = Math.max(worldMinY, Math.max(GriefPrevention.instance.config_claims_maxDepth, y1));
-        y2 = Math.max(worldMinY, Math.max(GriefPrevention.instance.config_claims_maxDepth, y2));
+        y1 = Math.max(worldMinY, Math.max(GriefPrevention.plugin.config_claims_maxDepth, y1));
+        y2 = Math.max(worldMinY, Math.max(GriefPrevention.plugin.config_claims_maxDepth, y2));
 
         //determine small versus big inputs
         if (x1 < x2) {
@@ -835,7 +835,7 @@ public abstract class DataStore {
         }
 
         //creative mode claims always go to bedrock
-        if (GriefPrevention.instance.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
+        if (GriefPrevention.plugin.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
             smally = world.getMinHeight();
         }
 
@@ -873,7 +873,7 @@ public abstract class DataStore {
         }
 
         //if worldguard is installed, also prevent claims from overlapping any worldguard regions
-        if (GriefPrevention.instance.config_claims_respectWorldGuard && this.worldGuard != null && creatingPlayer != null) {
+        if (GriefPrevention.plugin.config_claims_respectWorldGuard && this.worldGuard != null && creatingPlayer != null) {
             if (!this.worldGuard.canBuild(newClaim.lesserBoundaryCorner, newClaim.greaterBoundaryCorner, creatingPlayer)) {
                 result.succeeded = false;
                 result.claim = null;
@@ -989,7 +989,7 @@ public abstract class DataStore {
         // Use the lowest of the old and new depths.
         newDepth = Math.min(newDepth, oldDepth);
         // Cap depth to maximum depth allowed by the configuration.
-        newDepth = Math.max(newDepth, GriefPrevention.instance.config_claims_maxDepth);
+        newDepth = Math.max(newDepth, GriefPrevention.plugin.config_claims_maxDepth);
         // Cap the depth to the world's minimum height.
         World world = Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld());
         newDepth = Math.max(newDepth, world.getMinHeight());
@@ -1030,7 +1030,7 @@ public abstract class DataStore {
         //why isn't this a "repeating" task?
         //because depending on the status of the siege at the time the task runs, there may or may not be a reason to run the task again
         SiegeCheckupTask task = new SiegeCheckupTask(siegeData);
-        siegeData.checkupTaskID = GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task, 20L * 30);
+        siegeData.checkupTaskID = GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, task, 20L * 30);
     }
 
     //ends a siege
@@ -1070,7 +1070,7 @@ public abstract class DataStore {
 
         //start a cooldown for this attacker/defender pair
         Long now = Calendar.getInstance().getTimeInMillis();
-        Long cooldownEnd = now + 1000 * 60 * GriefPrevention.instance.config_siege_cooldownEndInMinutes;  //one hour from now
+        Long cooldownEnd = now + 1000 * 60 * GriefPrevention.plugin.config_siege_cooldownEndInMinutes;  //one hour from now
         this.siegeCooldownRemaining.put(siegeData.attacker.getName() + "_" + siegeData.defender.getName(), cooldownEnd);
 
         //start cooldowns for every attacker/involved claim pair
@@ -1086,17 +1086,17 @@ public abstract class DataStore {
         }
 
         //cancel the siege checkup task
-        GriefPrevention.instance.getServer().getScheduler().cancelTask(siegeData.checkupTaskID);
+        GriefPrevention.plugin.getServer().getScheduler().cancelTask(siegeData.checkupTaskID);
 
         //notify everyone who won and lost
         if (winnerName != null && loserName != null) {
-            GriefPrevention.instance.getServer().broadcastMessage(winnerName + " defeated " + loserName + " in siege warfare!");
+            GriefPrevention.plugin.getServer().broadcastMessage(winnerName + " defeated " + loserName + " in siege warfare!");
         }
 
         //if the claim should be opened to looting
         if (grantAccess) {
 
-            Player winner = GriefPrevention.instance.getServer().getPlayer(winnerName);
+            Player winner = GriefPrevention.plugin.getServer().getPlayer(winnerName);
             if (winner != null) {
                 //notify the winner
                 GriefPrevention.sendMessage(winner, TextMode.Success, Messages.SiegeWinDoorsOpen);
@@ -1104,8 +1104,8 @@ public abstract class DataStore {
                 //schedule a task to secure the claims in about 5 minutes
                 SecureClaimTask task = new SecureClaimTask(siegeData);
 
-                GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(
-                        GriefPrevention.instance, task, 20L * GriefPrevention.instance.config_siege_doorsOpenSeconds
+                GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(
+                        GriefPrevention.plugin, task, 20L * GriefPrevention.plugin.config_siege_doorsOpenSeconds
                 );
             }
         }
@@ -1113,9 +1113,9 @@ public abstract class DataStore {
         //if the siege ended due to death, transfer inventory to winner
         if (drops != null) {
 
-            Player winner = GriefPrevention.instance.getServer().getPlayer(winnerName);
+            Player winner = GriefPrevention.plugin.getServer().getPlayer(winnerName);
 
-            Player loser = GriefPrevention.instance.getServer().getPlayer(loserName);
+            Player loser = GriefPrevention.plugin.getServer().getPlayer(loserName);
             if (winner != null && loser != null) {
                 //try to add any drops to the winner's inventory
                 for (ItemStack stack : drops) {
@@ -1221,8 +1221,8 @@ public abstract class DataStore {
             this.deleteClaim(claim, releasePets);
 
             //if in a creative mode world, delete the claim
-            if (GriefPrevention.instance.creativeRulesApply(claim.getLesserBoundaryCorner())) {
-                GriefPrevention.instance.restoreClaim(claim, 0);
+            if (GriefPrevention.plugin.creativeRulesApply(claim.getLesserBoundaryCorner())) {
+                GriefPrevention.plugin.restoreClaim(claim, 0);
             }
         }
     }
@@ -1263,14 +1263,14 @@ public abstract class DataStore {
             boolean smaller = newWidth < playerData.claimResizing.getWidth() || newHeight < playerData.claimResizing.getHeight();
 
             if (!player.hasPermission("griefprevention.adminclaims") && !playerData.claimResizing.isAdminClaim() && smaller) {
-                if (newWidth < GriefPrevention.instance.config_claims_minWidth || newHeight < GriefPrevention.instance.config_claims_minWidth) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeClaimTooNarrow, String.valueOf(GriefPrevention.instance.config_claims_minWidth));
+                if (newWidth < GriefPrevention.plugin.config_claims_minWidth || newHeight < GriefPrevention.plugin.config_claims_minWidth) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeClaimTooNarrow, String.valueOf(GriefPrevention.plugin.config_claims_minWidth));
                     return;
                 }
 
                 int newArea = newWidth * newHeight;
-                if (newArea < GriefPrevention.instance.config_claims_minArea) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeClaimInsufficientArea, String.valueOf(GriefPrevention.instance.config_claims_minArea));
+                if (newArea < GriefPrevention.plugin.config_claims_minArea) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeClaimInsufficientArea, String.valueOf(GriefPrevention.plugin.config_claims_minArea));
                     return;
                 }
             }
@@ -1315,7 +1315,7 @@ public abstract class DataStore {
         }
 
         //ask the datastore to try and resize the claim, this checks for conflicts with other claims
-        CreateClaimResult result = GriefPrevention.instance.dataStore.resizeClaim(
+        CreateClaimResult result = GriefPrevention.plugin.dataStore.resizeClaim(
                 playerData.claimResizing,
                 newClaim.getLesserBoundaryCorner().getBlockX(),
                 newClaim.getGreaterBoundaryCorner().getBlockX(),
@@ -1339,7 +1339,7 @@ public abstract class DataStore {
                 else {
                     PlayerData ownerData = this.getPlayerData(ownerID);
                     claimBlocksRemaining = ownerData.getRemainingClaimBlocks();
-                    OfflinePlayer owner = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID);
+                    OfflinePlayer owner = GriefPrevention.plugin.getServer().getOfflinePlayer(ownerID);
                     if (!owner.isOnline()) {
                         this.clearCachedPlayerData(ownerID);
                     }
@@ -1362,9 +1362,9 @@ public abstract class DataStore {
             }
 
             //if in a creative mode world and shrinking an existing claim, restore any unclaimed area
-            if (smaller && GriefPrevention.instance.creativeRulesApply(oldClaim.getLesserBoundaryCorner())) {
+            if (smaller && GriefPrevention.plugin.creativeRulesApply(oldClaim.getLesserBoundaryCorner())) {
                 GriefPrevention.sendMessage(player, TextMode.Warn, Messages.UnclaimCleanupWarning);
-                GriefPrevention.instance.restoreClaim(oldClaim, 20L * 60 * 2);  //2 minutes
+                GriefPrevention.plugin.restoreClaim(oldClaim, 20L * 60 * 2);  //2 minutes
                 GriefPrevention.AddLogEntry(player.getName() + " shrank a claim @ " + GriefPrevention.getfriendlyLocationString(playerData.claimResizing.getLesserBoundaryCorner()));
             }
 

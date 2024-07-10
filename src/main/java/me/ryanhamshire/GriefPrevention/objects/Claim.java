@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention.objects;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
@@ -122,6 +123,10 @@ public class Claim {
         return this.id;
     }
 
+    // All the GUIs for a claim and if they're loaded yet
+    public boolean loadedGUIs;
+    public MenuGUI menuGUI;
+
     //basic constructor, just notes the creation time
     //see above declarations for other defaults
     Claim() {
@@ -149,7 +154,7 @@ public class Claim {
         if (this.getArea() > 10000) return;
 
         //only in creative mode worlds
-        if (!GriefPrevention.instance.creativeRulesApply(this.lesserBoundaryCorner)) return;
+        if (!GriefPrevention.plugin.creativeRulesApply(this.lesserBoundaryCorner)) return;
 
         Location lesser = this.getLesserBoundaryCorner();
         Location greater = this.getGreaterBoundaryCorner();
@@ -160,7 +165,7 @@ public class Claim {
 
         //respect sea level in normal worlds
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
-            seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
+            seaLevel = GriefPrevention.plugin.getSeaLevel(lesser.getWorld());
 
         for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
             for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
@@ -190,7 +195,7 @@ public class Claim {
 
         //respect sea level in normal worlds
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
-            seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
+            seaLevel = GriefPrevention.plugin.getSeaLevel(lesser.getWorld());
 
         for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
             for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
@@ -506,7 +511,7 @@ public class Claim {
 
         // Claim owner and admins in ignoreclaims mode have access.
         if (uuid.equals(this.getOwnerID())
-                || GriefPrevention.instance.dataStore.getPlayerData(uuid).ignoreClaims
+                || GriefPrevention.plugin.dataStore.getPlayerData(uuid).ignoreClaims
                 && hasBypassPermission(player, permission))
             return null;
 
@@ -524,9 +529,9 @@ public class Claim {
         // Special building-only rules.
         if (permission == ClaimPermission.Build) {
             // No building while in PVP.
-            PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(uuid);
+            PlayerData playerData = GriefPrevention.plugin.dataStore.getPlayerData(uuid);
             if (playerData.inPvpCombat()) {
-                return () -> GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
+                return () -> GriefPrevention.plugin.dataStore.getMessage(Messages.NoBuildPvP);
             }
 
             // Allow farming crops with container trust.
@@ -548,9 +553,9 @@ public class Claim {
         // Catch-all error message for all other cases.
         return () ->
         {
-            String reason = GriefPrevention.instance.dataStore.getMessage(permission.getDenialMessage(), this.getOwnerName());
+            String reason = GriefPrevention.plugin.dataStore.getMessage(permission.getDenialMessage(), this.getOwnerName());
             if (hasBypassPermission(player, permission))
-                reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                reason += "  " + GriefPrevention.plugin.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
             return reason;
         };
     }
@@ -697,25 +702,25 @@ public class Claim {
         }
 
         if (this.ownerID == null) {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
+            return GriefPrevention.plugin.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
         }
 
         // Dunno what all this fuckery does
         //return GriefPrevention.lookupPlayerName(this.ownerID);
 
-        String name = GriefPrevention.instance.uuidNameCache.getOrDefault(this.ownerID, null);
+        String name = GriefPrevention.plugin.uuidNameCache.getOrDefault(this.ownerID, null);
         if (name != null) return name;
 
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(this.ownerID);
         if (offlinePlayer.isOnline()) {
             name = offlinePlayer.getPlayer().getName();
-            GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
+            GriefPrevention.plugin.uuidNameCache.put(this.ownerID, name);
 
             return offlinePlayer.getPlayer().getName();
         }
 
         name = offlinePlayer.getName();
-        GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
+        GriefPrevention.plugin.uuidNameCache.put(this.ownerID, name);
 
         return name;
     }
@@ -784,7 +789,7 @@ public class Claim {
         if (this.parent != null) return this.parent.allowMoreEntities(remove);
 
         //this rule only applies to creative mode worlds
-        if (!GriefPrevention.instance.creativeRulesApply(this.getLesserBoundaryCorner())) return null;
+        if (!GriefPrevention.plugin.creativeRulesApply(this.getLesserBoundaryCorner())) return null;
 
         //admin claims aren't restricted
         if (this.isAdminClaim()) return null;
@@ -794,7 +799,7 @@ public class Claim {
 
         //determine maximum allowable entity count, based on claim size
         int maxEntities = this.getArea() / 50;
-        if (maxEntities == 0) return GriefPrevention.instance.dataStore.getMessage(Messages.ClaimTooSmallForEntities);
+        if (maxEntities == 0) return GriefPrevention.plugin.dataStore.getMessage(Messages.ClaimTooSmallForEntities);
 
         //count current entities (ignoring players)
         int totalEntities = 0;
@@ -810,7 +815,7 @@ public class Claim {
         }
 
         if (totalEntities >= maxEntities)
-            return GriefPrevention.instance.dataStore.getMessage(Messages.TooManyEntitiesInClaim);
+            return GriefPrevention.plugin.dataStore.getMessage(Messages.TooManyEntitiesInClaim);
 
         return null;
     }
@@ -821,7 +826,7 @@ public class Claim {
         //determine maximum allowable entity count, based on claim size
         int maxActives = this.getArea() / 100;
         if (maxActives == 0)
-            return GriefPrevention.instance.dataStore.getMessage(Messages.ClaimTooSmallForActiveBlocks);
+            return GriefPrevention.plugin.dataStore.getMessage(Messages.ClaimTooSmallForActiveBlocks);
 
         //count current actives
         int totalActives = 0;
@@ -838,7 +843,7 @@ public class Claim {
         }
 
         if (totalActives >= maxActives)
-            return GriefPrevention.instance.dataStore.getMessage(Messages.TooManyActiveBlocksInClaim);
+            return GriefPrevention.plugin.dataStore.getMessage(Messages.TooManyActiveBlocksInClaim);
 
         return null;
     }
@@ -868,12 +873,12 @@ public class Claim {
         //scan the claim for player placed blocks
         double score = 0;
 
-        boolean creativeMode = GriefPrevention.instance.creativeRulesApply(lesserBoundaryCorner);
+        boolean creativeMode = GriefPrevention.plugin.creativeRulesApply(lesserBoundaryCorner);
 
         for (int x = this.lesserBoundaryCorner.getBlockX(); x <= this.greaterBoundaryCorner.getBlockX(); x++) {
             for (int z = this.lesserBoundaryCorner.getBlockZ(); z <= this.greaterBoundaryCorner.getBlockZ(); z++) {
                 int y = this.lesserBoundaryCorner.getBlockY();
-                for (; y < GriefPrevention.instance.getSeaLevel(this.lesserBoundaryCorner.getWorld()) - 5; y++) {
+                for (; y < GriefPrevention.plugin.getSeaLevel(this.lesserBoundaryCorner.getWorld()) - 5; y++) {
                     Block block = this.lesserBoundaryCorner.getWorld().getBlockAt(x, y, z);
                     if (playerBlocks.contains(block.getType())) {
                         if (block.getType() == Material.CHEST && !creativeMode) {
@@ -923,5 +928,11 @@ public class Claim {
 
     public ArrayList<Long> getChunkHashes() {
         return DataStore.getChunkHashes(this);
+    }
+
+    public void loadGUIs() {
+        if (!loadedGUIs) {
+            menuGUI = new MenuGUI(this);
+        }
     }
 }

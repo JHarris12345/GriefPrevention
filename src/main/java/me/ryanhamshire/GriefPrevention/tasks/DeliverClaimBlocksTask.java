@@ -46,7 +46,7 @@ public class DeliverClaimBlocksTask implements Runnable {
         //if no player specified, this task will create a player-specific task for each online player, scheduled one tick apart
         if (this.player == null) {
             @SuppressWarnings("unchecked")
-            Collection<Player> players = (Collection<Player>) GriefPrevention.instance.getServer().getOnlinePlayers();
+            Collection<Player> players = (Collection<Player>) GriefPrevention.plugin.getServer().getOnlinePlayers();
 
             long i = 0;
             for (Player onlinePlayer : players) {

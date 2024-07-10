@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention.tasks;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.BlockSnapshot;
+import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -95,7 +96,7 @@ public class RestoreNatureProcessingTask implements Runnable {
 
         this.notAllowedToHang = EnumSet.noneOf(Material.class);
         this.notAllowedToHang.add(Material.DIRT);
-        this.notAllowedToHang.add(Material.GRASS);
+        this.notAllowedToHang.add(MaterialUtils.of("SHORT_GRASS"));
         this.notAllowedToHang.add(Material.SNOW);
         this.notAllowedToHang.add(Material.OAK_LOG);
         this.notAllowedToHang.add(Material.SPRUCE_LOG);
@@ -105,7 +106,7 @@ public class RestoreNatureProcessingTask implements Runnable {
         this.notAllowedToHang.add(Material.DARK_OAK_LOG);
 
         if (this.aggressiveMode) {
-            this.notAllowedToHang.add(Material.GRASS);
+            this.notAllowedToHang.add(MaterialUtils.of("SHORT_GRASS"));
             this.notAllowedToHang.add(Material.STONE);
         }
 
@@ -183,7 +184,7 @@ public class RestoreNatureProcessingTask implements Runnable {
 
         //schedule main thread task to apply the result to the world
         RestoreNatureExecutionTask task = new RestoreNatureExecutionTask(this.snapshots, this.miny, this.lesserBoundaryCorner, this.greaterBoundaryCorner, this.player);
-        GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task);
+        GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, task);
     }
 
 
@@ -354,7 +355,7 @@ public class RestoreNatureProcessingTask implements Runnable {
         Material[] excludedBlocksArray = new Material[]
                 {
                         Material.CACTUS,
-                        Material.GRASS,
+                        MaterialUtils.of("SHORT_GRASS"),
                         Material.RED_MUSHROOM,
                         Material.BROWN_MUSHROOM,
                         Material.DEAD_BUSH,
@@ -430,10 +431,10 @@ public class RestoreNatureProcessingTask implements Runnable {
         fillableBlocks.add(Material.AIR);
         fillableBlocks.add(Material.WATER);
         fillableBlocks.add(Material.LAVA);
-        fillableBlocks.add(Material.GRASS);
+        fillableBlocks.add(MaterialUtils.of("SHORT_GRASS"));
 
         ArrayList<Material> notSuitableForFillBlocks = new ArrayList<>();
-        notSuitableForFillBlocks.add(Material.GRASS);
+        notSuitableForFillBlocks.add(MaterialUtils.of("SHORT_GRASS"));
         notSuitableForFillBlocks.add(Material.CACTUS);
         notSuitableForFillBlocks.add(Material.WATER);
         notSuitableForFillBlocks.add(Material.LAVA);

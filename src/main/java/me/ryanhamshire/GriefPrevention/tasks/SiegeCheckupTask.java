@@ -38,7 +38,7 @@ public class SiegeCheckupTask implements Runnable {
 
     @Override
     public void run() {
-        DataStore dataStore = GriefPrevention.instance.dataStore;
+        DataStore dataStore = GriefPrevention.plugin.dataStore;
         Player defender = this.siegeData.defender;
         Player attacker = this.siegeData.attacker;
 
@@ -99,6 +99,6 @@ public class SiegeCheckupTask implements Runnable {
 
     //schedules another checkup later
     private void scheduleAnotherCheck() {
-        this.siegeData.checkupTaskID = GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, this, 20L * 30);
+        this.siegeData.checkupTaskID = GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, this, 20L * 30);
     }
 }

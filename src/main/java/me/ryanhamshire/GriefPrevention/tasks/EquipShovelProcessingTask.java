@@ -45,10 +45,10 @@ public class EquipShovelProcessingTask implements Runnable {
     @Override
     public void run() {
         //if he's not holding the golden shovel anymore, do nothing
-        if (GriefPrevention.instance.getItemInHand(player, EquipmentSlot.HAND).getType() != GriefPrevention.instance.config_claims_modificationTool)
+        if (GriefPrevention.plugin.getItemInHand(player, EquipmentSlot.HAND).getType() != GriefPrevention.plugin.config_claims_modificationTool)
             return;
 
-        PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
+        PlayerData playerData = GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId());
 
         //reset any work he might have been doing
         playerData.lastShovelLocation = null;
@@ -65,15 +65,15 @@ public class EquipShovelProcessingTask implements Runnable {
         GriefPrevention.sendMessage(player, TextMode.Instr, Messages.RemainingBlocks, String.valueOf(remainingBlocks));
 
         //link to a video demo of land claiming, based on world type
-        if (GriefPrevention.instance.creativeRulesApply(player.getLocation())) {
+        if (GriefPrevention.plugin.creativeRulesApply(player.getLocation())) {
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
         }
-        else if (GriefPrevention.instance.claimsEnabledForWorld(player.getWorld())) {
+        else if (GriefPrevention.plugin.claimsEnabledForWorld(player.getWorld())) {
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
         }
 
         //if standing in a claim owned by the player, visualize it
-        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
+        Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
         if (claim != null && claim.checkPermission(player, ClaimPermission.Edit, null) == null) {
             playerData.lastClaim = claim;
             BoundaryVisualization.visualizeClaim(player, claim, VisualizationType.CLAIM);

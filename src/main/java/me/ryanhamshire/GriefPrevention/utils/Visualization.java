@@ -75,7 +75,7 @@ public class Visualization {
     @Deprecated(forRemoval = true, since = "16.18")
     public static void Revert(Player player) {
         if (player != null && player.isOnline())
-            GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
+            GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
     }
 
     /**
@@ -115,7 +115,7 @@ public class Visualization {
         // If the visualization is null, revert existing visualizations.
         if (visualization == null) {
             if (player.isOnline()) {
-                GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
+                GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId()).setVisibleBoundaries(null);
             }
             return;
         }

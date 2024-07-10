@@ -8,6 +8,8 @@ import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
+import me.ryanhamshire.GriefPrevention.utils.legacies.EntityTypeUtils;
+import me.ryanhamshire.GriefPrevention.utils.legacies.PotionEffectTypeUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -66,26 +68,26 @@ public class EntityDamageHandler implements Listener {
 
     private static final Set<PotionEffectType> GRIEF_EFFECTS = Set.of(
             // Damaging effects
-            PotionEffectType.HARM,
+            PotionEffectTypeUtils.of("INSTANT_DAMAGE"),
             PotionEffectType.POISON,
             PotionEffectType.WITHER,
             // Effects that could remove entities from normally-secure pens
-            PotionEffectType.JUMP,
+            PotionEffectTypeUtils.of("JUMP_BOOST"),
             PotionEffectType.LEVITATION
     );
     private static final Set<PotionEffectType> POSITIVE_EFFECTS = Set.of(
             PotionEffectType.ABSORPTION,
             PotionEffectType.CONDUIT_POWER,
-            PotionEffectType.DAMAGE_RESISTANCE,
+            PotionEffectTypeUtils.of("RESISTANCE"),
             PotionEffectType.DOLPHINS_GRACE,
-            PotionEffectType.FAST_DIGGING,
+            PotionEffectTypeUtils.of("HASTE"),
             PotionEffectType.FIRE_RESISTANCE,
-            PotionEffectType.HEAL,
+            PotionEffectTypeUtils.of("INSTANT_HEALTH"),
             PotionEffectType.HEALTH_BOOST,
             PotionEffectType.HERO_OF_THE_VILLAGE,
-            PotionEffectType.INCREASE_DAMAGE,
+            PotionEffectTypeUtils.of("STRENGTH"),
             PotionEffectType.INVISIBILITY,
-            PotionEffectType.JUMP,
+            PotionEffectTypeUtils.of("JUMP_BOOST"),
             PotionEffectType.LUCK,
             PotionEffectType.NIGHT_VISION,
             PotionEffectType.REGENERATION,
@@ -523,7 +525,7 @@ public class EntityDamageHandler implements Listener {
                 && entityType != EntityType.GLOW_ITEM_FRAME
                 && entityType != EntityType.ARMOR_STAND
                 && entityType != EntityType.VILLAGER
-                && entityType != EntityType.ENDER_CRYSTAL) {
+                && entityType != EntityTypeUtils.of("END_CRYSTAL")) {
             return false;
         }
 
@@ -595,7 +597,7 @@ public class EntityDamageHandler implements Listener {
         if (attacker == null
                 && damageSourceType != EntityType.CREEPER
                 && damageSourceType != EntityType.WITHER
-                && damageSourceType != EntityType.ENDER_CRYSTAL
+                && damageSourceType != EntityTypeUtils.of("END_CRYSTAL")
                 && damageSourceType != EntityType.AREA_EFFECT_CLOUD
                 && damageSourceType != EntityType.WITCH
                 && !(damageSource instanceof Projectile)
@@ -628,7 +630,7 @@ public class EntityDamageHandler implements Listener {
         playerData.lastClaim = claim;
 
         // Do not message players about fireworks to prevent spam due to multi-hits.
-        sendMessages &= damageSourceType != EntityType.FIREWORK;
+        sendMessages &= damageSourceType != EntityTypeUtils.of("FIREWORK_ROCKET");
 
         Supplier<String> override = null;
         if (sendMessages) {
@@ -786,7 +788,7 @@ public class EntityDamageHandler implements Listener {
         }
 
         //if not a player and not an explosion, always allow
-        if (attacker == null && damageSourceType != EntityType.CREEPER && damageSourceType != EntityType.WITHER && damageSourceType != EntityType.PRIMED_TNT) {
+        if (attacker == null && damageSourceType != EntityType.CREEPER && damageSourceType != EntityType.WITHER && damageSourceType != EntityTypeUtils.of("TNT")) {
             return;
         }
 

@@ -28,11 +28,11 @@ public class WelcomeTask implements Runnable {
         GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
 
         //give the player a reference book for later
-        if (GriefPrevention.instance.config_claims_supplyPlayerManual) {
+        if (GriefPrevention.plugin.config_claims_supplyPlayerManual) {
             ItemFactory factory = Bukkit.getItemFactory();
             BookMeta meta = (BookMeta) factory.getItemMeta(Material.WRITTEN_BOOK);
 
-            DataStore datastore = GriefPrevention.instance.dataStore;
+            DataStore datastore = GriefPrevention.plugin.dataStore;
             meta.setAuthor(datastore.getMessage(Messages.BookAuthor));
             meta.setTitle(datastore.getMessage(Messages.BookTitle));
 
@@ -42,11 +42,11 @@ public class WelcomeTask implements Runnable {
 
             page1.append(URL).append("\n\n");
             page1.append(intro).append("\n\n");
-            String editToolName = GriefPrevention.instance.config_claims_modificationTool.name().replace('_', ' ').toLowerCase();
-            String infoToolName = GriefPrevention.instance.config_claims_investigationTool.name().replace('_', ' ').toLowerCase();
+            String editToolName = GriefPrevention.plugin.config_claims_modificationTool.name().replace('_', ' ').toLowerCase();
+            String infoToolName = GriefPrevention.plugin.config_claims_investigationTool.name().replace('_', ' ').toLowerCase();
             String configClaimTools = datastore.getMessage(Messages.BookTools, editToolName, infoToolName);
             page1.append(configClaimTools);
-            if (GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadius < 0) {
+            if (GriefPrevention.plugin.config_claims_automaticClaimsForNewPlayersRadius < 0) {
                 page1.append(datastore.getMessage(Messages.BookDisabledChestClaims));
             }
 

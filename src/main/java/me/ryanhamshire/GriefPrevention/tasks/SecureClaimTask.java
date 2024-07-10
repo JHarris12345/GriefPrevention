@@ -46,11 +46,11 @@ public class SecureClaimTask implements Runnable {
 
             //eject bad guys
             @SuppressWarnings("unchecked")
-            Collection<Player> onlinePlayers = (Collection<Player>) GriefPrevention.instance.getServer().getOnlinePlayers();
+            Collection<Player> onlinePlayers = (Collection<Player>) GriefPrevention.plugin.getServer().getOnlinePlayers();
             for (Player player : onlinePlayers) {
                 if (claim.contains(player.getLocation(), false, false) && claim.checkPermission(player, ClaimPermission.Access, null) != null) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeDoorsLockedEjection);
-                    GriefPrevention.instance.ejectPlayer(player);
+                    GriefPrevention.plugin.ejectPlayer(player);
                 }
             }
         }

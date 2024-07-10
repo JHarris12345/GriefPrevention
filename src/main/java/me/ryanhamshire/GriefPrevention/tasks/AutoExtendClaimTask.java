@@ -64,7 +64,7 @@ public class AutoExtendClaimTask implements Runnable {
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(
-                GriefPrevention.instance,
+                GriefPrevention.plugin,
                 new AutoExtendClaimTask(claim, snapshots, world.getEnvironment(), lowestLootableTile));
     }
 
@@ -86,14 +86,14 @@ public class AutoExtendClaimTask implements Runnable {
         this.lowestExistingY = Math.min(lowestExistingY, claim.getLesserBoundaryCorner().getBlockY());
         this.minY = Math.max(
                 Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()).getMinHeight(),
-                GriefPrevention.instance.config_claims_maxDepth);
+                GriefPrevention.plugin.config_claims_maxDepth);
     }
 
     @Override
     public void run() {
         int newY = this.getLowestBuiltY();
         if (newY < this.claim.getLesserBoundaryCorner().getBlockY()) {
-            Bukkit.getScheduler().runTask(GriefPrevention.instance, new ExecuteExtendClaimTask(claim, newY));
+            Bukkit.getScheduler().runTask(GriefPrevention.plugin, new ExecuteExtendClaimTask(claim, newY));
         }
     }
 
@@ -165,7 +165,7 @@ public class AutoExtendClaimTask implements Runnable {
     private record ExecuteExtendClaimTask(Claim claim, int newY) implements Runnable {
         @Override
         public void run() {
-            GriefPrevention.instance.dataStore.extendClaim(claim, newY);
+            GriefPrevention.plugin.dataStore.extendClaim(claim, newY);
         }
     }
 

@@ -39,6 +39,7 @@ import me.ryanhamshire.GriefPrevention.tasks.EquipShovelProcessingTask;
 import me.ryanhamshire.GriefPrevention.tasks.WelcomeTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
+import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -507,7 +508,7 @@ public class PlayerEventHandler implements Listener {
 
         //in case player has changed his name, on successful login, update UUID > Name mapping
         GriefPrevention.cacheUUIDNamePair(player.getUniqueId(), player.getName());
-        GriefPrevention.instance.uuidNameCache.put(player.getUniqueId(), player.getName());
+        GriefPrevention.plugin.uuidNameCache.put(player.getUniqueId(), player.getName());
 
         //create a thread to load ignore information
         new IgnoreLoaderThread(playerID, playerData.ignoredPlayers).start();
@@ -1127,11 +1128,11 @@ public class PlayerEventHandler implements Listener {
     }
 
     private boolean doesAllowLavaProximityInWorld(World world) {
-        if (GriefPrevention.instance.pvpRulesApply(world)) {
-            return GriefPrevention.instance.config_pvp_allowLavaNearPlayers;
+        if (GriefPrevention.plugin.pvpRulesApply(world)) {
+            return GriefPrevention.plugin.config_pvp_allowLavaNearPlayers;
         }
         else {
-            return GriefPrevention.instance.config_pvp_allowLavaNearPlayers_NonPvp;
+            return GriefPrevention.plugin.config_pvp_allowLavaNearPlayers_NonPvp;
         }
     }
 
@@ -1410,7 +1411,7 @@ public class PlayerEventHandler implements Listener {
             // Require build permission for items that may have an effect on the world when used.
             if (clickedBlock != null && (materialInHand == Material.BONE_MEAL
                     || materialInHand == Material.ARMOR_STAND
-                    || (spawn_eggs.contains(materialInHand) && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs)
+                    || (spawn_eggs.contains(materialInHand) && GriefPrevention.plugin.config_claims_preventGlobalMonsterEggs)
                     || materialInHand == Material.END_CRYSTAL
                     || materialInHand == Material.FLINT_AND_STEEL
                     || materialInHand == Material.INK_SAC
@@ -1684,7 +1685,7 @@ public class PlayerEventHandler implements Listener {
                     allowedFillBlocks.add(Material.END_STONE);
                 }
                 else {
-                    allowedFillBlocks.add(Material.GRASS);
+                    allowedFillBlocks.add(MaterialUtils.of("SHORT_GRASS"));
                     allowedFillBlocks.add(Material.DIRT);
                     allowedFillBlocks.add(Material.STONE);
                     allowedFillBlocks.add(Material.SAND);
@@ -1740,7 +1741,7 @@ public class PlayerEventHandler implements Listener {
                             }
 
                             //only replace air, spilling water, snow, long grass
-                            if (block.getType() == Material.AIR || block.getType() == Material.SNOW || (block.getType() == Material.WATER && ((Levelled) block.getBlockData()).getLevel() != 0) || block.getType() == Material.GRASS) {
+                            if (block.getType() == Material.AIR || block.getType() == Material.SNOW || (block.getType() == Material.WATER && ((Levelled) block.getBlockData()).getLevel() != 0) || block.getType() == MaterialUtils.of("SHORT_GRASS")) {
                                 //if the top level, always use the default filler picked above
                                 if (y == maxHeight) {
                                     block.setType(defaultFiller);
@@ -2095,7 +2096,7 @@ public class PlayerEventHandler implements Listener {
             Material type = result.getType();
             if (type != Material.AIR &&
                     (!passThroughWater || type != Material.WATER) &&
-                    type != Material.GRASS &&
+                    type != MaterialUtils.of("SHORT_GRASS") &&
                     type != Material.SNOW) return result;
         }
 

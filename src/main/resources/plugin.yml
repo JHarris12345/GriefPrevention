@@ -173,6 +173,10 @@ commands:
     description: Allows other players to pick up the items you dropped when you died.
     usage: /UnlockDrops
     permission: griefprevention.unlockdrops
+  claimmenu:
+    description: Open the menu for the claim you're standing in
+    usage: /ClaimMenu
+    permission: griefprevention.claims
   claimslist:
     description: Lists information about a player's claim blocks and claims.
     usage: /ClaimsList or /ClaimsList <player>
