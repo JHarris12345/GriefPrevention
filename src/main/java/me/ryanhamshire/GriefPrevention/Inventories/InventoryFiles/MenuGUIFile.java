@@ -40,7 +40,7 @@ public class MenuGUIFile {
                 customFile.set("Icons.Permissions.Item", "PLAYER_HEAD");
                 customFile.set("Icons.Permissions.Base64Value", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTYzMzBhNGEyMmZmNTU4NzFmYzhjNjE4ZTQyMWEzNzczM2FjMWRjYWI5YzhlMWE0YmI3M2FlNjQ1YTRhNGUifX19");
                 customFile.set("Icons.Permissions.Name", "&bClaim Permissions");
-                customFile.set("Icons.Permissions.Lore", new ArrayList<>(Arrays.asList("&7Manage the permissions for each", "&7role on this claim")));
+                customFile.set("Icons.Permissions.Lore", new ArrayList<>(Arrays.asList("&7Manage the permissions for", "&7each role on this claim")));
 
                 customFile.set("Icons.Settings.Slot", 12);
                 customFile.set("Icons.Settings.Item", "PLAYER_HEAD");
