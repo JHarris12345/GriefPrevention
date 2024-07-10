@@ -91,9 +91,21 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
         e.setCancelled(true);
         if (e.getCurrentItem() == null) return;
 
-        String command = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "command"), PersistentDataType.STRING);
-        if (command == null) return;
+        String icon = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "icon"), PersistentDataType.STRING);
+        if (icon == null) return;
 
-        Bukkit.dispatchCommand(e.getWhoClicked(), command);
+        switch (icon) {
+            case "Members":
+                break;
+
+            case "Permissions":
+                break;
+
+            case "Settings":
+                break;
+
+            case "SetName":
+                break;
+        }
     }
 }
