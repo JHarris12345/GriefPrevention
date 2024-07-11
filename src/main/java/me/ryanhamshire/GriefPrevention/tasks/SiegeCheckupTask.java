@@ -21,7 +21,6 @@ package me.ryanhamshire.GriefPrevention.tasks;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
-import me.ryanhamshire.GriefPrevention.objects.SiegeData;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import org.bukkit.entity.Player;
 

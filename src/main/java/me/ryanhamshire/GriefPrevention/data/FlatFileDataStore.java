@@ -251,20 +251,14 @@ public class FlatFileDataStore extends DataStore {
             }
         }
 
-        List<String> builders = yaml.getStringList("Builders");
-
-        List<String> containers = yaml.getStringList("Containers");
-
-        List<String> accessors = yaml.getStringList("Accessors");
-
-        List<String> managers = yaml.getStringList("Managers");
+        List<String> trusted = yaml.getStringList("Builders");
 
         boolean inheritNothing = yaml.getBoolean("inheritNothing");
 
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builders, containers, accessors, managers, inheritNothing, claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, trusted, inheritNothing, claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 

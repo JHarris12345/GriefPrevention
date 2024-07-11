@@ -32,7 +32,6 @@ import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.CustomizableMessage;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
-import me.ryanhamshire.GriefPrevention.objects.SiegeData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;

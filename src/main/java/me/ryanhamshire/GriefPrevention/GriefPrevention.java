@@ -31,7 +31,6 @@ import me.ryanhamshire.GriefPrevention.listeners.EntityDamageHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.InventoryHandler;
 import me.ryanhamshire.GriefPrevention.listeners.PlayerEventHandler;
-import me.ryanhamshire.GriefPrevention.listeners.SiegeEventHandler;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.BlockSnapshot;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
@@ -75,7 +74,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -394,7 +392,6 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new BlockEventHandler(dataStore), this);
         getServer().getPluginManager().registerEvents(new EntityEventHandler(dataStore, this), this);
         getServer().getPluginManager().registerEvents(new EntityDamageHandler(dataStore, this), this);
-        getServer().getPluginManager().registerEvents(new SiegeEventHandler(), this);
         getServer().getPluginManager().registerEvents(new InventoryHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
 

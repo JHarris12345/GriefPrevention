@@ -37,6 +37,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -507,8 +508,7 @@ public class CommandHandler {
                 return true;
             }
 
-            claim.loadGUIs();
-            player.openInventory(claim.menuGUI.getInventory());
+            player.openInventory(new MenuGUI(claim).getInventory());
 
             return true;
         }
