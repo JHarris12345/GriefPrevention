@@ -38,6 +38,7 @@ import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
@@ -1022,7 +1023,7 @@ public class GriefPrevention extends JavaPlugin {
         }
 
         //verify ownership
-        else if (claim.checkPermission(player, ClaimPermission.Edit, null) != null) {
+        else if (claim.getMemberRole(player.getUniqueId()) != ClaimRole.OWNER) {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
         }
 
@@ -1062,10 +1063,11 @@ public class GriefPrevention extends JavaPlugin {
 
     }
 
-    //helper method keeps the trust commands consistent and eliminates duplicate code
+    // Odd method. Just keeping this here so I can see how to do things for when I re-make it
+    /*//helper method keeps the trust commands consistent and eliminates duplicate code
     public void handleTrustCommand(Player player, ClaimPermission permissionLevel, String recipientName) {
         //determine which claim the player is standing in
-        Claim claim = this.dataStore.getClaimAt(player.getLocation(), true /*ignore height*/, null);
+        Claim claim = this.dataStore.getClaimAt(player.getLocation(), true, null);
 
         //validate player or group argument
         String permission = null;
@@ -1107,25 +1109,16 @@ public class GriefPrevention extends JavaPlugin {
         }
         else {
             //check permission here
-            if (claim.checkPermission(player, ClaimPermission.Manage, null) != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
+            if (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
                 return;
             }
 
             //see if the player has the level of permission he's trying to grant
-            Supplier<String> errorMessage;
+            Supplier<String> errorMessage = null;
 
-            //permission level null indicates granting permission trust
-            if (permissionLevel == null) {
-                errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
-                if (errorMessage != null) {
-                    errorMessage = () -> "Only " + claim.getOwnerName() + " can grant /PermissionTrust here.";
-                }
-            }
-
-            //otherwise just use the ClaimPermission enum values
-            else {
-                errorMessage = claim.checkPermission(player, permissionLevel, null);
+            if (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                errorMessage = () -> ClaimPermission.TRUST_UNTRUST.getDenialMessage();
             }
 
             //error message for trying to grant a permission the player doesn't have
@@ -1200,7 +1193,7 @@ public class GriefPrevention extends JavaPlugin {
         }
 
         GriefPrevention.sendMessage(player, TextMode.Success, Messages.GrantPermissionConfirmation, recipientName, permissionDescription, location);
-    }
+    }*/
 
     //helper method to resolve a player by name
     ConcurrentHashMap<String, UUID> playerNameToIDMap = new ConcurrentHashMap<>();
@@ -1443,110 +1436,6 @@ public class GriefPrevention extends JavaPlugin {
         return this.config_claims_worldModes.get((location.getWorld())) == ClaimsMode.Creative;
     }
 
-    public String allowBuild(Player player, Location location) {
-        // TODO check all derivatives and rework API
-        return this.allowBuild(player, location, location.getBlock().getType());
-    }
-
-    public String allowBuild(Player player, Location location, Material material) {
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(location.getWorld())) return null;
-
-        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-        Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);
-
-        //exception: administrators in ignore claims mode
-        if (playerData.ignoreClaims) return null;
-
-        //wilderness rules
-        if (claim == null) {
-            //no building in the wilderness in creative mode
-            if (this.creativeRulesApply(location) || this.config_claims_worldModes.get(location.getWorld()) == ClaimsMode.SurvivalRequiringClaims) {
-                //exception: when chest claims are enabled, players who have zero land claims and are placing a chest
-                if (material != Material.CHEST || playerData.getClaims().size() > 0 || GriefPrevention.plugin.config_claims_automaticClaimsForNewPlayersRadius == -1) {
-                    String reason = this.dataStore.getMessage(Messages.NoBuildOutsideClaims);
-                    if (player.hasPermission("griefprevention.ignoreclaims"))
-                        reason += "  " + this.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                    reason += "  " + this.dataStore.getMessage(Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
-                    return reason;
-                }
-                else {
-                    return null;
-                }
-            }
-
-            //but it's fine in survival mode
-            else {
-                return null;
-            }
-        }
-
-        //if not in the wilderness, then apply claim rules (permissions, etc)
-        else {
-            //cache the claim for later reference
-            playerData.lastClaim = claim;
-            Block block = location.getBlock();
-
-            Supplier<String> supplier = claim.checkPermission(player, ClaimPermission.Build, new BlockPlaceEvent(block, block.getState(), block, new ItemStack(material), player, true, EquipmentSlot.HAND));
-
-            if (supplier == null) return null;
-
-            return supplier.get();
-        }
-    }
-
-    public String allowBreak(Player player, Block block, Location location) {
-        return this.allowBreak(player, block, location, new BlockBreakEvent(block, player));
-    }
-
-    public String allowBreak(Player player, Material material, Location location, BlockBreakEvent breakEvent) {
-        return this.allowBreak(player, location.getBlock(), location, breakEvent);
-    }
-
-    public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent) {
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(location.getWorld())) return null;
-
-        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-        Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);
-
-        //exception: administrators in ignore claims mode
-        if (playerData.ignoreClaims) return null;
-
-        //wilderness rules
-        if (claim == null) {
-            //no building in the wilderness in creative mode
-            if (this.creativeRulesApply(location) || this.config_claims_worldModes.get(location.getWorld()) == ClaimsMode.SurvivalRequiringClaims) {
-                String reason = this.dataStore.getMessage(Messages.NoBuildOutsideClaims);
-                if (player.hasPermission("griefprevention.ignoreclaims"))
-                    reason += "  " + this.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                reason += "  " + this.dataStore.getMessage(Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
-                return reason;
-            }
-
-            //but it's fine in survival mode
-            else {
-                return null;
-            }
-        }
-        else {
-            //cache the claim for later reference
-            playerData.lastClaim = claim;
-
-            //if not in the wilderness, then apply claim rules (permissions, etc)
-            Supplier<String> cancel = claim.checkPermission(player, ClaimPermission.Build, breakEvent);
-            if (cancel != null && breakEvent != null) {
-                PreventBlockBreakEvent preventionEvent = new PreventBlockBreakEvent(breakEvent);
-                Bukkit.getPluginManager().callEvent(preventionEvent);
-                if (preventionEvent.isCancelled()) {
-                    cancel = null;
-                }
-            }
-
-            if (cancel == null) return null;
-
-            return cancel.get();
-        }
-    }
-
     //restores nature in multiple chunks, as described by a claim instance
     //this restores all chunks which have ANY number of claim blocks from this claim in them
     //if the claim is still active (in the data store), then the claimed blocks will not be changed (only the area bordering the claim)
@@ -1691,14 +1580,6 @@ public class GriefPrevention extends JavaPlugin {
         return player.getInventory().getItemInMainHand();
     }
 
-    public boolean claimIsPvPSafeZone(Claim claim) {
-        if (claim.siegeData != null)
-            return false;
-        return claim.isAdminClaim() && claim.parent == null && GriefPrevention.plugin.config_pvp_noCombatInAdminLandClaims ||
-                claim.isAdminClaim() && claim.parent != null && GriefPrevention.plugin.config_pvp_noCombatInAdminSubdivisions ||
-                !claim.isAdminClaim() && GriefPrevention.plugin.config_pvp_noCombatInPlayerLandClaims;
-    }
-
     /*
     protected boolean isPlayerTrappedInPortal(Block block)
 	{
@@ -1777,4 +1658,4 @@ public class GriefPrevention extends JavaPlugin {
         GUISettingsFile.setup();
         MenuGUIFile.setup();
     }
-}
+ }

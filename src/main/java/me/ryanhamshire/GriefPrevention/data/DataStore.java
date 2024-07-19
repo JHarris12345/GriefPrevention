@@ -674,6 +674,8 @@ public abstract class DataStore {
      * @return the claim containing the location or null if no claim exists there
      */
     synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, boolean ignoreSubclaims, Claim cachedClaim) {
+        if (!GriefPrevention.plugin.claimsEnabledForWorld(location.getWorld())) return null;
+
         //check cachedClaim guess first.  if it's in the datastore and the location is inside it, we're done
         if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, !ignoreSubclaims))
             return cachedClaim;

@@ -25,6 +25,7 @@ import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
@@ -59,75 +60,52 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.regex.PatternSyntaxException;
 
 //represents a player claim
 //creating an instance doesn't make an effective claim
 //only claims which have been added to the datastore have any effect
 public class Claim {
-    //two locations, which together define the boundaries of the claim
-    //note that the upper Y value is always ignored, because claims ALWAYS extend up to the sky
+
     public Location lesserBoundaryCorner;
     public Location greaterBoundaryCorner;
+    public Date modifiedDate; // Modification date. This comes from the file timestamp during load, and is updated with runtime changes
+    public Long id = null; // Unique claim ID
+    public String name; // Players can name their claims so they appear more custom on /claimlist and other places claims can appear
+    public UUID ownerID; // The owner's UUID. NULL for admin claims. Use getOwnerName() for a friendly name ("administrator" for admin claims)
+    public Claim parent = null; // Only not null if it's a subclaim
+    public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
+    public List<String> members = new ArrayList<>(); // A list of all the UUIDs and roles (stored as "[uuid]:[role]") of the claim members NOT including the owner
 
-    //modification date.  this comes from the file timestamp during load, and is updated with runtime changes
-    public Date modifiedDate;
-
-    //id number.  unique to this claim, never changes.
-    public Long id = null;
-
-    // Players can name their claims so they appear more custom on /claimlist and other places claims can appear
-    public String name;
-
-    //ownerID.  for admin claims, this is NULL
-    //use getOwnerName() to get a friendly name (will be "an administrator" for admin claims)
-    public UUID ownerID;
-
-    //whether or not this claim is in the data store
-    //if a claim instance isn't in the data store, it isn't "active" - players can't interact with it
-    //why keep this?  so that claims which have been removed from the data store can be correctly
-    //ignored even though they may have references floating around
+    // Whether or not this claim is in the data store
+    // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
+    // Why keep this?  so that claims which have been removed from the data store can be correctly
+    // Ignored even though they may have references floating around
     public boolean inDataStore = false;
 
-    public boolean areExplosivesAllowed = false;
-
-    //parent claim
-    //only used for claim subdivisions.  top level claims have null here
-    public Claim parent = null;
-
-    // intended for subclaims - they inherit no permissions
-    private boolean inheritNothing = false;
-
-    //children (subdivisions)
-    //note subdivisions themselves never have children
-    public ArrayList<Claim> children = new ArrayList<>();
-
-    //following a siege, buttons/levers are unlocked temporarily.  this represents that state
-    public boolean doorsOpen = false;
-
-    //whether or not this is an administrative claim
-    //administrative claims are created and maintained by players with the griefprevention.adminclaims permission.
-    public boolean isAdminClaim() {
-        return this.getOwnerID() == null;
-    }
-
-    //accessor for ID
-    public Long getID() {
-        return this.id;
-    }
-
-    // Load them as a one of instance per access to save data
-    // All the GUIs for a claim and if they're loaded yet
-    /*public boolean loadedGUIs;
-    public MenuGUI menuGUI;
-    public MembersGUI membersGUI;*/
-
-    // A list of all the UUIDs of the claim members NOT including the owner
-    public List<String> members = new ArrayList<>(); // List of "uuid:role" for each member
-
-    //basic constructor, just notes the creation time
-    //see above declarations for other defaults
-    Claim() {
+    //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> members, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
+        this.name = name;
+        this.id = id;
+        this.lesserBoundaryCorner = lesserBoundaryCorner;
+        this.greaterBoundaryCorner = greaterBoundaryCorner;
+        this.ownerID = ownerID;
+        this.members = members;
+    }
+
+    //produces a copy of a claim.
+    public Claim(Claim claim) {
+        this.modifiedDate = claim.modifiedDate;
+        this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.id = claim.id;
+        this.ownerID = claim.ownerID;
+        this.members = new ArrayList<>(claim.members);
+        this.inDataStore = false; //since it's a copy of a claim, not in datastore!
+        this.parent = claim.parent;
+        this.children = new ArrayList<>(claim.children);
+        this.name = claim.name;
     }
 
     //removes any lava above sea level in a claim
@@ -169,6 +147,17 @@ public class Claim {
         }
     }
 
+    //accessor for ID
+    public Long getID() {
+        return this.id;
+    }
+
+    //whether or not this is an administrative claim
+    //administrative claims are created and maintained by players with the griefprevention.adminclaims permission.
+    public boolean isAdminClaim() {
+        return this.getOwnerID() == null;
+    }
+
     //determines whether or not a claim has surface lava
     //used to warn players when they abandon their claims about automatic fluid cleanup
     boolean hasSurfaceFluids() {
@@ -200,51 +189,6 @@ public class Claim {
         return false;
     }
 
-    //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> trustedIDs, boolean inheritNothing, Long id) {
-        //modification date
-        this.modifiedDate = Calendar.getInstance().getTime();
-
-        //name
-        this.name = name;
-
-        //id
-        this.id = id;
-
-        //store corners
-        this.lesserBoundaryCorner = lesserBoundaryCorner;
-        this.greaterBoundaryCorner = greaterBoundaryCorner;
-
-        //owner
-        this.ownerID = ownerID;
-
-        //members
-        this.members = trustedIDs;
-
-        this.inheritNothing = inheritNothing;
-    }
-
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> trustedIDs, Long id) {
-        this(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, trustedIDs, false, id);
-    }
-
-    //produces a copy of a claim.
-    public Claim(Claim claim) {
-        this.modifiedDate = claim.modifiedDate;
-        this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
-        this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
-        this.id = claim.id;
-        this.ownerID = claim.ownerID;
-        this.members = new ArrayList<>(claim.members);
-        this.inDataStore = false; //since it's a copy of a claim, not in datastore!
-        this.areExplosivesAllowed = claim.areExplosivesAllowed;
-        this.parent = claim.parent;
-        this.inheritNothing = claim.inheritNothing;
-        this.children = new ArrayList<>(claim.children);
-        this.doorsOpen = claim.doorsOpen;
-        this.name = claim.name;
-    }
-
     //measurements.  all measurements are in blocks
     public int getArea() {
         int claimWidth = this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
@@ -259,14 +203,6 @@ public class Claim {
 
     public int getHeight() {
         return this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
-    }
-
-    public boolean getSubclaimRestrictions() {
-        return inheritNothing;
-    }
-
-    public void setSubclaimRestrictions(boolean inheritNothing) {
-        this.inheritNothing = inheritNothing;
     }
 
     //distance check for claims, distance in this case is a band around the outside of the claim rather then euclidean distance
@@ -298,6 +234,9 @@ public class Claim {
 
     public boolean hasClaimPermission(UUID uuid, ClaimPermission claimPermission) {
         if (uuid.equals(this.getOwnerID())) return true;
+
+        ClaimRole playerRole = getMemberRole(uuid);
+
 
         return false;
     }
@@ -557,6 +496,28 @@ public class Claim {
     public String getUUIDFromMemberListEntry(String entry) {
         try {
             return entry.split(":")[0];
+        } catch (PatternSyntaxException ex) {
+            return entry;
         }
+    }
+
+    public ClaimRole getRoleFromMemberListEntry(String entry) {
+        try {
+            return ClaimRole.valueOf(entry.split(":")[1]);
+        } catch (PatternSyntaxException ex) {
+            return ClaimRole.GUEST;
+        }
+    }
+
+    public ClaimRole getMemberRole(UUID member) {
+        if (ownerID == member) return ClaimRole.OWNER;
+
+        for (String entry : members) {
+            if (!getUUIDFromMemberListEntry(entry).equals(member.toString())) continue;
+
+            return getRoleFromMemberListEntry(entry);
+        }
+
+        return ClaimRole.PUBLIC;
     }
 }
