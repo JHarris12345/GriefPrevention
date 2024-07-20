@@ -28,24 +28,9 @@ commands:
     usage: /UnTrust <player>
     aliases: ut
     permission: griefprevention.claims
-  containertrust:
-    description: Grants a player access to your claim's containers, crops, animals, bed, buttons, and levers.
-    usage: /ContainerTrust <player>.  Grants a player access to your inventory, crops, animals, bed, and buttons/levers.
-    aliases: ct
-    permission: griefprevention.claims
-  accesstrust:
-    description: Grants a player entry to your claim(s) and use of your bed, buttons, and levers.
-    usage: /AccessTrust <player>.  Grants a player access to your bed, buttons, and levers.
-    aliases: at
-    permission: griefprevention.claims
   nameclaim:
     description: Name the claim you're standing in
     usage: /nameclaim <name>
-    permission: griefprevention.claims
-  permissiontrust:
-    description: Grants a player permission to grant his level of permission to others.
-    usage: /PermissionTrust <player>.  Permits a player to share his permission level with others.
-    aliases: pt
     permission: griefprevention.claims
   subdivideclaims:
     description: Switches the shovel tool to subdivision mode, used to subdivide your claims.
@@ -182,15 +167,6 @@ commands:
     usage: /ClaimsList or /ClaimsList <player>
     aliases: [ claimlist, listclaims ]
     permission: griefprevention.claims
-  claimexplosions:
-    description: Toggles whether explosives may be used in a specific land claim.
-    usage: /ClaimExplosions
-    permission: griefprevention.claims
-    aliases: claimexplosion
-  softmute:
-    description: Toggles whether a player's messages will only reach other soft-muted players.
-    usage: /SoftMute <player>
-    permission: griefprevention.softmute
   gpreload:
     description: Reloads Grief Prevention's configuration settings.  Does NOT totally reload the entire plugin.
     usage: /gpreload

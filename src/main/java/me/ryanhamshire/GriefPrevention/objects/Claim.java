@@ -19,10 +19,7 @@
 package me.ryanhamshire.GriefPrevention.objects;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
-import me.ryanhamshire.GriefPrevention.Inventories.MembersGUI;
-import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
-import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
@@ -40,26 +37,15 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.regex.PatternSyntaxException;
 
 //represents a player claim
@@ -235,7 +221,7 @@ public class Claim {
     public boolean hasClaimPermission(UUID uuid, ClaimPermission claimPermission) {
         if (uuid.equals(this.getOwnerID())) return true;
 
-        ClaimRole playerRole = getMemberRole(uuid);
+        ClaimRole playerRole = getPlayerRole(uuid);
 
 
         return false;
@@ -509,11 +495,11 @@ public class Claim {
         }
     }
 
-    public ClaimRole getMemberRole(UUID member) {
-        if (ownerID == member) return ClaimRole.OWNER;
+    public ClaimRole getPlayerRole(UUID player) {
+        if (ownerID == player) return ClaimRole.OWNER;
 
         for (String entry : members) {
-            if (!getUUIDFromMemberListEntry(entry).equals(member.toString())) continue;
+            if (!getUUIDFromMemberListEntry(entry).equals(player.toString())) continue;
 
             return getRoleFromMemberListEntry(entry);
         }

@@ -24,8 +24,6 @@ import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.data.DatabaseDataStore;
 import me.ryanhamshire.GriefPrevention.data.FlatFileDataStore;
-import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
-import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityDamageHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityEventHandler;
@@ -37,7 +35,6 @@ import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
-import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
@@ -70,8 +67,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -91,7 +86,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1023,7 +1017,7 @@ public class GriefPrevention extends JavaPlugin {
         }
 
         //verify ownership
-        else if (claim.getMemberRole(player.getUniqueId()) != ClaimRole.OWNER) {
+        else if (claim.getPlayerRole(player.getUniqueId()) != ClaimRole.OWNER) {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
         }
 

@@ -13,6 +13,7 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.ShovelMode;
@@ -37,7 +38,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -186,9 +186,8 @@ public class CommandHandler {
                 return true;
             }
 
-            // must have permission to edit the land claim you're in
-            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
-            if (errorMessage != null) {
+            // Must be the owner of the claim
+            if (claim.getOwnerID() != player.getUniqueId()) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
                 return true;
             }
@@ -241,9 +240,8 @@ public class CommandHandler {
             }
 
             // must have permission to edit the land claim you're in
-            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
-            if (errorMessage != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.MODIFY.getDenialMessage());
                 return true;
             }
 
@@ -424,9 +422,41 @@ public class CommandHandler {
             // requires exactly one parameter, the other player's name
             if (args.length != 1) return false;
 
-            // most trust commands use this helper method, it keeps them consistent
-            plugin.handleTrustCommand(player, ClaimPermission.Build, args[0]);
+            // determine which claim the player is standing in
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
+            if (claim == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou are not standing in a claim");
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
+                return true;
+            }
+
+            OfflinePlayer otherPlayer = plugin.resolvePlayerByName(args[0]);
+            if (otherPlayer == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+            if (targetRole != ClaimRole.PUBLIC) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "&c" + otherPlayer.getName() + " is already part of this claim");
+                return true;
+            }
+
+            claim.members.add(otherPlayer.getUniqueId() + ":" + "PUBLIC");
+
+            player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim. Edit their permissions with &o/claimmenu"));
+            if (otherPlayer.isOnline()) {
+                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
+            }
+
+            // save changes
+            plugin.dataStore.saveClaim(claim);
             return true;
         }
 
@@ -523,70 +553,14 @@ public class CommandHandler {
                 return true;
             }
 
-            // if no permission to manage permissions, error message
-            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Manage, null);
-            if (errorMessage != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, errorMessage.get());
+            // They must be trusted on the claim
+            if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou must be a member of this claim to see the trust list");
                 return true;
             }
 
-            // otherwise build a list of explicit permissions by permission level
-            // and send that to the player
-            ArrayList<String> builders = new ArrayList<>();
-            ArrayList<String> containers = new ArrayList<>();
-            ArrayList<String> accessors = new ArrayList<>();
-            ArrayList<String> managers = new ArrayList<>();
-            claim.getPermissions(builders, containers, accessors, managers);
-
-            GriefPrevention.sendMessage(player, TextMode.Info, Messages.TrustListHeader, claim.getOwnerName());
-
-            StringBuilder permissions = new StringBuilder();
-            permissions.append(ChatColor.GOLD).append('>');
-
-            if (managers.size() > 0) {
-                for (String manager : managers)
-                    permissions.append(plugin.trustEntryToPlayerName(manager)).append(' ');
-            }
-
-            player.sendMessage(permissions.toString());
-            permissions = new StringBuilder();
-            permissions.append(ChatColor.YELLOW).append('>');
-
-            if (builders.size() > 0) {
-                for (String builder : builders)
-                    permissions.append(plugin.trustEntryToPlayerName(builder)).append(' ');
-            }
-
-            player.sendMessage(permissions.toString());
-            permissions = new StringBuilder();
-            permissions.append(ChatColor.GREEN).append('>');
-
-            if (containers.size() > 0) {
-                for (String container : containers)
-                    permissions.append(plugin.trustEntryToPlayerName(container)).append(' ');
-            }
-
-            player.sendMessage(permissions.toString());
-            permissions = new StringBuilder();
-            permissions.append(ChatColor.BLUE).append('>');
-
-            if (accessors.size() > 0) {
-                for (String accessor : accessors)
-                    permissions.append(plugin.trustEntryToPlayerName(accessor)).append(' ');
-            }
-
-            player.sendMessage(permissions.toString());
-
-            player.sendMessage(
-                    ChatColor.GOLD + plugin.dataStore.getMessage(Messages.Manage) + " " +
-                            ChatColor.YELLOW + plugin.dataStore.getMessage(Messages.Build) + " " +
-                            ChatColor.GREEN + plugin.dataStore.getMessage(Messages.Containers) + " " +
-                            ChatColor.BLUE + plugin.dataStore.getMessage(Messages.Access));
-
-            if (claim.getSubclaimRestrictions()) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.HasSubclaimRestriction);
-            }
-
+            // TODO: Make this!
+            player.sendMessage(Utils.colour("&cTell JH to add this in!"));
             return true;
         }
 
@@ -596,211 +570,44 @@ public class CommandHandler {
             if (args.length != 1) return false;
 
             // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true /*ignore height*/, null);
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
-            // determine whether a single player or clearing permissions entirely
-            boolean clearPermissions = false;
-            OfflinePlayer otherPlayer = null;
-            if (args[0].equals("all")) {
-                if (claim == null || claim.checkPermission(player, ClaimPermission.Edit, null) == null) {
-                    clearPermissions = true;
-                }
-                else {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClearPermsOwnerOnly);
-                    return true;
-                }
-            }
-            else {
-                // validate player argument or group argument
-                if (!args[0].startsWith("[") || !args[0].endsWith("]")) {
-                    otherPlayer = plugin.resolvePlayerByName(args[0]);
-                    if (!clearPermissions && otherPlayer == null && !args[0].equals("public")) {
-                        // bracket any permissions - at this point it must be a permission without brackets
-                        if (args[0].contains(".")) {
-                            args[0] = "[" + args[0] + "]";
-                        }
-                        else {
-                            GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
-                            return true;
-                        }
-                    }
-
-                    // correct to proper casing
-                    if (otherPlayer != null)
-                        args[0] = otherPlayer.getName();
-                }
-            }
-
-            // if no claim here, apply changes to all his claims
             if (claim == null) {
-                PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
-
-                String idToDrop = args[0];
-                if (otherPlayer != null) {
-                    idToDrop = otherPlayer.getUniqueId().toString();
-                }
-
-                // calling event
-                TrustChangedEvent event = new TrustChangedEvent(player, playerData.getClaims(), null, false, idToDrop);
-                Bukkit.getPluginManager().callEvent(event);
-
-                if (event.isCancelled()) {
-                    return true;
-                }
-
-                // dropping permissions
-                for (Claim targetClaim : event.getClaims()) {
-                    claim = targetClaim;
-
-                    // if untrusting "all" drop all permissions
-                    if (clearPermissions) {
-                        claim.clearPermissions();
-                    }
-
-                    // otherwise drop individual permissions
-                    else {
-                        claim.dropPermission(idToDrop);
-                        claim.managers.remove(idToDrop);
-                    }
-
-                    // save changes
-                    plugin.dataStore.saveClaim(claim);
-                }
-
-                // beautify for output
-                if (args[0].equals("public")) {
-                    args[0] = "the public";
-                }
-
-                // confirmation message
-                if (!clearPermissions) {
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.UntrustIndividualAllClaims, args[0]);
-                }
-                else {
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.UntrustEveryoneAllClaims);
-                }
-            }
-
-            // otherwise, apply changes to only this claim
-            else if (claim.checkPermission(player, ClaimPermission.Manage, null) != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
-                return true;
-            }
-            else {
-                // if clearing all
-                if (clearPermissions) {
-                    // requires owner
-                    if (claim.checkPermission(player, ClaimPermission.Edit, null) != null) {
-                        GriefPrevention.sendMessage(player, TextMode.Err, Messages.UntrustAllOwnerOnly);
-                        return true;
-                    }
-
-                    // calling the event
-                    TrustChangedEvent event = new TrustChangedEvent(player, claim, null, false, args[0]);
-                    Bukkit.getPluginManager().callEvent(event);
-
-                    if (event.isCancelled()) {
-                        return true;
-                    }
-
-                    event.getClaims().forEach(Claim::clearPermissions);
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.ClearPermissionsOneClaim);
-                }
-
-                // otherwise individual permission drop
-                else {
-                    String idToDrop = args[0];
-                    if (otherPlayer != null) {
-                        idToDrop = otherPlayer.getUniqueId().toString();
-                    }
-                    boolean targetIsManager = claim.managers.contains(idToDrop);
-                    if (targetIsManager && claim.checkPermission(player, ClaimPermission.Edit, null) != null)  // only claim owners can untrust managers
-                    {
-                        GriefPrevention.sendMessage(player, TextMode.Err, Messages.ManagersDontUntrustManagers, claim.getOwnerName());
-                        return true;
-                    }
-                    else {
-                        // calling the event
-                        TrustChangedEvent event = new TrustChangedEvent(player, claim, null, false, idToDrop);
-                        Bukkit.getPluginManager().callEvent(event);
-
-                        if (event.isCancelled()) {
-                            return true;
-                        }
-
-                        event.getClaims().forEach(targetClaim -> targetClaim.dropPermission(event.getIdentifier()));
-
-                        // beautify for output
-                        if (args[0].equals("public")) {
-                            args[0] = "the public";
-                        }
-
-                        GriefPrevention.sendMessage(player, TextMode.Success, Messages.UntrustIndividualSingleClaim, args[0]);
-                    }
-                }
-
-                // save changes
-                plugin.dataStore.saveClaim(claim);
-            }
-
-            return true;
-        }
-
-        // accesstrust <player>
-        else if (cmd.getName().equalsIgnoreCase("accesstrust") && player != null) {
-            // requires exactly one parameter, the other player's name
-            if (args.length != 1) return false;
-
-            plugin.handleTrustCommand(player, ClaimPermission.Access, args[0]);
-
-            return true;
-        }
-
-        // containertrust <player>
-        else if (cmd.getName().equalsIgnoreCase("containertrust") && player != null) {
-            // requires exactly one parameter, the other player's name
-            if (args.length != 1) return false;
-
-            plugin.handleTrustCommand(player, ClaimPermission.Inventory, args[0]);
-
-            return true;
-        }
-
-        // permissiontrust <player>
-        else if (cmd.getName().equalsIgnoreCase("permissiontrust") && player != null) {
-            // requires exactly one parameter, the other player's name
-            if (args.length != 1) return false;
-
-            plugin.handleTrustCommand(player, null, args[0]);  // null indicates permissiontrust to the helper method
-
-            return true;
-        }
-
-        // restrictsubclaim
-        else if (cmd.getName().equalsIgnoreCase("restrictsubclaim") && player != null) {
-            PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
-            if (claim == null || claim.parent == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.StandInSubclaim);
+                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou are not standing in a claim");
                 return true;
             }
 
-            //  If player has /ignoreclaims on, continue
-            //  If admin claim, fail if this user is not an admin
-            //  If not an admin claim, fail if this user is not the owner
-            if (!playerData.ignoreClaims && (claim.isAdminClaim() ? !player.hasPermission("griefprevention.adminclaims") : !player.getUniqueId().equals(claim.parent.ownerID))) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlyOwnersModifyClaims, claim.getOwnerName());
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
                 return true;
             }
 
-            if (claim.getSubclaimRestrictions()) {
-                claim.setSubclaimRestrictions(false);
-                GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimUnrestricted);
+            OfflinePlayer otherPlayer = plugin.resolvePlayerByName(args[0]);
+            if (otherPlayer == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
             }
-            else {
-                claim.setSubclaimRestrictions(true);
-                GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimRestricted);
+
+            ClaimRole senderRole = claim.getPlayerRole(player.getUniqueId());
+            ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+            if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou cannot untrust someone who has the same or higher role than you");
+                return true;
             }
+
+            for (String entry : new ArrayList<>(claim.members)) {
+                if (!entry.startsWith(otherPlayer.getUniqueId().toString())) continue;
+
+                claim.members.remove(entry);
+            }
+
+            player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
+            if (otherPlayer.isOnline()) {
+                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " removed you from their claim"));
+            }
+
+            // save changes
             plugin.dataStore.saveClaim(claim);
             return true;
         }
@@ -1012,32 +819,6 @@ public class CommandHandler {
                 }
                 else {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.CantDeleteAdminClaim);
-                }
-            }
-
-            return true;
-        }
-        else if (cmd.getName().equalsIgnoreCase("claimexplosions") && player != null) {
-            // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true /*ignore height*/, null);
-
-            if (claim == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.DeleteClaimMissing);
-            }
-            else {
-                Supplier<String> noBuildReason = claim.checkPermission(player, ClaimPermission.Build, null);
-                if (noBuildReason != null) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
-                    return true;
-                }
-
-                if (claim.areExplosivesAllowed) {
-                    claim.areExplosivesAllowed = false;
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.ExplosivesDisabled);
-                }
-                else {
-                    claim.areExplosivesAllowed = true;
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.ExplosivesEnabled);
                 }
             }
 
@@ -1391,7 +1172,11 @@ public class CommandHandler {
             }
 
             // if the player isn't in a claim or has permission to build, tell him to man up
-            if (claim == null || claim.checkPermission(player, ClaimPermission.Build, null) == null) {
+            boolean canBuild = false;
+            if (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BREAK_BLOCKS) || claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
+                canBuild = true;
+            }
+            if (claim == null || canBuild) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotTrappedHere);
                 return true;
             }
@@ -1421,149 +1206,6 @@ public class CommandHandler {
             return true;
         }
 
-        // siege
-        else if (cmd.getName().equalsIgnoreCase("siege") && player != null) {
-            // error message for when siege mode is disabled
-            if (!plugin.siegeEnabledForWorld(player.getWorld())) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NonSiegeWorld);
-                return true;
-            }
-
-            // requires one argument
-            if (args.length > 1) {
-                return false;
-            }
-
-            // can't start a siege when you're already involved in one
-            Player attacker = player;
-            PlayerData attackerData = plugin.dataStore.getPlayerData(attacker.getUniqueId());
-            if (attackerData.siegeData != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.AlreadySieging);
-                return true;
-            }
-
-            // can't start a siege when you're protected from pvp combat
-            if (attackerData.pvpImmune) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.CantFightWhileImmune);
-                return true;
-            }
-
-            // if a player name was specified, use that
-            Player defender = null;
-            if (args.length >= 1) {
-                defender = plugin.getServer().getPlayer(args[0]);
-                if (defender == null) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
-                    return true;
-                }
-            }
-
-            // otherwise use the last player this player was in pvp combat with
-            else if (attackerData.lastPvpPlayer.length() > 0) {
-                defender = plugin.getServer().getPlayer(attackerData.lastPvpPlayer);
-                if (defender == null) {
-                    return false;
-                }
-            }
-            else {
-                return false;
-            }
-
-            //  First off, you cannot siege yourself, that's just
-            //  silly:
-            if (attacker.getName().equals(defender.getName())) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoSiegeYourself);
-                return true;
-            }
-
-            // victim must not have the permission which makes him immune to siege
-            if (defender.hasPermission("griefprevention.siegeimmune")) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeImmune);
-                return true;
-            }
-
-            // victim must not be under siege already
-            PlayerData defenderData = plugin.dataStore.getPlayerData(defender.getUniqueId());
-            if (defenderData.siegeData != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.AlreadyUnderSiegePlayer);
-                return true;
-            }
-
-            // victim must not be pvp immune
-            if (defenderData.pvpImmune) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoSiegeDefenseless);
-                return true;
-            }
-
-            Claim defenderClaim = plugin.dataStore.getClaimAt(defender.getLocation(), false, null);
-
-            // defender must have some level of permission there to be protected
-            if (defenderClaim == null || defenderClaim.checkPermission(defender, ClaimPermission.Access, null) != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotSiegableThere);
-                return true;
-            }
-
-            // attacker must be close to the claim he wants to siege
-            if (!defenderClaim.isNear(attacker.getLocation(), 25)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeTooFarAway);
-                return true;
-            }
-
-            // claim can't be under siege already
-            if (defenderClaim.siegeData != null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.AlreadyUnderSiegeArea);
-                return true;
-            }
-
-            // can't siege admin claims
-            if (defenderClaim.isAdminClaim()) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoSiegeAdminClaim);
-                return true;
-            }
-
-            // can't be on cooldown
-            if (plugin.dataStore.onCooldown(attacker, defender, defenderClaim)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeOnCooldown);
-                return true;
-            }
-
-            // start the siege
-            plugin.dataStore.startSiege(attacker, defender, defenderClaim);
-
-            // confirmation message for attacker, warning message for defender
-            GriefPrevention.sendMessage(defender, TextMode.Warn, Messages.SiegeAlert, attacker.getName());
-            GriefPrevention.sendMessage(player, TextMode.Success, Messages.SiegeConfirmed, defender.getName());
-
-            return true;
-        }
-        else if (cmd.getName().equalsIgnoreCase("softmute")) {
-            // requires one parameter
-            if (args.length != 1) return false;
-
-            // find the specified player
-            OfflinePlayer targetPlayer = plugin.resolvePlayerByName(args[0]);
-            if (targetPlayer == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
-                return true;
-            }
-
-            // toggle mute for player
-            boolean isMuted = plugin.dataStore.toggleSoftMute(targetPlayer.getUniqueId());
-            if (isMuted) {
-                GriefPrevention.sendMessage(player, TextMode.Success, Messages.SoftMuted, targetPlayer.getName());
-                String executorName = "console";
-                if (player != null) {
-                    executorName = player.getName();
-                }
-
-                GriefPrevention.AddLogEntry(executorName + " muted " + targetPlayer.getName() + ".", CustomLogEntryTypes.AdminActivity, true);
-            }
-            else {
-                GriefPrevention.sendMessage(player, TextMode.Success, Messages.UnSoftMuted, targetPlayer.getName());
-            }
-
-            return true;
-        }
         else if (cmd.getName().equalsIgnoreCase("gpreload")) {
             plugin.loadConfig();
             plugin.dataStore.loadMessages();
