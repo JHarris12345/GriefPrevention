@@ -33,19 +33,15 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.CustomizableMessage;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
-import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
-import me.ryanhamshire.GriefPrevention.tasks.SecureClaimTask;
-import me.ryanhamshire.GriefPrevention.tasks.SiegeCheckupTask;
 import me.ryanhamshire.GriefPrevention.utils.UUIDFetcher;
 import me.ryanhamshire.GriefPrevention.utils.WorldGuardWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -55,7 +51,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -65,7 +60,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -846,7 +840,7 @@ public abstract class DataStore {
                 new Location(world, smallx, smally, smallz),
                 new Location(world, bigx, bigy, bigz),
                 ownerID,
-                new ArrayList<>(),
+                new HashMap<>(),
                 id);
 
         newClaim.parent = parent;

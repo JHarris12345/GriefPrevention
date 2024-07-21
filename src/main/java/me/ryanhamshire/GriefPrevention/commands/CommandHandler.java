@@ -448,7 +448,7 @@ public class CommandHandler {
                 return true;
             }
 
-            claim.members.add(otherPlayer.getUniqueId() + ":" + "PUBLIC");
+            claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
 
             player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim. Edit their permissions with &o/claimmenu"));
             if (otherPlayer.isOnline()) {
@@ -591,16 +591,17 @@ public class CommandHandler {
             ClaimRole senderRole = claim.getPlayerRole(player.getUniqueId());
             ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
 
+            if (targetRole == ClaimRole.PUBLIC) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "&c" + otherPlayer.getName() + " is not a member of this claim");
+                return true;
+            }
+
             if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole)) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "&cYou cannot untrust someone who has the same or higher role than you");
                 return true;
             }
 
-            for (String entry : new ArrayList<>(claim.members)) {
-                if (!entry.startsWith(otherPlayer.getUniqueId().toString())) continue;
-
-                claim.members.remove(entry);
-            }
+            claim.members.remove(otherPlayer.getUniqueId());
 
             player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
             if (otherPlayer.isOnline()) {

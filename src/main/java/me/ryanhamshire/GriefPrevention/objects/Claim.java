@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -61,7 +62,7 @@ public class Claim {
     public UUID ownerID; // The owner's UUID. NULL for admin claims. Use getOwnerName() for a friendly name ("administrator" for admin claims)
     public Claim parent = null; // Only not null if it's a subclaim
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
-    public List<String> members = new ArrayList<>(); // A list of all the UUIDs and roles (stored as "[uuid]:[role]") of the claim members NOT including the owner
+    public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
@@ -70,7 +71,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> members, Long id) {
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -87,7 +88,7 @@ public class Claim {
         this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
         this.id = claim.id;
         this.ownerID = claim.ownerID;
-        this.members = new ArrayList<>(claim.members);
+        this.members = new HashMap<>(claim.members);
         this.inDataStore = false; //since it's a copy of a claim, not in datastore!
         this.parent = claim.parent;
         this.children = new ArrayList<>(claim.children);
@@ -196,7 +197,7 @@ public class Claim {
         Claim claim = new Claim
                 (null, new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
                         new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
-                        null, new ArrayList<>(), null);
+                        null, new HashMap<>(), null);
 
         return claim.contains(location, false, true);
     }
@@ -479,31 +480,26 @@ public class Claim {
         }
     }*/
 
-    public String getUUIDFromMemberListEntry(String entry) {
-        try {
-            return entry.split(":")[0];
-        } catch (PatternSyntaxException ex) {
-            return entry;
-        }
-    }
+    public HashMap<UUID, ClaimRole> getClaimMembers(boolean includeOwner) {
+        HashMap<UUID, ClaimRole> members = new HashMap<>();
 
-    public ClaimRole getRoleFromMemberListEntry(String entry) {
-        try {
-            return ClaimRole.valueOf(entry.split(":")[1]);
-        } catch (PatternSyntaxException ex) {
-            return ClaimRole.GUEST;
+        for (UUID member : this.members.keySet()) {
+            members.put(member, members.get(member));
         }
+
+        if (includeOwner) {
+            members.put(ownerID, ClaimRole.OWNER);
+        }
+
+        return members;
     }
 
     public ClaimRole getPlayerRole(UUID player) {
-        if (ownerID == player) return ClaimRole.OWNER;
+        return members.getOrDefault(player, ClaimRole.PUBLIC);
+    }
 
-        for (String entry : members) {
-            if (!getUUIDFromMemberListEntry(entry).equals(player.toString())) continue;
-
-            return getRoleFromMemberListEntry(entry);
-        }
-
-        return ClaimRole.PUBLIC;
+    public void setClaimRole(UUID uuid, ClaimRole claimRole) {
+        this.members.put(uuid, claimRole);
+        GriefPrevention.plugin.dataStore.saveClaim(this);
     }
 }

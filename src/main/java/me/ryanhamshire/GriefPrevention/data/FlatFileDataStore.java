@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -40,6 +41,7 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -251,14 +253,20 @@ public class FlatFileDataStore extends DataStore {
             }
         }
 
-        List<String> trusted = yaml.getStringList("Builders");
+        HashMap<UUID, ClaimRole> members = new HashMap<>();
+
+        for (String memberUUIDKey : yaml.getConfigurationSection("Members").getKeys(false)) {
+            members.put(UUID.fromString(memberUUIDKey), ClaimRole.valueOf(yaml.getString("Members." + memberUUIDKey)));
+        }
+
+        claim.members = members;
 
         boolean inheritNothing = yaml.getBoolean("inheritNothing");
 
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, trusted, inheritNothing, claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
@@ -281,16 +289,9 @@ public class FlatFileDataStore extends DataStore {
         //name
         yaml.set("Name", claim.name);
 
-        ArrayList<String> builders = new ArrayList<>();
-        ArrayList<String> containers = new ArrayList<>();
-        ArrayList<String> accessors = new ArrayList<>();
-        ArrayList<String> managers = new ArrayList<>();
-        claim.getPermissions(builders, containers, accessors, managers);
-
-        yaml.set("Builders", builders);
-        yaml.set("Containers", containers);
-        yaml.set("Accessors", accessors);
-        yaml.set("Managers", managers);
+        for (UUID member : claim.members.keySet()) {
+            yaml.set("Members." + member.toString(), claim.members.get(member).toString());
+        }
 
         Long parentID = -1L;
         if (claim.parent != null) {
@@ -298,8 +299,6 @@ public class FlatFileDataStore extends DataStore {
         }
 
         yaml.set("Parent Claim ID", parentID);
-
-        yaml.set("inheritNothing", claim.getSubclaimRestrictions());
 
         return yaml.saveToString();
     }

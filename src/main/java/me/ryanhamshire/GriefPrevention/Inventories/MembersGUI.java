@@ -3,6 +3,8 @@ package me.ryanhamshire.GriefPrevention.Inventories;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MembersGUIFile;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.GUIBackgroundType;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import org.bukkit.Bukkit;
@@ -21,15 +23,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
+    private Claim claim;
 
     public MembersGUI(Claim claim) {
-        inv = Bukkit.createInventory(this, getNeededSize(claim.members.size() + 1), Utils.colour(MembersGUIFile.get().getString("Title")));
+        this.inv = Bukkit.createInventory(this, getNeededSize(claim.members.size() + 1), Utils.colour(MembersGUIFile.get().getString("Title")));
+        this.claim = claim;
+
         this.addContents(claim);
     }
 
@@ -39,25 +45,23 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         List<String> lore = new ArrayList<>();
-        List<String> members = claim.members; // List of "uuid:role" for each member
+        HashMap<UUID, ClaimRole> members = claim.members;
 
         int slot = 0;
-        for (String memberUUID : members) {
-            OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(memberUUID));
-            RoleRelation roleRelation = RoleRelationManager.getPlayerRole(player);
-            String role = roleRelation.name().substring(0, 1).toUpperCase() + roleRelation.name().substring(1).toLowerCase();
+        for (UUID memberUUID : members.keySet()) {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(memberUUID);
+            ClaimRole claimRole = claim.getPlayerRole(player.getUniqueId());
+            String role = claimRole.name().substring(0, 1).toUpperCase() + claimRole.name().substring(1).toLowerCase();
 
             if (player.getName() == null) continue;
             meta.setDisplayName(Utils.colour(MembersGUIFile.get().getString("Head.Name").replaceAll("%name%", player.getName())));
-
-            if (UserManager.getUserFromPlayer(player) == null) continue;
 
             lore.clear();
             for (String loreLine : MembersGUIFile.get().getStringList("Head.Lore")) {
                 lore.add(Utils.colour(loreLine.replaceAll("%role%", role)));
             }
 
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "uuid"), PersistentDataType.STRING, memberUUID);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "uuid"), PersistentDataType.STRING, memberUUID.toString());
             meta.setOwningPlayer(player);
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -67,14 +71,11 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         }
     }
 
-    public void refreshContents(Faction faction) {
-        inv = Bukkit.createInventory(this, getNeededSize(faction.getMembers()), Utils.colour(MembersGUIFile.get().getString("Title")));
-        this.addContents(faction);
-
-        for (String uuidString : faction.getMembers()) {
-            Player factionPlayer = Bukkit.getPlayer(UUID.fromString(uuidString));
-            if (factionPlayer != null && factionPlayer.getOpenInventory().getTopInventory().getHolder() instanceof MembersGUI) {
-                factionPlayer.openInventory(faction.getMembersGUI().getInventory());
+    public void refreshContents(Claim claim) {
+        for (UUID uuid : claim.getClaimMembers(true).keySet()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof MembersGUI) {
+                player.openInventory(new MembersGUI(claim).getInventory());
             }
         }
     }
@@ -89,106 +90,97 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
     @Override
     public void handleClick(InventoryClickEvent e) {
         e.setCancelled(true);
-
         Player player = (Player) e.getWhoClicked();
-        Faction faction = FactionManager.getFactionViaPlayer(player, false);
 
         // Back to menu button method
-        backButtonClickMethod(e);
+        backButtonClickMethod(e, this.claim);
 
-        // Prevent an admin modifying the faction
+        // Prevent an admin modifying the claim
         if (isAdminClicking(player, e)) return;
 
         String memberUUID = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "uuid"), PersistentDataType.STRING);
         if (memberUUID == null) return;
 
         OfflinePlayer target = Bukkit.getOfflinePlayer(UUID.fromString(memberUUID));
-        RoleRelation targetRole = RoleRelationManager.getPlayerRole(target);
-        RoleRelation playerRole = RoleRelationManager.getPlayerRole(player);
-
+        ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
+        ClaimRole playerRole = claim.getPlayerRole(player.getUniqueId());
 
         // Left click to promote
         if (e.getClick() == ClickType.LEFT) {
-            if (!PermissionsManager.isPermissionEnabled(faction, player, PermissionName.PROMOTE_MEMBERS)) {
-                player.sendMessage(MessagesManager.messages.get("NoFactionPermission"));
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PROMOTE_DEMOTE)) {
+                player.sendMessage(Utils.colour(ClaimPermission.PROMOTE_DEMOTE.getDenialMessage()));
                 return;
             }
 
             if (target.getName().equalsIgnoreCase(player.getName())) {
-                player.sendMessage(MessagesManager.messages.get("CannotChangeOwnRole"));
+                player.sendMessage(Utils.colour("&cYou can't change your own role"));
                 return;
             }
 
-            if (playerRole.name().equalsIgnoreCase(targetRole.name()) || !RoleRelationManager.isRoleHigherThanRole(playerRole, targetRole)) {
-                player.sendMessage(MessagesManager.messages.get("CannotChangeRoleForSameOrHigher"));
+            if (!ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
+                player.sendMessage(Utils.colour("&cYou can't change the role of someone with the same role as you or higher"));
                 return;
             }
 
-            RoleRelation nextRoleUp = RoleRelationManager.getNextRoleUp(targetRole);
-            if (nextRoleUp == playerRole && nextRoleUp != RoleRelation.LEADER) {
-                player.sendMessage(MessagesManager.messages.get("CannotPromoteToSameRole"));
+            ClaimRole nextRoleUp = ClaimRole.getHigherRole(targetRole);
+            if (nextRoleUp == playerRole && nextRoleUp != ClaimRole.OWNER) {
+                player.sendMessage(Utils.colour("&cYou can't promote members to the same role as you"));
                 return;
             }
 
-            if (targetRole == RoleRelation.ADMINISTRATOR) {
-                player.sendMessage(MessagesManager.messages.get("CannotPromoteAdministrator"));
+            if (targetRole == ClaimRole.MANAGER) {
+                player.sendMessage(Utils.colour("&cYou can't promote a claim manager to claim owner. If you'd like to transfer this claim to them use &o/transferclaim " + target.getName()));
                 return;
             }
 
-            if (targetRole == RoleRelation.LEADER) {
-                player.sendMessage(MessagesManager.messages.get("CannotPromoteLeader"));
+            if (targetRole == ClaimRole.OWNER) {
+                player.sendMessage(Utils.colour("&cYou can't promote the owner of the claim"));
                 return;
             }
 
-            FactionManager.promotePlayer(faction, target);
-            RoleRelation newRole = RoleRelationManager.getPlayerRole(target);
-            player.sendMessage(MessagesManager.messages.get("PlayerPromotedMember").replaceAll("%name%", target.getName()).replaceAll("%role%", newRole.name().toLowerCase()));
-            FactionManager.sendMessageToAllFactionMembers(faction, MessagesManager.messages.get("PromotedMemberFactionMessage").replaceAll("%name%", target.getName()).replaceAll("%role%", newRole.name().toLowerCase()).replaceAll("%player%", player.getName()),
-                    null, new ArrayList<>(Arrays.asList(target.getUniqueId().toString(), player.getUniqueId().toString())));
+            claim.setClaimRole(target.getUniqueId(), nextRoleUp);
+            player.sendMessage(Utils.colour("&aYou promoted " + target.getName() + " to the " + targetRole.toString() + " role on this claim"));
 
             if (target.isOnline()) {
-                Player onlineTarget = Bukkit.getPlayer(target.getUniqueId());
-                onlineTarget.sendMessage(MessagesManager.messages.get("GotPromoted").replaceAll("%role%", newRole.name().toLowerCase()));
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " promoted you to the " + targetRole + " role on their claim"));
             }
         }
 
 
         // Right click to demote
         if (e.getClick() == ClickType.RIGHT) {
-            if (!PermissionsManager.isPermissionEnabled(faction, player, PermissionName.DEMOTE_MEMBERS)) {
-                player.sendMessage(MessagesManager.messages.get("NoFactionPermission"));
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PROMOTE_DEMOTE)) {
+                player.sendMessage(Utils.colour(ClaimPermission.PROMOTE_DEMOTE.getDenialMessage()));
                 return;
             }
 
             if (target.getName().equalsIgnoreCase(player.getName())) {
-                player.sendMessage(MessagesManager.messages.get("CannotChangeOwnRole"));
+                player.sendMessage(Utils.colour("&cYou can't change your own role"));
                 return;
             }
 
-            if (playerRole.name().equalsIgnoreCase(targetRole.name()) || !RoleRelationManager.isRoleHigherThanRole(playerRole, targetRole)) {
-                player.sendMessage(MessagesManager.messages.get("CannotChangeRoleForSameOrHigher"));
+            if (!ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
+                player.sendMessage(Utils.colour("&cYou can't change the role of someone with the same role as you or higher"));
                 return;
             }
 
-            if (targetRole == RoleRelation.LEADER) {
-                player.sendMessage(MessagesManager.messages.get("CannotDemoteLeader"));
+            if (targetRole == ClaimRole.OWNER) {
+                player.sendMessage("&cYou can't demote the owner of the claim");
                 return;
             }
 
-            if (targetRole == RoleRelation.RECRUIT) {
-                player.sendMessage(MessagesManager.messages.get("CannotDemoteRecruit"));
+            if (targetRole == ClaimRole.GUEST) {
+                player.sendMessage(Utils.colour("&cYou can't demote someone from the lowest role. To untrust them from the claim use &o/untrust " + target.getName()));
                 return;
             }
 
-            FactionManager.demotePlayer(faction, target);
-            RoleRelation newRole = RoleRelationManager.getPlayerRole(target);
-            player.sendMessage(MessagesManager.messages.get("PlayerDemotedMember").replaceAll("%name%", target.getName()).replaceAll("%role%", newRole.name().toLowerCase()));
-            FactionManager.sendMessageToAllFactionMembers(faction, MessagesManager.messages.get("DemotedMemberFactionMessage").replaceAll("%name%", target.getName()).replaceAll("%role%", newRole.name().toLowerCase()).replaceAll("%player%",
-                    player.getName()), null, new ArrayList<>(Arrays.asList(target.getUniqueId().toString(), player.getUniqueId().toString())));
+            ClaimRole nextRoleDown = ClaimRole.getLowerRole(targetRole);
+
+            claim.setClaimRole(target.getUniqueId(), nextRoleDown);
+            player.sendMessage(Utils.colour("&aYou demoted " + target.getName() + " to the " + targetRole.toString() + " role on this claim"));
 
             if (target.isOnline()) {
-                Player onlineTarget = Bukkit.getPlayer(target.getUniqueId());
-                onlineTarget.sendMessage(MessagesManager.messages.get("GotDemoted").replaceAll("%role%", newRole.name().toLowerCase()));
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " demoted you to the " + targetRole + " role on their claim"));
             }
         }
     }

@@ -24,4 +24,36 @@ public enum ClaimRole {
 
         return (role1Index > role2Index);
     }
+
+    public static ClaimRole getHigherRole(ClaimRole claimRole) {
+        ClaimRole[] claimRoles = {PUBLIC, GUEST, MEMBER, MANAGER, OWNER};
+
+        int currentIndex = 0;
+        for (ClaimRole role : claimRoles) {
+            if (role == claimRole) break;
+            currentIndex++;
+        }
+
+        if (currentIndex == 4) {
+            return null;
+        } else {
+            return claimRoles[currentIndex + 1];
+        }
+    }
+
+    public static ClaimRole getLowerRole(ClaimRole claimRole) {
+        ClaimRole[] claimRoles = {PUBLIC, GUEST, MEMBER, MANAGER, OWNER};
+
+        int currentIndex = 0;
+        for (ClaimRole role : claimRoles) {
+            if (role == claimRole) break;
+            currentIndex++;
+        }
+
+        if (currentIndex == 0) {
+            return null;
+        } else {
+            return claimRoles[currentIndex - 1];
+        }
+    }
 }

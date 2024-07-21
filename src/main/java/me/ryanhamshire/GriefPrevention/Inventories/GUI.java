@@ -94,7 +94,7 @@ public class GUI {
         if (claim == null) return;
 
         if (e.getSlot() == e.getInventory().getSize()-5) {
-            player.openInventory(claim.menuGUI.getInventory());
+            player.openInventory(new MenuGUI(claim).getInventory());
         }
 
         return;

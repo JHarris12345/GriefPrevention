@@ -328,15 +328,6 @@ public class BlockEventHandler implements Listener {
             }
         }
 
-        //warn players when they place TNT above sea level, since it doesn't destroy blocks there
-        if (GriefPrevention.plugin.config_blockSurfaceOtherExplosions && block.getType() == Material.TNT &&
-                block.getWorld().getEnvironment() != Environment.NETHER &&
-                block.getY() > GriefPrevention.plugin.getSeaLevel(block.getWorld()) - 5 &&
-                claim == null &&
-                playerData.siegeData == null) {
-            GriefPrevention.sendMessage(player, TextMode.Warn, Messages.NoTNTDamageAboveSeaLevel);
-        }
-
         //warn players about disabled pistons outside of land claims
         if (GriefPrevention.plugin.config_pistonMovement == PistonMode.CLAIMS_ONLY &&
                 (block.getType() == Material.PISTON || block.getType() == Material.STICKY_PISTON) &&

@@ -74,7 +74,7 @@ public class EquipShovelProcessingTask implements Runnable {
 
         //if standing in a claim owned by the player, visualize it
         Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
-        if (claim != null && claim.checkPermission(player, ClaimPermission.Edit, null) == null) {
+        if (claim != null && claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY)) {
             playerData.lastClaim = claim;
             BoundaryVisualization.visualizeClaim(player, claim, VisualizationType.CLAIM);
         }

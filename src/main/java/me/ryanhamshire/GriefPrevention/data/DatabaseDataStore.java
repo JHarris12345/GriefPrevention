@@ -298,22 +298,7 @@ public class DatabaseDataStore extends DataStore {
                     }
                 }
 
-                String buildersString = results.getString("builders");
-                List<String> builderNames = Arrays.asList(buildersString.split(";"));
-                builderNames = this.convertNameListToUUIDList(builderNames);
-
-                String containersString = results.getString("containers");
-                List<String> containerNames = Arrays.asList(containersString.split(";"));
-                containerNames = this.convertNameListToUUIDList(containerNames);
-
-                String accessorsString = results.getString("accessors");
-                List<String> accessorNames = Arrays.asList(accessorsString.split(";"));
-                accessorNames = this.convertNameListToUUIDList(accessorNames);
-
-                String managersString = results.getString("managers");
-                List<String> managerNames = Arrays.asList(managersString.split(";"));
-                managerNames = this.convertNameListToUUIDList(managerNames);
-                Claim claim = new Claim(null, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderNames, containerNames, accessorNames, managerNames, inheritNothing, claimID);
+                Claim claim = new Claim(null, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, new HashMap<>(), claimID);
 
                 if (removeClaim) {
                     claimsToRemove.add(claim);
@@ -393,13 +378,10 @@ public class DatabaseDataStore extends DataStore {
         ArrayList<String> accessors = new ArrayList<>();
         ArrayList<String> managers = new ArrayList<>();
 
-        claim.getPermissions(builders, containers, accessors, managers);
-
         String buildersString = this.storageStringBuilder(builders);
         String containersString = this.storageStringBuilder(containers);
         String accessorsString = this.storageStringBuilder(accessors);
         String managersString = this.storageStringBuilder(managers);
-        boolean inheritNothing = claim.getSubclaimRestrictions();
         long parentId = claim.parent == null ? -1 : claim.parent.id;
 
         try (PreparedStatement insertStmt = this.databaseConnection.prepareStatement(SQL_INSERT_CLAIM)) {
@@ -412,7 +394,6 @@ public class DatabaseDataStore extends DataStore {
             insertStmt.setString(6, containersString);
             insertStmt.setString(7, accessorsString);
             insertStmt.setString(8, managersString);
-            insertStmt.setBoolean(9, inheritNothing);
             insertStmt.setLong(10, parentId);
             insertStmt.executeUpdate();
         }
