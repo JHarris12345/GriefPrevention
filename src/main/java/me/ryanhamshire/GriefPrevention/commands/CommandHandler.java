@@ -426,7 +426,7 @@ public class CommandHandler {
             Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
             if (claim == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou are not standing in a claim");
+                GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
                 return true;
             }
 
@@ -444,7 +444,7 @@ public class CommandHandler {
             ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
 
             if (targetRole != ClaimRole.PUBLIC) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&c" + otherPlayer.getName() + " is already part of this claim");
+                GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is already part of this claim");
                 return true;
             }
 
@@ -538,6 +538,11 @@ public class CommandHandler {
                 return true;
             }
 
+            if (!claim.getClaimMembers(true).containsKey(player.getUniqueId())) {
+                player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
+                return true;
+            }
+
             player.openInventory(new MenuGUI(claim).getInventory());
 
             return true;
@@ -555,7 +560,7 @@ public class CommandHandler {
 
             // They must be trusted on the claim
             if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou must be a member of this claim to see the trust list");
+                GriefPrevention.sendMessage(player, TextMode.Err, "You must be a member of this claim to see the trust list");
                 return true;
             }
 
@@ -573,7 +578,7 @@ public class CommandHandler {
             Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
             if (claim == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou are not standing in a claim");
+                GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
                 return true;
             }
 
@@ -592,12 +597,12 @@ public class CommandHandler {
             ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
 
             if (targetRole == ClaimRole.PUBLIC) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&c" + otherPlayer.getName() + " is not a member of this claim");
+                GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is not a member of this claim");
                 return true;
             }
 
             if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "&cYou cannot untrust someone who has the same or higher role than you");
+                GriefPrevention.sendMessage(player, TextMode.Err, "You cannot untrust someone who has the same or higher role than you");
                 return true;
             }
 
@@ -964,11 +969,12 @@ public class CommandHandler {
 
                     String claimName = (claim.name != null) ? claim.name + " - " : "";
                     String coords = claim.getLesserBoundaryCorner().getWorld().getName() + ": " + claim.getLesserBoundaryCorner().getBlockX() + " " + claim.getLesserBoundaryCorner().getBlockZ();
+                    String world = claim.getLesserBoundaryCorner().getWorld().getName();
                     String area = plugin.df.format(claim.getArea()) + " blocks";
 
                     TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ")"));
                     line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tppos " +
-                            claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ()));
+                            claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ() + " " + world));
 
                     player.spigot().sendMessage(line);
                     // GriefPrevention.sendMessage(player, TextMode.Instr, );

@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.GUISettingsFile;
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MembersGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MenuGUIFile;
 import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
@@ -1387,6 +1388,7 @@ public class GriefPrevention extends JavaPlugin {
     //sends a color-coded message to a player
     public static void sendMessage(Player player, ChatColor color, String message) {
         if (message == null || message.length() == 0) return;
+        if (message.startsWith("&c")) message = message.substring(2);
 
         if (player == null) {
             GriefPrevention.AddLogEntry(color + message);
@@ -1651,5 +1653,6 @@ public class GriefPrevention extends JavaPlugin {
     public void setupFiles() {
         GUISettingsFile.setup();
         MenuGUIFile.setup();
+        MembersGUIFile.setup();
     }
  }

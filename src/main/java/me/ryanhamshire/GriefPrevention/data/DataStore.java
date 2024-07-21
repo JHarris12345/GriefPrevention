@@ -841,6 +841,7 @@ public abstract class DataStore {
                 new Location(world, bigx, bigy, bigz),
                 ownerID,
                 new HashMap<>(),
+                new HashMap<>(),
                 id);
 
         newClaim.parent = parent;

@@ -27,6 +27,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -255,20 +256,34 @@ public class FlatFileDataStore extends DataStore {
 
         HashMap<UUID, ClaimRole> members = new HashMap<>();
 
-        for (String memberUUIDKey : yaml.getConfigurationSection("Members").getKeys(false)) {
-            members.put(UUID.fromString(memberUUIDKey), ClaimRole.valueOf(yaml.getString("Members." + memberUUIDKey)));
+        // Support for the old data
+        ConfigurationSection section = yaml.getConfigurationSection("Members");
+
+        if (section != null) {
+            for (String memberUUIDKey : section.getKeys(false)) {
+                members.put(UUID.fromString(memberUUIDKey), ClaimRole.valueOf(yaml.getString("Members." + memberUUIDKey)));
+            }
         }
 
-        claim.members = members;
+        // Old data - all members should be the lowest role (GUEST)
+        else {
+            for (String entry : yaml.getStringList("Builders")) {
+                try {
+                    members.put(UUID.fromString(entry), ClaimRole.GUEST);
+                } catch (IllegalArgumentException ex) {
 
-        boolean inheritNothing = yaml.getBoolean("inheritNothing");
+                }
+            }
+        }
 
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
+
+        claim.loadPermissions(yaml);
 
         claimMap.put(claim.id, claim);
         return claim;

@@ -298,7 +298,7 @@ public class DatabaseDataStore extends DataStore {
                     }
                 }
 
-                Claim claim = new Claim(null, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, new HashMap<>(), claimID);
+                Claim claim = new Claim(null, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, new HashMap<>(), new HashMap<>(), claimID);
 
                 if (removeClaim) {
                     claimsToRemove.add(claim);

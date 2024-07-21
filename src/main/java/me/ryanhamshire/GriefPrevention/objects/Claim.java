@@ -27,6 +27,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,6 +36,7 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -63,6 +65,7 @@ public class Claim {
     public Claim parent = null; // Only not null if it's a subclaim
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
     public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
+    public HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>(); // A map of the claim roles and a list of all the permissions they have access to
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
@@ -71,7 +74,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, Long id) {
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, List<ClaimPermission>> permissions, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -79,6 +82,7 @@ public class Claim {
         this.greaterBoundaryCorner = greaterBoundaryCorner;
         this.ownerID = ownerID;
         this.members = members;
+        this.permissions = permissions;
     }
 
     //produces a copy of a claim.
@@ -92,6 +96,7 @@ public class Claim {
         this.inDataStore = false; //since it's a copy of a claim, not in datastore!
         this.parent = claim.parent;
         this.children = new ArrayList<>(claim.children);
+        this.permissions = claim.permissions;
         this.name = claim.name;
     }
 
@@ -197,7 +202,7 @@ public class Claim {
         Claim claim = new Claim
                 (null, new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
                         new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
-                        null, new HashMap<>(), null);
+                        null, new HashMap<>(), new HashMap<>(),null);
 
         return claim.contains(location, false, true);
     }
@@ -223,9 +228,7 @@ public class Claim {
         if (uuid.equals(this.getOwnerID())) return true;
 
         ClaimRole playerRole = getPlayerRole(uuid);
-
-
-        return false;
+        return permissions.get(playerRole).contains(claimPermission);
     }
 
     //returns a copy of the location representing lower x, y, z limits
@@ -495,11 +498,44 @@ public class Claim {
     }
 
     public ClaimRole getPlayerRole(UUID player) {
+        if (player.equals(ownerID)) return ClaimRole.OWNER;
         return members.getOrDefault(player, ClaimRole.PUBLIC);
     }
 
     public void setClaimRole(UUID uuid, ClaimRole claimRole) {
         this.members.put(uuid, claimRole);
         GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public void loadPermissions(YamlConfiguration claimConfig) {
+        HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>();
+
+        for (ClaimRole role : ClaimRole.values()) {
+            // Skip owners as they have every perm
+            if (role == ClaimRole.OWNER) continue;
+
+            // The list of permissions this role will have
+            List<ClaimPermission> rolePermissions = new ArrayList<>();
+
+            for (ClaimPermission permission : ClaimPermission.values()) {
+                boolean bool;
+
+                // If they don't have this permission specifically set yet, get the default value for this role. Else get their set value
+                if (!claimConfig.isSet("Permissions." + permission.name())) {
+                    bool = permission.getDefaultPermission(role);
+
+                } else {
+                    bool = claimConfig.getBoolean("Permissions." + permission);
+                }
+
+                if (bool) {
+                    rolePermissions.add(permission);
+                }
+            }
+
+            permissions.put(role, rolePermissions);
+        }
+
+        this.permissions = permissions;
     }
 }

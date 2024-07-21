@@ -45,7 +45,7 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         List<String> lore = new ArrayList<>();
-        HashMap<UUID, ClaimRole> members = claim.members;
+        HashMap<UUID, ClaimRole> members = claim.getClaimMembers(true);
 
         int slot = 0;
         for (UUID memberUUID : members.keySet()) {
@@ -139,11 +139,13 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
             }
 
             claim.setClaimRole(target.getUniqueId(), nextRoleUp);
-            player.sendMessage(Utils.colour("&aYou promoted " + target.getName() + " to the " + targetRole.toString() + " role on this claim"));
+            player.sendMessage(Utils.colour("&aYou promoted " + target.getName() + " to the " + nextRoleUp + " role on this claim"));
 
             if (target.isOnline()) {
-                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " promoted you to the " + targetRole + " role on their claim"));
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " promoted you to the " + nextRoleUp + " role on their claim"));
             }
+
+            refreshContents(claim);
         }
 
 
@@ -177,11 +179,13 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
             ClaimRole nextRoleDown = ClaimRole.getLowerRole(targetRole);
 
             claim.setClaimRole(target.getUniqueId(), nextRoleDown);
-            player.sendMessage(Utils.colour("&aYou demoted " + target.getName() + " to the " + targetRole.toString() + " role on this claim"));
+            player.sendMessage(Utils.colour("&aYou demoted " + target.getName() + " to the " + nextRoleDown + " role on this claim"));
 
             if (target.isOnline()) {
-                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " demoted you to the " + targetRole + " role on their claim"));
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " demoted you to the " + nextRoleDown + " role on their claim"));
             }
+
+            refreshContents(claim);
         }
     }
 }

@@ -24,9 +24,12 @@ import java.util.UUID;
 public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
+    private Claim claim;
 
     public MenuGUI(Claim claim) {
-        inv = Bukkit.createInventory(this, MenuGUIFile.get().getInt("Size"), Utils.colour(MenuGUIFile.get().getString("Title")));
+        this.inv = Bukkit.createInventory(this, MenuGUIFile.get().getInt("Size"), Utils.colour(MenuGUIFile.get().getString("Title")));
+        this.claim = claim;
+
         addContents(claim);
     }
 
@@ -96,6 +99,7 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
 
         switch (icon) {
             case "Members":
+                e.getWhoClicked().openInventory(new MembersGUI(claim).getInventory());
                 break;
 
             case "Permissions":
