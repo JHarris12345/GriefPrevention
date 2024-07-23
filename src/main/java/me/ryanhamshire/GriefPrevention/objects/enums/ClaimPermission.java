@@ -1,5 +1,7 @@
 package me.ryanhamshire.GriefPrevention.objects.enums;
 
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
+
 import java.util.List;
 
 public enum ClaimPermission {
@@ -13,7 +15,7 @@ public enum ClaimPermission {
     BREED_ANIMALS("&cYou don't have permission to breed animals on this claim", false, true, true, true),
     READ_LECTERNS("&cYou don't have permission to read lecterns on this claim", false, true, true, true),
     CHORUS_FRUIT_TELEPORT("&cYou don't have permission to teleport via chorus fruits on this claim", false, true, true, true),
-    THRU_ACCESS("&cYou don't have permission to use //thru on this claim", false, true, true, true),
+    THRU_ACCESS("&cYou don't have permission to use /thru on this claim", false, true, true, true),
     TRUST_UNTRUST("&cYou don't have permission to manage trust for this claim", false, false, false, true),
     PROMOTE_DEMOTE("&cYou don't have permission to manage roles for this claim", false, false, false, true),
     MANAGE_PERMISSIONS("&cYou don't have permission to manage permissions for this claim", false, false, false, true),
@@ -57,5 +59,9 @@ public enum ClaimPermission {
             default:
                 return false;
         }
+    }
+
+    public int getUnlockCost() {
+        return (RolePermissionsGUIFile.get().getInt("Permissions." + this.name() + ".iCoins"));
     }
 }

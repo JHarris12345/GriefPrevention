@@ -47,6 +47,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Dispenser;
+import org.bukkit.block.data.type.Lectern;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -201,6 +202,12 @@ public class BlockEventHandler implements Listener {
         Claim claim = this.dataStore.getClaimAt(placeEvent.getBlock().getLocation(), false, playerData.lastClaim);
 
         if (claim != null) {
+            // Placing a book on a lectern counts as placing a lectern for some reason
+            if (placeEvent.getBlock().getType() == Material.LECTERN) {
+                Lectern lectern = (Lectern) placeEvent.getBlock().getBlockData();
+                if (lectern.hasBook()) return;
+            }
+
             if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
                 GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.PLACE_BLOCKS.getDenialMessage());
                 placeEvent.setCancelled(true);

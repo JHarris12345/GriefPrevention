@@ -66,6 +66,7 @@ public class Claim {
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
     public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
     public HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>(); // A map of the claim roles and a list of all the permissions they have access to
+    public List<ClaimPermission> unlockedPermissions = new ArrayList<>(); // A list of the permissions they have purchased toggleability for
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
@@ -244,6 +245,8 @@ public class Claim {
         if (!permissions.contains(permission)) {
             permissions.add(permission);
         }
+
+        GriefPrevention.plugin.dataStore.saveClaim(this);
     }
 
     public void removePermissionFromRole(ClaimPermission permission, ClaimRole role) {
@@ -253,6 +256,8 @@ public class Claim {
         if (permissions.contains(permission)) {
             permissions.remove(permission);
         }
+
+        GriefPrevention.plugin.dataStore.saveClaim(this);
     }
 
     //returns a copy of the location representing lower x, y, z limits
@@ -545,11 +550,11 @@ public class Claim {
                 boolean bool;
 
                 // If they don't have this permission specifically set yet, get the default value for this role. Else get their set value
-                if (!claimConfig.isSet("Permissions." + permission.name())) {
+                if (!claimConfig.isSet("Permissions." + permission.name() + "." + role.name())) {
                     bool = permission.getDefaultPermission(role);
 
                 } else {
-                    bool = claimConfig.getBoolean("Permissions." + permission);
+                    bool = claimConfig.getBoolean("Permissions." + permission.name() + "." + role.name());
                 }
 
                 if (bool) {
@@ -560,6 +565,25 @@ public class Claim {
             permissions.put(role, rolePermissions);
         }
 
+        // Now load if they have purchased any permissions
+        // Unlocked permissions
+        List<String> unlockedPermissions = claimConfig.getStringList("UnlockedPermissions");
+        for (String uPerm : unlockedPermissions) {
+            this.unlockedPermissions.add(ClaimPermission.valueOf(uPerm));
+        }
+
         this.permissions = permissions;
+    }
+
+    public void unlockClaimPermission(ClaimPermission claimPermission) {
+        if (!this.unlockedPermissions.contains(claimPermission)) {
+            this.unlockedPermissions.add(claimPermission);
+        }
+
+        GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
+        return claimPermission.getUnlockCost() == 0 || unlockedPermissions.contains(claimPermission);
     }
 }

@@ -187,7 +187,7 @@ public class CommandHandler {
             }
 
             // Must be the owner of the claim
-            if (claim.getOwnerID() != player.getUniqueId()) {
+            if (!claim.getOwnerID().equals(player.getUniqueId())) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
                 return true;
             }
@@ -590,6 +590,11 @@ public class CommandHandler {
             OfflinePlayer otherPlayer = plugin.resolvePlayerByName(args[0]);
             if (otherPlayer == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            if (otherPlayer == player) {
+                player.sendMessage(Utils.colour("&cYou can't untrust yourself"));
                 return true;
             }
 

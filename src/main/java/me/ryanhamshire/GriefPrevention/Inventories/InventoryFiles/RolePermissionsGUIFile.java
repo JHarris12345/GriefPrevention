@@ -41,39 +41,50 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.INTERACT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with your claim", "&7(flip switches, click entities, modify item frames etc)")));
 
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Name", "&bArmor Stand Interaction");
+                customFile.set("Permissions.ARMOR_STAND_EDITING.iCoins", 100);
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with armor", "&7stands using &f/aa&7 in your claim")));
 
                 customFile.set("Permissions.CONTAINER_ACCESS.Name", "&bContainer Access");
                 customFile.set("Permissions.CONTAINER_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to open", "&7containers in your claim")));
 
                 customFile.set("Permissions.HURT_ANIMALS.Name", "&bHurt Animals");
+                customFile.set("Permissions.HURT_ANIMALS.iCoins", 100);
                 customFile.set("Permissions.HURT_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to hurt", "&7animals in your claim")));
 
                 customFile.set("Permissions.BREED_ANIMALS.Name", "&bBreed Animals");
+                customFile.set("Permissions.BREED_ANIMALS.iCoins", 100);
                 customFile.set("Permissions.BREED_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to breed", "&7animals in your claim")));
 
                 customFile.set("Permissions.READ_LECTERNS.Name", "&bRead Lecterns");
+                customFile.set("Permissions.READ_LECTERNS.iCoins", 100);
                 customFile.set("Permissions.READ_LECTERNS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to read", "&7lecterns in your claim")));
 
                 customFile.set("Permissions.TRUST_UNTRUST.Name", "&bTrust Management");
+                customFile.set("Permissions.TRUST_UNTRUST.iCoins", 100);
                 customFile.set("Permissions.TRUST_UNTRUST.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to trust and", "&7untrust members from your claim")));
 
                 customFile.set("Permissions.PROMOTE_DEMOTE.Name", "&bManage Roles");
+                customFile.set("Permissions.PROMOTE_DEMOTE.iCoins", 100);
                 customFile.set("Permissions.PROMOTE_DEMOTE.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to promote and", "&7demote members in your claim")));
 
                 customFile.set("Permissions.MANAGE_PERMISSIONS.Name", "&bPermission Management");
+                customFile.set("Permissions.MANAGE_PERMISSIONS.iCoins", 100);
                 customFile.set("Permissions.MANAGE_PERMISSIONS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to modify", "&7permissions for your claim")));
 
                 customFile.set("Permissions.MANAGE_SETTINGS.Name", "&bSettings Management");
+                customFile.set("Permissions.MANAGE_SETTINGS.iCoins", 100);
                 customFile.set("Permissions.MANAGE_SETTINGS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to change", "&7your claim's settings")));
 
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.Name", "&bChorus Fruit Teleport");
+                customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.iCoins", 100);
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to teleport via", "&7chorus fruits in your claim")));
 
-                customFile.set("Permissions.THRU_ACCESS.Name", "&b//thru Access");
-                customFile.set("Permissions.THRU_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to use", "&7//thru in your claim")));
+                customFile.set("Permissions.THRU_ACCESS.Name", "&b/thru Access");
+                customFile.set("Permissions.THRU_ACCESS.iCoins", 100);
+                customFile.set("Permissions.THRU_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to use", "&7/thru in your claim")));
 
                 customFile.set("Permissions.MODIFY.Name", "&bClaim Modification");
+                customFile.set("Permissions.MODIFY.iCoins", 100);
                 customFile.set("Permissions.MODIFY.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to expand and", "&7/ or resize your claim")));
 
                 customFile.save(file);

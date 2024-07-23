@@ -27,7 +27,7 @@ public class MenuGUIFile {
             try{
                 file.createNewFile();
                 customFile = new YamlConfiguration();
-                customFile.set("Title", "&0Claim Menu");
+                customFile.set("Title", "&0Claim Menu &7(ID: %id%)");
                 customFile.set("Size", 27);
 
                 customFile.set("Icons.Members.Slot", 10);

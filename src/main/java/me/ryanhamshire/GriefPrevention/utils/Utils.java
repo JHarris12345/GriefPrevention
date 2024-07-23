@@ -5,6 +5,7 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
@@ -38,5 +39,10 @@ public class Utils {
         ProfileProperty textureProperty = new ProfileProperty("textures", base64Value);
         profile.setProperty(textureProperty);
         skullMeta.setPlayerProfile(profile);
+    }
+
+    public static void sendConsoleCommand(String commandNoSlash) {
+        ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+        Bukkit.dispatchCommand(console, commandNoSlash);
     }
 }

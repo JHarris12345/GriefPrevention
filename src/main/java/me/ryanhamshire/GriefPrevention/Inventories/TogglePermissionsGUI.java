@@ -1,5 +1,6 @@
 package me.ryanhamshire.GriefPrevention.Inventories;
 
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RoleSelectGUIFile;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -62,6 +64,15 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
             lore.clear();
             for (String loreLine : RolePermissionsGUIFile.get().getStringList("Permissions." + claimPermission.name() + ".Lore")) {
                 lore.add(Utils.colour(loreLine));
+            }
+
+            int unlockCost = claimPermission.getUnlockCost();
+            if (unlockCost > 0 && !claim.isPermissionUnlocked(claimPermission)) {
+                lore.add("");
+                lore.add(Utils.colour("&4&lToggling LOCKED"));
+                lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability to toggle"));
+                lore.add(Utils.colour("&cthis permission for this claim and all its"));
+                lore.add(Utils.colour("&croles for &l" + unlockCost + " iCoins"));
             }
 
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "permission"), PersistentDataType.STRING, claimPermission.name());
@@ -115,6 +126,29 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MANAGE_PERMISSIONS)) {
             player.sendMessage(Utils.colour(ClaimPermission.MANAGE_PERMISSIONS.getDenialMessage()));
             return;
+        }
+
+        // If the permission hasn't been unlocked OR unlock it
+        if (e.getClick() != ClickType.RIGHT) {
+            if (!claim.isPermissionUnlocked(permission)) {
+                player.sendMessage(Utils.colour("&cYou must unlock this permission before you can toggle it"));
+                return;
+            }
+
+        } else {
+            if (!claim.isPermissionUnlocked(permission)) {
+                int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
+                if (iCoinsBalance < permission.getUnlockCost()) {
+                    player.sendMessage(Utils.colour("&cYou don't have enough iCoins to unlock this permission. Get iCoins from the &o/shop"));
+                    return;
+                }
+
+                claim.unlockClaimPermission(permission);
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + permissionName + " permission for this claim"));
+                Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());
+                refreshContents(claim);
+                return;
+            }
         }
 
         boolean currentBoolean = claim.doesRoleHavePermission(role, permission);

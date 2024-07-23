@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import org.bukkit.Bukkit;
@@ -314,6 +315,27 @@ public class FlatFileDataStore extends DataStore {
         }
 
         yaml.set("Parent Claim ID", parentID);
+
+        // Permissions
+        for (ClaimRole claimRole : claim.permissions.keySet()) {
+            List<ClaimPermission> permissions = claim.permissions.get(claimRole);
+
+            for (ClaimPermission claimPermission : permissions) {
+                boolean defaultValue = claimPermission.getDefaultPermission(claimRole);
+                boolean setValue = claim.doesRoleHavePermission(claimRole, claimPermission);
+
+                if (defaultValue == setValue) continue;
+
+                yaml.set("Permissions." + claimPermission.name() + "." + claimRole.name(), setValue);
+            }
+        }
+
+        // Unlocked permissions
+        List<String> unlockedPermissions = new ArrayList<>();
+        for (ClaimPermission permission : claim.unlockedPermissions) {
+            unlockedPermissions.add(permission.name());
+        }
+        yaml.set("UnlockedPermissions", unlockedPermissions);
 
         return yaml.saveToString();
     }

@@ -27,7 +27,7 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
     private Claim claim;
 
     public MenuGUI(Claim claim) {
-        this.inv = Bukkit.createInventory(this, MenuGUIFile.get().getInt("Size"), Utils.colour(MenuGUIFile.get().getString("Title")));
+        this.inv = Bukkit.createInventory(this, MenuGUIFile.get().getInt("Size"), Utils.colour(MenuGUIFile.get().getString("Title").replace("%id%", claim.id + "")));
         this.claim = claim;
 
         addContents(claim);

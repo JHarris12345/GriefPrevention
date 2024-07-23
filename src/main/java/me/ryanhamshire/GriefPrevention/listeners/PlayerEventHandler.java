@@ -1718,4 +1718,18 @@ public class PlayerEventHandler implements Listener {
             e.getPlayer().sendMessage(Utils.colour(ClaimPermission.ARMOR_STAND_EDITING.getDenialMessage()));
         }
     }
+
+    // Prevent use of /thru in claims they don't have the required perms
+    @EventHandler
+    public void onThru(PlayerCommandPreprocessEvent e) {
+        if (!e.getMessage().toLowerCase().startsWith("/thru")) return;
+
+        Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.THRU_ACCESS)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.THRU_ACCESS.getDenialMessage()));
+        }
+    }
 }
