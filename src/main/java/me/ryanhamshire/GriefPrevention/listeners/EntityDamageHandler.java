@@ -376,9 +376,9 @@ public class EntityDamageHandler implements Listener {
             return true;
         }
 
-        if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
+        if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.INTERACT)) {
             event.setCancelled(true);
-            if (sendMessages) GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
+            if (sendMessages) GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
             return true;
         }
 
@@ -459,13 +459,13 @@ public class EntityDamageHandler implements Listener {
             };
         }
 
-        if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.CONTAINER_ACCESS)) {
+        if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.HURT_ANIMALS)) {
             event.setCancelled(true);
 
             // Prevent projectiles from bouncing infinitely.
             preventInfiniteBounce(arrow, event.getEntity());
 
-            if (sendMessages) GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.CONTAINER_ACCESS.getDenialMessage());
+            if (sendMessages) GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.HURT_ANIMALS.getDenialMessage());
         }
 
         return true;
@@ -531,41 +531,6 @@ public class EntityDamageHandler implements Listener {
             // Otherwise remove the projectile.
             else projectile.remove();
         }
-    }
-
-    // Flag players engaging in PVP.
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onEntityDamageByEntityMonitor(@NotNull EntityDamageByEntityEvent event) {
-        //FEATURE: prevent players who very recently participated in pvp combat from hiding inventory to protect it from looting
-        //FEATURE: prevent players who are in pvp combat from logging out to avoid being defeated
-
-        // If there is no damage (snowballs, eggs, etc.) or the defender is not a player in a PVP world, do nothing.
-        if (event.getDamage() == 0
-                || !(event.getEntity() instanceof Player defender)
-                || !instance.pvpRulesApply(defender.getWorld())) return;
-
-        //determine which player is attacking, if any
-        Player attacker = null;
-        Entity damageSource = event.getDamager();
-
-        if (damageSource instanceof Player damager) {
-            attacker = damager;
-        }
-        else if (damageSource instanceof Projectile arrow && arrow.getShooter() instanceof Player shooter) {
-            attacker = shooter;
-        }
-
-        // If not PVP or attacking self, do nothing.
-        if (attacker == null || attacker == defender) return;
-
-        PlayerData defenderData = this.dataStore.getPlayerData(defender.getUniqueId());
-        PlayerData attackerData = this.dataStore.getPlayerData(attacker.getUniqueId());
-
-        long now = Calendar.getInstance().getTimeInMillis();
-        defenderData.lastPvpTimestamp = now;
-        defenderData.lastPvpPlayer = attacker.getName();
-        attackerData.lastPvpTimestamp = now;
-        attackerData.lastPvpPlayer = defender.getName();
     }
 
     //when a vehicle is damaged

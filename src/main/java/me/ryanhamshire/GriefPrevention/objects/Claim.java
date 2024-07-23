@@ -231,6 +231,30 @@ public class Claim {
         return permissions.get(playerRole).contains(claimPermission);
     }
 
+    public boolean doesRoleHavePermission(ClaimRole claimRole, ClaimPermission claimPermission) {
+        if (claimRole == ClaimRole.OWNER) return true;
+
+        return permissions.get(claimRole).contains(claimPermission);
+    }
+
+    public void addPermissionToRole(ClaimPermission permission, ClaimRole role) {
+        if (role == ClaimRole.OWNER) return;
+
+        List<ClaimPermission> permissions = this.permissions.get(role);
+        if (!permissions.contains(permission)) {
+            permissions.add(permission);
+        }
+    }
+
+    public void removePermissionFromRole(ClaimPermission permission, ClaimRole role) {
+        if (role == ClaimRole.OWNER) return;
+
+        List<ClaimPermission> permissions = this.permissions.get(role);
+        if (permissions.contains(permission)) {
+            permissions.remove(permission);
+        }
+    }
+
     //returns a copy of the location representing lower x, y, z limits
     public Location getLesserBoundaryCorner() {
         return this.lesserBoundaryCorner.clone();

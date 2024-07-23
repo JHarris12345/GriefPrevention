@@ -103,6 +103,7 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
                 break;
 
             case "Permissions":
+                e.getWhoClicked().openInventory(new RoleSelectGUI(claim).getInventory());
                 break;
 
             case "Settings":

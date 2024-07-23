@@ -21,6 +21,8 @@ package me.ryanhamshire.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.GUISettingsFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MembersGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MenuGUIFile;
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RoleSelectGUIFile;
 import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.data.DatabaseDataStore;
@@ -1654,5 +1656,7 @@ public class GriefPrevention extends JavaPlugin {
         GUISettingsFile.setup();
         MenuGUIFile.setup();
         MembersGUIFile.setup();
+        RoleSelectGUIFile.setup();
+        RolePermissionsGUIFile.setup();
     }
  }

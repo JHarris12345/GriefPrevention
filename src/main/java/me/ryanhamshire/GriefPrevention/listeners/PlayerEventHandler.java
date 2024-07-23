@@ -38,6 +38,7 @@ import me.ryanhamshire.GriefPrevention.tasks.EquipShovelProcessingTask;
 import me.ryanhamshire.GriefPrevention.tasks.WelcomeTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
+import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -54,6 +55,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Lectern;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creature;
@@ -79,6 +81,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerEvent;
@@ -564,14 +567,11 @@ public class PlayerEventHandler implements Listener {
             }
         }
 
-        //if the entity is an animal, apply container rules
-        if ((instance.config_claims_preventTheft && (entity instanceof Animals || entity instanceof Fish)) ||
-                (entity.getType() == EntityType.VILLAGER && instance.config_claims_villagerTradingRequiresTrust) ||
-                entity.getType() == EntityType.ALLAY) {
-
-            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.CONTAINER_ACCESS)) {
+        // If the entity is something that does an action when right clicked OR they try to breed the entity
+        if (entity instanceof Fish || entity.getType() == EntityType.VILLAGER || entity.getType() == EntityType.ALLAY) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
                 if (event.getHand() == EquipmentSlot.HAND)
-                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.CONTAINER_ACCESS.getDenialMessage());
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
                 event.setCancelled(true);
                 return;
             }
@@ -586,6 +586,21 @@ public class PlayerEventHandler implements Listener {
                     GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
                 event.setCancelled(true);
                 return;
+            }
+        }
+
+        // Prevent breeding animals without the permission
+        if (entity instanceof Animals) {
+            Animals animal = (Animals) entity;
+            if (animal.getLoveModeTicks() <= 0) {
+                if (animal.isBreedItem(itemInHand)) {
+                    if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BREED_ANIMALS)) {
+                        if (event.getHand() == EquipmentSlot.HAND)
+                            GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.BREED_ANIMALS.getDenialMessage());
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
             }
         }
 
@@ -757,6 +772,7 @@ public class PlayerEventHandler implements Listener {
 
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock(); //null returned here means interacting with air
+        ItemStack item = event.getItem();
 
         Material clickedBlockType = null;
         if (clickedBlock != null) {
@@ -783,6 +799,20 @@ public class PlayerEventHandler implements Listener {
                 }
             }
             return;
+        }
+
+        // If they're placing an armor stand
+        if (item != null && event.getAction() == Action.RIGHT_CLICK_BLOCK && item.getType() == Material.ARMOR_STAND) {
+            if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
+            Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
+            if (claim != null) {
+                if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
+                    event.setCancelled(true);
+                    if (event.getHand() == EquipmentSlot.HAND)
+                        GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.PLACE_BLOCKS.getDenialMessage());
+                    return;
+                }
+            }
         }
 
         //don't care about left-clicking on most blocks, this is probably a break action
@@ -880,6 +910,26 @@ public class PlayerEventHandler implements Listener {
             if (claim != null) {
                 playerData.lastClaim = claim;
 
+                if (clickedBlockType == Material.LECTERN) {
+                    Lectern lectern = (Lectern) event.getClickedBlock().getBlockData();
+
+                    if (!lectern.hasBook()) {
+                        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+                            event.setCancelled(true);
+                            if (event.getHand() == EquipmentSlot.HAND)
+                                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+                        }
+                    } else {
+                        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.READ_LECTERNS)) {
+                            event.setCancelled(true);
+                            if (event.getHand() == EquipmentSlot.HAND)
+                                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.READ_LECTERNS.getDenialMessage());
+                        }
+                    }
+
+                    return;
+                }
+
                 if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
                     event.setCancelled(true);
                     if (event.getHand() == EquipmentSlot.HAND)
@@ -972,7 +1022,6 @@ public class PlayerEventHandler implements Listener {
 
             // Require build permission for items that may have an effect on the world when used.
             if (clickedBlock != null && (materialInHand == Material.BONE_MEAL
-                    || materialInHand == Material.ARMOR_STAND
                     || (spawn_eggs.contains(materialInHand) && GriefPrevention.plugin.config_claims_preventGlobalMonsterEggs)
                     || materialInHand == Material.END_CRYSTAL
                     || materialInHand == Material.FLINT_AND_STEEL
@@ -1653,5 +1702,20 @@ public class PlayerEventHandler implements Listener {
         }
 
         return result;
+    }
+
+    // Prevent use of /aa in claims they don't have armor stand interaction perms on
+    @EventHandler
+    public void onAA(PlayerCommandPreprocessEvent e) {
+        if (e.getMessage().toLowerCase().startsWith("/aach")) return; // Ensure people typing /aach (for quests) is not an issue
+        if (!e.getMessage().toLowerCase().startsWith("/aa")) return;
+
+        Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.ARMOR_STAND_EDITING)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.ARMOR_STAND_EDITING.getDenialMessage()));
+        }
     }
 }

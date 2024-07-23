@@ -199,17 +199,15 @@ public class BlockEventHandler implements Listener {
 
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(placeEvent.getBlock().getLocation(), false, playerData.lastClaim);
-        //if (claim == null) return; // DON'T do this as we need to also prevent players placing chests outside of claims that form double chests with chests INSIDE claims
 
         if (claim != null) {
-            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.PLACE_BLOCKS.getDenialMessage());
                 placeEvent.setCancelled(true);
                 return;
             }
 
             playerData.lastClaim = claim;
-            // Don't return here as we still need to run the check if they are placing a chest against another chest in another claim
         }
 
         //If block is a chest, don't allow a DoubleChest to form across a claim boundary

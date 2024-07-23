@@ -105,11 +105,11 @@ public class GUI {
         return false;
     }
 
-    public void backButtonClickMethodPermissions(InventoryClickEvent e) {
+    public void backButtonClickMethodPermissions(InventoryClickEvent e, Claim claim) {
         Player player = (Player) e.getWhoClicked();
         if (!clickedBackButton(e)) return;
 
-        //player.openInventory(new RelationSelectGUI().getInventory());
+        player.openInventory(new RoleSelectGUI(claim).getInventory());
     }
 
     public boolean isAdminClicking(Player player, InventoryClickEvent e) {
