@@ -83,6 +83,10 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.THRU_ACCESS.iCoins", 100);
                 customFile.set("Permissions.THRU_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to use", "&7/thru in your claim")));
 
+                customFile.set("Permissions.SET_WARP_ACCESS.Name", "&bSet Warp Access");
+                customFile.set("Permissions.SET_WARP_ACCESS.iCoins", 100);
+                customFile.set("Permissions.SET_WARP_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to set", "&7warps in your claim")));
+
                 customFile.set("Permissions.MODIFY.Name", "&bClaim Modification");
                 customFile.set("Permissions.MODIFY.iCoins", 100);
                 customFile.set("Permissions.MODIFY.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to expand and", "&7/ or resize your claim")));
