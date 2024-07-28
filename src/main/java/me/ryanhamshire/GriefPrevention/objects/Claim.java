@@ -610,7 +610,7 @@ public class Claim {
                 return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
             }
 
-            // If it's a subclaim we check if the setting differs from the default. If not, get the main claim's setting value
+            // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
             ClaimSettingValue setValue = settings.getOrDefault(setting, null);
             return (setValue == null) ? parent.isSettingEnabled(setting) : setValue == ClaimSettingValue.TRUE;
         }
@@ -639,11 +639,23 @@ public class Claim {
     }
 
     public ClaimSettingValue getForcedTimeSetting() {
-        return settings.getOrDefault(ClaimSetting.FORCED_TIME, ClaimSetting.FORCED_TIME.getDefaultValue());
+        if (parent == null) {
+            return settings.getOrDefault(ClaimSetting.FORCED_TIME, ClaimSetting.FORCED_TIME.getDefaultValue());
+        }
+
+        // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
+        ClaimSettingValue setValue = settings.getOrDefault(ClaimSetting.FORCED_TIME, null);
+        return (setValue == null) ? parent.getForcedTimeSetting() : setValue;
     }
 
     public ClaimSettingValue getForcedWeatherSetting() {
-        return settings.getOrDefault(ClaimSetting.FORCED_WEATHER, ClaimSetting.FORCED_WEATHER.getDefaultValue());
+        if (parent == null) {
+            return settings.getOrDefault(ClaimSetting.FORCED_WEATHER, ClaimSetting.FORCED_WEATHER.getDefaultValue());
+        }
+
+        // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
+        ClaimSettingValue setValue = settings.getOrDefault(ClaimSetting.FORCED_WEATHER, null);
+        return (setValue == null) ? parent.getForcedWeatherSetting() : setValue;
     }
 
     public void loadSettings(YamlConfiguration claimConfig) {
