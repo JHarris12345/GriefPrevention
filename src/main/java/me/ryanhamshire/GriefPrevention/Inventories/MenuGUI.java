@@ -111,13 +111,8 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
                 break;
 
             case "SetName":
-                if (claim.parent == null) {
-                    e.getWhoClicked().closeInventory();
-                    e.getWhoClicked().sendMessage(Utils.colour("&aSet your claim's name using &2/nameclaim [name]"));
-
-                } else {
-                    e.getWhoClicked().sendMessage(Utils.colour("&cYou can't name sub-claims"));
-                }
+                e.getWhoClicked().closeInventory();
+                e.getWhoClicked().sendMessage(Utils.colour("&aSet your claim's name using &2/nameclaim [name]"));
                 break;
         }
     }

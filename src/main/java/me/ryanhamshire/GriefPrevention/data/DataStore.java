@@ -671,8 +671,9 @@ public abstract class DataStore {
         if (!GriefPrevention.plugin.claimsEnabledForWorld(location.getWorld())) return null;
 
         //check cachedClaim guess first.  if it's in the datastore and the location is inside it, we're done
-        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, !ignoreSubclaims))
+        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, !ignoreSubclaims)) {
             return cachedClaim;
+        }
 
         //find a top level claim
         Long chunkID = getChunkHash(location);
