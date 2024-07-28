@@ -1034,6 +1034,7 @@ public class PlayerEventHandler implements Listener {
                     || materialInHand == Material.HONEYCOMB
                     || dyes.contains(materialInHand))) {
 
+                if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null) {
                     if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {

@@ -606,7 +606,13 @@ public class Claim {
 
     public boolean isSettingEnabled(ClaimSetting setting) {
         if (setting != ClaimSetting.FORCED_TIME && setting != ClaimSetting.FORCED_WEATHER) {
-            return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
+            if (parent == null) {
+                return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
+            }
+
+            // If it's a subclaim we check if the setting differs from the default. If not, get the main claim's setting value
+            ClaimSettingValue setValue = settings.getOrDefault(setting, null);
+            return (setValue == null) ? parent.isSettingEnabled(setting) : setValue == ClaimSettingValue.TRUE;
         }
 
         return false;

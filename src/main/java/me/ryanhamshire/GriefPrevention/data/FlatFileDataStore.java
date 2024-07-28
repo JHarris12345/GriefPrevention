@@ -339,14 +339,10 @@ public class FlatFileDataStore extends DataStore {
         }
         yaml.set("UnlockedPermissions", unlockedPermissions);
 
-        // Settings
+        // Settings - We have to save all settings that have been set EVEN if they're the same as the default
+        // because subclaims will not be able to get set to default values independently of main claims otherwise
         for (ClaimSetting setting : claim.settings.keySet()) {
             ClaimSettingValue value = claim.settings.get(setting);
-            ClaimSettingValue defaultValue = setting.getDefaultValue();
-
-            // If the set value is the same as the default, don't have it in the data
-            if (value == defaultValue) continue;
-
             yaml.set("Settings." + setting.name(), value.name());
         }
 

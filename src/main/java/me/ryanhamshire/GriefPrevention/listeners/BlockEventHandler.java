@@ -1020,6 +1020,16 @@ public class BlockEventHandler implements Listener {
 
             e.setCancelled(true);
         }
+
+        // Copper weathering
+        if (e.getBlock().getType().toString().contains("COPPER")) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.COPPER_WEATHERING)) return;
+
+            e.setCancelled(true);
+        }
     }
 
 
@@ -1045,16 +1055,6 @@ public class BlockEventHandler implements Listener {
 
             if (claim == null) return;
             if (claim.isSettingEnabled(ClaimSetting.SNOW_MELT)) return;
-
-            e.setCancelled(true);
-        }
-
-        // Copper weathering
-        if (e.getBlock().getType().toString().contains("COPPER")) {
-            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
-
-            if (claim == null) return;
-            if (claim.isSettingEnabled(ClaimSetting.COPPER_WEATHERING)) return;
 
             e.setCancelled(true);
         }
