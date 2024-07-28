@@ -542,9 +542,11 @@ public class Claim {
         Claim parentClaim = parent;
         if (player.equals(parentClaim.ownerID)) return ClaimRole.OWNER;
 
-        // If they've not got a role in the subclaim, take their main claim role
+        // If they've not got a role in the subclaim, give them GUEST if they are a member of the main claim
         ClaimRole subRole = members.getOrDefault(player, ClaimRole.PUBLIC);
-        return (subRole == ClaimRole.PUBLIC) ? parentClaim.members.getOrDefault(player, ClaimRole.PUBLIC) : subRole;
+        ClaimRole parentRole = parent.members.getOrDefault(player, ClaimRole.PUBLIC);
+
+        return (subRole == ClaimRole.PUBLIC) ? (parentRole == ClaimRole.PUBLIC) ? subRole : ClaimRole.GUEST : subRole;
     }
 
     public void setClaimRole(UUID uuid, ClaimRole claimRole) {
