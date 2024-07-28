@@ -593,15 +593,20 @@ public class Claim {
     }
 
     public void unlockClaimPermission(ClaimPermission claimPermission) {
-        if (!this.unlockedPermissions.contains(claimPermission)) {
-            this.unlockedPermissions.add(claimPermission);
+        Claim claim = (parent == null) ? this : parent;
+
+        if (!claim.unlockedPermissions.contains(claimPermission)) {
+            claim.unlockedPermissions.add(claimPermission);
         }
 
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.plugin.dataStore.saveClaim(claim);
     }
 
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
-        return claimPermission.getUnlockCost() == 0 || unlockedPermissions.contains(claimPermission);
+        if (claimPermission.getUnlockCost() == 0) return true;
+
+        // If it's a subclaim then we always take the value of the main claim
+        return (parent == null) ? unlockedPermissions.contains(claimPermission) : parent.unlockedPermissions.contains(claimPermission);
     }
 
     public boolean isSettingEnabled(ClaimSetting setting) {
