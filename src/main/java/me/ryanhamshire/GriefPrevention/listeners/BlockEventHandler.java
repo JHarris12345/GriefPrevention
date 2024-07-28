@@ -27,6 +27,7 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
@@ -43,6 +44,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.PistonMoveReaction;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.Chest;
@@ -57,8 +59,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.block.BlockFormEvent;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
@@ -76,6 +80,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Crops;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
@@ -775,22 +780,6 @@ public class BlockEventHandler implements Listener {
         return sameOwner;
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onForm(BlockFormEvent event) {
-        Block block = event.getBlock();
-        Location location = block.getLocation();
-
-        if (GriefPrevention.plugin.creativeRulesApply(location)) {
-            Material type = block.getType();
-            if (type == Material.COBBLESTONE || type == Material.OBSIDIAN || type == Material.LAVA || type == Material.WATER) {
-                Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(location, false, null);
-                if (claim == null) {
-                    event.setCancelled(true);
-                }
-            }
-        }
-    }
-
     //Stop projectiles from destroying blocks that don't fire a proper event
     @EventHandler(ignoreCancelled = true)
     private void chorusFlower(ProjectileHitEvent event) {
@@ -962,6 +951,122 @@ public class BlockEventHandler implements Listener {
                     return;
                 }
             }
+        }
+    }
+
+
+
+    // Prevent crops growingif their settings are false
+    @EventHandler
+    public void onGrow(BlockGrowEvent e) {
+        if (!(e.getBlock().getBlockData() instanceof Ageable)) return;
+        Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+        if (claim == null) return;
+        if (claim.isSettingEnabled(ClaimSetting.CROP_GROWTH)) return;
+
+        e.setCancelled(true);
+    }
+
+
+
+    // Prevent block spreading if the setting is disabled
+    @EventHandler
+    public void onSpread(BlockSpreadEvent e) {
+        // Vine Growth
+        if (e.getBlock().getType() == Material.AIR && (e.getNewState().getType() == Material.VINE || e.getNewState().getType() == Material.CAVE_VINES)) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.VINE_GROWTH)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Grass spread
+        if (e.getBlock().getType() == Material.DIRT && e.getNewState().getType() == Material.GRASS_BLOCK) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.GRASS_SPREAD)) return;
+
+            e.setCancelled(true);
+        }
+    }
+
+
+
+    // Prevent blocks forming if their settings are false
+    @EventHandler
+    public void onForm(BlockFormEvent e) {
+        // Don't get the claim here as we only want to get it if the block types are specific (so this is called less)
+
+        // Ice form
+        if (e.getBlock().getType() == Material.WATER && e.getNewState().getType() == Material.ICE) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.ICE_FORM)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Snow form
+        if (e.getBlock().getType() == Material.AIR && e.getNewState().getType() == Material.SNOW) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.SNOW_FORM)) return;
+
+            e.setCancelled(true);
+        }
+    }
+
+
+
+    // Prevent blocks fading if their settings are false
+    @EventHandler
+    public void onFade(BlockFadeEvent e) {
+        // Don't get the claim here as we only want to get it if the block types are specific (so this is called less)
+
+        // Ice melt
+        if (e.getBlock().getType() == Material.ICE) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.ICE_MELT)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Snow melt
+        if (e.getBlock().getType() == Material.SNOW) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.SNOW_MELT)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Copper weathering
+        if (e.getBlock().getType().toString().contains("COPPER")) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.COPPER_WEATHERING)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Coral drying
+        if (e.getBlock().getType().toString().contains("CORAL")) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.CORAL_DRY)) return;
+
+            e.setCancelled(true);
         }
     }
 }

@@ -24,6 +24,8 @@ import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -204,11 +206,12 @@ public class FlatFileDataStore extends DataStore {
             }
         }
 
-        //link children to parents
+        // link children to parents
         for (Claim child : orphans.keySet()) {
             Claim parent = this.getClaim(orphans.get(child));
             if (parent != null) {
                 child.parent = parent;
+                child.ownerID = parent.ownerID;
                 this.addClaim(child, false);
             }
         }
@@ -285,6 +288,7 @@ public class FlatFileDataStore extends DataStore {
         claim.id = claimID;
 
         claim.loadPermissions(yaml);
+        claim.loadSettings(yaml);
 
         claimMap.put(claim.id, claim);
         return claim;
@@ -318,9 +322,7 @@ public class FlatFileDataStore extends DataStore {
 
         // Permissions
         for (ClaimRole claimRole : claim.permissions.keySet()) {
-            List<ClaimPermission> permissions = claim.permissions.get(claimRole);
-
-            for (ClaimPermission claimPermission : permissions) {
+            for (ClaimPermission claimPermission : ClaimPermission.values()) {
                 boolean defaultValue = claimPermission.getDefaultPermission(claimRole);
                 boolean setValue = claim.doesRoleHavePermission(claimRole, claimPermission);
 
@@ -336,6 +338,24 @@ public class FlatFileDataStore extends DataStore {
             unlockedPermissions.add(permission.name());
         }
         yaml.set("UnlockedPermissions", unlockedPermissions);
+
+        // Settings
+        for (ClaimSetting setting : claim.settings.keySet()) {
+            ClaimSettingValue value = claim.settings.get(setting);
+            ClaimSettingValue defaultValue = setting.getDefaultValue();
+
+            // If the set value is the same as the default, don't have it in the data
+            if (value == defaultValue) continue;
+
+            yaml.set("Settings." + setting.name(), value.name());
+        }
+
+        // Unlocked settings
+        List<String> unlockedSettings = new ArrayList<>();
+        for (ClaimSetting setting : claim.unlockedSettings) {
+            unlockedSettings.add(setting.name());
+        }
+        yaml.set("UnlockedSettings", unlockedSettings);
 
         return yaml.saveToString();
     }

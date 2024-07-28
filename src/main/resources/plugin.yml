@@ -150,6 +150,11 @@ commands:
     usage: /TransferClaim <player>
     aliases: giveclaim
     permission: griefprevention.transferclaim
+  claimoutlines:
+    description: View the outlines of claims
+    usage: /claimoutlines
+    aliases: [ claimborders, claimedges, seeclaims, showclaims ]
+    permission: griefprevention.claims
   transferallclaims:
     description: Transfers all of one players claims to another player
     usage: /TransferClaim <fromPlayer> <toPlayer>

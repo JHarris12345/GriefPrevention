@@ -423,7 +423,7 @@ public class CommandHandler {
             if (args.length != 1) return false;
 
             // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, true, null);
 
             if (claim == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
@@ -538,12 +538,29 @@ public class CommandHandler {
                 return true;
             }
 
-            if (!claim.getClaimMembers(true).containsKey(player.getUniqueId())) {
+            if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
                 player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
                 return true;
             }
 
             player.openInventory(new MenuGUI(claim).getInventory());
+
+            return true;
+        }
+
+        // claimoutlines
+        else if (cmd.getName().equalsIgnoreCase("claimoutlines")) {
+            if (args.length != 0) return false;
+
+            if (plugin.claimOutlines.containsKey(player.getUniqueId())) {
+                Bukkit.getScheduler().cancelTask(plugin.claimOutlines.get(player.getUniqueId()));
+                plugin.claimOutlines.remove(player.getUniqueId());
+                player.sendMessage(Utils.colour("&cYou are no longer view claim outlines"));
+
+            } else {
+                plugin.showClaimOutlines(player);
+                player.sendMessage(Utils.colour("&aYou are now viewing claim outlines. Use &2/" + commandLabel + "&a again to disable it"));
+            }
 
             return true;
         }
@@ -575,7 +592,7 @@ public class CommandHandler {
             if (args.length != 1) return false;
 
             // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, true, null);
 
             if (claim == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
@@ -612,6 +629,11 @@ public class CommandHandler {
             }
 
             claim.members.remove(otherPlayer.getUniqueId());
+
+            for (Claim child : claim.children) {
+                child.members.remove(otherPlayer.getUniqueId());
+                plugin.dataStore.saveClaim(child);
+            }
 
             player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
             if (otherPlayer.isOnline()) {

@@ -23,6 +23,8 @@ import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
@@ -66,7 +68,9 @@ public class Claim {
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
     public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
     public HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>(); // A map of the claim roles and a list of all the permissions they have access to
+    public HashMap<ClaimSetting, ClaimSettingValue> settings = new HashMap<>(); // A map of the claim settings and their values
     public List<ClaimPermission> unlockedPermissions = new ArrayList<>(); // A list of the permissions they have purchased toggleability for
+    public List<ClaimSetting> unlockedSettings = new ArrayList<>(); // A list of the settings they have purchased toggleability for
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
@@ -514,8 +518,9 @@ public class Claim {
 
     public HashMap<UUID, ClaimRole> getClaimMembers(boolean includeOwner) {
         HashMap<UUID, ClaimRole> members = new HashMap<>();
+        Claim claim = (parent != null) ? parent : this;
 
-        for (UUID member : this.members.keySet()) {
+        for (UUID member : claim.members.keySet()) {
             members.put(member, members.get(member));
         }
 
@@ -527,8 +532,19 @@ public class Claim {
     }
 
     public ClaimRole getPlayerRole(UUID player) {
-        if (player.equals(ownerID)) return ClaimRole.OWNER;
-        return members.getOrDefault(player, ClaimRole.PUBLIC);
+        // If it's the parent claim
+        if (parent == null) {
+            if (player.equals(ownerID)) return ClaimRole.OWNER;
+            return members.getOrDefault(player, ClaimRole.PUBLIC);
+        }
+
+        // If it's a subclaim
+        Claim parentClaim = parent;
+        if (player.equals(parentClaim.ownerID)) return ClaimRole.OWNER;
+
+        // If they've not got a role in the subclaim, take their main claim role
+        ClaimRole subRole = members.getOrDefault(player, ClaimRole.PUBLIC);
+        return (subRole == ClaimRole.PUBLIC) ? parentClaim.members.getOrDefault(player, ClaimRole.PUBLIC) : subRole;
     }
 
     public void setClaimRole(UUID uuid, ClaimRole claimRole) {
@@ -566,7 +582,6 @@ public class Claim {
         }
 
         // Now load if they have purchased any permissions
-        // Unlocked permissions
         List<String> unlockedPermissions = claimConfig.getStringList("UnlockedPermissions");
         for (String uPerm : unlockedPermissions) {
             this.unlockedPermissions.add(ClaimPermission.valueOf(uPerm));
@@ -585,5 +600,61 @@ public class Claim {
 
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
         return claimPermission.getUnlockCost() == 0 || unlockedPermissions.contains(claimPermission);
+    }
+
+    public boolean isSettingEnabled(ClaimSetting setting) {
+        if (setting != ClaimSetting.FORCED_TIME && setting != ClaimSetting.FORCED_WEATHER) {
+            return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
+        }
+
+        return false;
+    }
+
+    public void enableSetting(ClaimSetting setting) {
+        settings.put(setting, ClaimSettingValue.TRUE);
+        GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public void disableSetting(ClaimSetting setting) {
+        settings.put(setting, ClaimSettingValue.FALSE);
+        GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public void setForcedTimeSetting(ClaimSettingValue value) {
+        settings.put(ClaimSetting.FORCED_TIME, value);
+        GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public void setForcedWeatherSetting(ClaimSettingValue value) {
+        settings.put(ClaimSetting.FORCED_WEATHER, value);
+        GriefPrevention.plugin.dataStore.saveClaim(this);
+    }
+
+    public ClaimSettingValue getForcedTimeSetting() {
+        return settings.getOrDefault(ClaimSetting.FORCED_TIME, ClaimSetting.FORCED_TIME.getDefaultValue());
+    }
+
+    public ClaimSettingValue getForcedWeatherSetting() {
+        return settings.getOrDefault(ClaimSetting.FORCED_WEATHER, ClaimSetting.FORCED_WEATHER.getDefaultValue());
+    }
+
+    public void loadSettings(YamlConfiguration claimConfig) {
+        HashMap<ClaimSetting, ClaimSettingValue> settings = new HashMap<>();
+
+        for (ClaimSetting setting : ClaimSetting.values()) {
+            // If they don't have this setting specifically set, we don't need to add it as it will take the default value
+            if (!claimConfig.isSet("Settings." + setting.name())) continue;
+
+            ClaimSettingValue setValue = ClaimSettingValue.valueOf(claimConfig.getString("Settings." + setting.name()));
+            settings.put(setting, setValue);
+        }
+
+        // Now load if they have purchased any settings
+        List<String> unlockedSettings = claimConfig.getStringList("UnlockedSettings");
+        for (String uSetting : unlockedSettings) {
+            this.unlockedSettings.add(ClaimSetting.valueOf(uSetting));
+        }
+
+        this.settings = settings;
     }
 }

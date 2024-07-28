@@ -28,6 +28,8 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
@@ -48,6 +50,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
+import org.bukkit.WeatherType;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -92,6 +95,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
@@ -1744,6 +1748,86 @@ public class PlayerEventHandler implements Listener {
         if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.SET_WARP_ACCESS)) {
             e.setCancelled(true);
             e.getPlayer().sendMessage(Utils.colour(ClaimPermission.SET_WARP_ACCESS.getDenialMessage()));
+        }
+    }
+
+    // Setting the claim time and weather when moving into a claim
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onMove(PlayerMoveEvent e) {
+        if (!Utils.hasPlayerMoved1Block(e)) return;
+
+        Player player = e.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+
+        Claim fromClaim = dataStore.getClaimAt(e.getFrom(), true, playerData.lastClaim);
+        Claim toClaim = dataStore.getClaimAt(e.getTo(), true, playerData.lastClaim);
+
+        playerData.lastClaim = toClaim;
+
+        if (fromClaim == null && toClaim == null) return;
+        if (fromClaim != null && toClaim != null && fromClaim.getID().equals(toClaim.getID())) return;
+
+        // If they're moving to a non claim from a claim, reset the weather and time
+        if (toClaim == null) {
+            player.resetPlayerWeather();
+            player.resetPlayerTime();
+        }
+
+        // Set the weather and time of the new claim
+        if (toClaim != null) {
+            ClaimSettingValue weatherValue = toClaim.getForcedWeatherSetting();
+            ClaimSettingValue timeValue = toClaim.getForcedTimeSetting();
+
+            if (weatherValue == ClaimSettingValue.NONE) {
+                player.resetPlayerWeather();
+            } else {
+                player.setPlayerWeather((weatherValue == ClaimSettingValue.SUNNY) ? WeatherType.CLEAR : WeatherType.DOWNFALL);
+            }
+
+            if (timeValue == ClaimSettingValue.NONE) {
+                player.resetPlayerTime();
+            } else {
+                player.setPlayerTime((timeValue == ClaimSettingValue.DAY) ? 6000 : 18000, false);
+            }
+        }
+    }
+
+    // Setting the claim time and weather when teleporting into a claim
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onTeleport(PlayerTeleportEvent e) {
+        Player player = e.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+
+        Claim fromClaim = dataStore.getClaimAt(e.getFrom(), true, playerData.lastClaim);
+        Claim toClaim = dataStore.getClaimAt(e.getTo(), true, playerData.lastClaim);
+
+        playerData.lastClaim = toClaim;
+
+        if (fromClaim == null && toClaim == null) return;
+        if (fromClaim != null && toClaim != null && fromClaim.getID().equals(toClaim.getID())) return;
+
+        // If they're teleporting to a non claim from a claim, reset the weather and time
+        if (toClaim == null) {
+            player.resetPlayerWeather();
+            player.resetPlayerTime();
+        }
+
+        // Set the weather and time of the new claim
+        if (toClaim != null) {
+            ClaimSettingValue weatherValue = toClaim.getForcedWeatherSetting();
+            ClaimSettingValue timeValue = toClaim.getForcedTimeSetting();
+
+            if (weatherValue == ClaimSettingValue.NONE) {
+                player.resetPlayerWeather();
+            } else {
+                player.setPlayerWeather((weatherValue == ClaimSettingValue.SUNNY) ? WeatherType.CLEAR : WeatherType.DOWNFALL);
+            }
+
+            if (timeValue == ClaimSettingValue.NONE) {
+                player.resetPlayerTime();
+            } else {
+                player.setPlayerTime((timeValue == ClaimSettingValue.DAY) ? 6000 : 18000, false);
+            }
         }
     }
 }

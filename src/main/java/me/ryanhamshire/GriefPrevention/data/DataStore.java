@@ -663,7 +663,7 @@ public abstract class DataStore {
      *
      * @param location the location
      * @param ignoreHeight whether or not to check containment vertically
-     * @param ignoreSubclaims whether or not subclaims should be returned over claims
+     * @param ignoreSubclaims if true, the top level claim will always be returned
      * @param cachedClaim the cached claim, if any
      * @return the claim containing the location or null if no claim exists there
      */

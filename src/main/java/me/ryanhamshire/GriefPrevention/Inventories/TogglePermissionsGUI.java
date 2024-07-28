@@ -53,6 +53,9 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         int slot = 0;
 
         for (ClaimPermission claimPermission : ClaimPermission.values()) {
+            // Trust management can't be given for subclaims as trust is always a top level claim thing
+            if (claimPermission == ClaimPermission.TRUST_UNTRUST && claim.parent != null) continue;
+
             if (claim.doesRoleHavePermission(role, claimPermission)) {
                 item.setType(Material.valueOf(RolePermissionsGUIFile.get().getString("Buttons.Enabled.Item")));
             } else {

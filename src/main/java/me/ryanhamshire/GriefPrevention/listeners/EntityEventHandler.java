@@ -26,6 +26,7 @@ import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.utils.legacies.EntityTypeUtils;
@@ -38,12 +39,15 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Ghast;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Slime;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -297,6 +301,27 @@ public class EntityEventHandler implements Listener {
     //when a creature spawns...
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntitySpawn(CreatureSpawnEvent event) {
+        Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(event.getLocation(), true, null);
+        if (claim != null && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.REINFORCEMENTS) {
+            // If the entity is a monster
+            if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
+                    || event.getEntity() instanceof Ghast || event.getEntity() instanceof Slime) {
+                if (!claim.isSettingEnabled(ClaimSetting.NATURAL_MONSTER_SPAWNS)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+
+            // If the entity is not a monster
+            if (event.getEntity() instanceof Mob && !(event.getEntity() instanceof Monster)
+                    && !(event.getEntity() instanceof Phantom) && !(event.getEntity() instanceof Ghast) && !(event.getEntity() instanceof Slime)) {
+                if (!claim.isSettingEnabled(ClaimSetting.NATURAL_ANIMAL_SPAWNS)) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
         //these rules apply only to creative worlds
         if (!GriefPrevention.plugin.creativeRulesApply(event.getLocation())) return;
 
@@ -308,7 +333,6 @@ public class EntityEventHandler implements Listener {
         }
 
         //otherwise, just apply the limit on total entities per claim (and no spawning in the wilderness!)
-        Claim claim = this.dataStore.getClaimAt(event.getLocation(), false, null);
         if (claim == null || claim.allowMoreEntities(true) != null) {
             event.setCancelled(true);
             return;

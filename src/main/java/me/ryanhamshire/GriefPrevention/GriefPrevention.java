@@ -23,6 +23,7 @@ import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MembersGUIFile
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MenuGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RoleSelectGUIFile;
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFile;
 import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.data.DatabaseDataStore;
@@ -32,6 +33,7 @@ import me.ryanhamshire.GriefPrevention.listeners.EntityDamageHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.InventoryHandler;
 import me.ryanhamshire.GriefPrevention.listeners.PlayerEventHandler;
+import me.ryanhamshire.GriefPrevention.listeners.WorldEventHandler;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.BlockSnapshot;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
@@ -52,14 +54,18 @@ import me.ryanhamshire.GriefPrevention.tasks.SendPlayerMessageTask;
 import me.ryanhamshire.GriefPrevention.utils.CustomLogger;
 import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
 import me.ryanhamshire.GriefPrevention.utils.Placeholders;
+import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
+import me.ryanhamshire.GriefPrevention.utils.legacies.ParticleUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Particle;
 import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -69,11 +75,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,6 +91,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -124,6 +134,9 @@ public class GriefPrevention extends JavaPlugin {
 
     // Cache of names of UUIDs
     public HashMap<UUID, String> uuidNameCache = new HashMap<>(); // A map of a player's UUID and their username
+
+    // A map of players and their task IDs for seeing claim outlines
+    public HashMap<UUID, Integer> claimOutlines = new HashMap<>();
 
     //claim mode for each world
     public ConcurrentHashMap<World, ClaimsMode> config_claims_worldModes;
@@ -391,6 +404,7 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EntityEventHandler(dataStore, this), this);
         getServer().getPluginManager().registerEvents(new EntityDamageHandler(dataStore, this), this);
         getServer().getPluginManager().registerEvents(new InventoryHandler(this), this);
+        getServer().getPluginManager().registerEvents(new WorldEventHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
 
         //cache offline players
@@ -1658,5 +1672,35 @@ public class GriefPrevention extends JavaPlugin {
         MembersGUIFile.setup();
         RoleSelectGUIFile.setup();
         RolePermissionsGUIFile.setup();
+        SettingsGUIFile.setup();
+    }
+
+    public void showClaimOutlines(Player player) {
+        BukkitTask bukkitTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) {
+                    cancel();
+                    claimOutlines.remove(player.getUniqueId());
+                }
+
+                // Get all the nearby claims
+                Set<Claim> claims = plugin.dataStore.getNearbyClaims(player.getLocation());
+
+                int playerX = player.getLocation().getBlockX();
+                int playerY = player.getLocation().getBlockY();
+                int playerZ = player.getLocation().getBlockZ();
+
+                for (Claim claim : claims) {
+                    Utils.showClaimOutline(claim, player, playerX, playerY, playerZ);
+
+                    for (Claim child : claim.children) {
+                        Utils.showClaimOutline(child, player, playerX, playerY, playerZ);
+                    }
+                }
+            }
+
+        }.runTaskTimer(plugin, 0, 10);
+        claimOutlines.put(player.getUniqueId(), bukkitTask.getTaskId());
     }
  }
