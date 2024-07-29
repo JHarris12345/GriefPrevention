@@ -320,14 +320,11 @@ public class FlatFileDataStore extends DataStore {
 
         yaml.set("Parent Claim ID", parentID);
 
-        // Permissions
+        // Permissions - We have to save all permissions that have been set EVEN if they're the same as the default
+        // because subclaims will not be able to get set to default values independently of main claims otherwise
         for (ClaimRole claimRole : claim.permissions.keySet()) {
-            for (ClaimPermission claimPermission : ClaimPermission.values()) {
-                boolean defaultValue = claimPermission.getDefaultPermission(claimRole);
-                boolean setValue = claim.doesRoleHavePermission(claimRole, claimPermission);
-
-                if (defaultValue == setValue) continue;
-
+            for (ClaimPermission claimPermission : claim.permissions.get(claimRole).keySet()) {
+                boolean setValue = claim.permissions.get(claimRole).get(claimPermission);
                 yaml.set("Permissions." + claimPermission.name() + "." + claimRole.name(), setValue);
             }
         }

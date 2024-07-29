@@ -67,7 +67,7 @@ public class Claim {
     public Claim parent = null; // Only not null if it's a subclaim
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
     public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
-    public HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>(); // A map of the claim roles and a list of all the permissions they have access to
+    public HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions = new HashMap<>(); // A map of the claim roles and the set values for the permissions (only includes ones that have been explicitly set)
     public HashMap<ClaimSetting, ClaimSettingValue> settings = new HashMap<>(); // A map of the claim settings and their values
     public List<ClaimPermission> unlockedPermissions = new ArrayList<>(); // A list of the permissions they have purchased toggleability for
     public List<ClaimSetting> unlockedSettings = new ArrayList<>(); // A list of the settings they have purchased toggleability for
@@ -79,7 +79,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, List<ClaimPermission>> permissions, Long id) {
+    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -233,22 +233,33 @@ public class Claim {
         if (uuid.equals(this.getOwnerID())) return true;
 
         ClaimRole playerRole = getPlayerRole(uuid);
-        return permissions.get(playerRole).contains(claimPermission);
+
+        if (parent == null) {
+            return permissions.getOrDefault(playerRole, new HashMap<>()).getOrDefault(claimPermission, claimPermission.getDefaultPermission(playerRole));
+        }
+
+        // If it's a subclaim then we take the parent value if not explicitly set
+        HashMap<ClaimPermission, Boolean> subPerms = permissions.getOrDefault(playerRole, new HashMap<>());
+        return (subPerms.containsKey(claimPermission)) ? subPerms.get(claimPermission) : parent.hasClaimPermission(uuid, claimPermission);
     }
 
     public boolean doesRoleHavePermission(ClaimRole claimRole, ClaimPermission claimPermission) {
         if (claimRole == ClaimRole.OWNER) return true;
 
-        return permissions.get(claimRole).contains(claimPermission);
+        if (parent == null) {
+            return permissions.getOrDefault(claimRole, new HashMap<>()).getOrDefault(claimPermission, claimPermission.getDefaultPermission(claimRole));
+        }
+
+        // If it's a subclaim then we take the parent value if not explicitly set
+        HashMap<ClaimPermission, Boolean> subPerms = permissions.getOrDefault(claimRole, new HashMap<>());
+        return (subPerms.containsKey(claimPermission)) ? subPerms.get(claimPermission) : parent.doesRoleHavePermission(claimRole, claimPermission);
     }
 
     public void addPermissionToRole(ClaimPermission permission, ClaimRole role) {
         if (role == ClaimRole.OWNER) return;
 
-        List<ClaimPermission> permissions = this.permissions.get(role);
-        if (!permissions.contains(permission)) {
-            permissions.add(permission);
-        }
+        HashMap<ClaimPermission, Boolean> permissions = this.permissions.get(role);
+        permissions.put(permission, true);
 
         GriefPrevention.plugin.dataStore.saveClaim(this);
     }
@@ -256,10 +267,8 @@ public class Claim {
     public void removePermissionFromRole(ClaimPermission permission, ClaimRole role) {
         if (role == ClaimRole.OWNER) return;
 
-        List<ClaimPermission> permissions = this.permissions.get(role);
-        if (permissions.contains(permission)) {
-            permissions.remove(permission);
-        }
+        HashMap<ClaimPermission, Boolean> permissions = this.permissions.get(role);
+        permissions.put(permission, false);
 
         GriefPrevention.plugin.dataStore.saveClaim(this);
     }
@@ -555,29 +564,20 @@ public class Claim {
     }
 
     public void loadPermissions(YamlConfiguration claimConfig) {
-        HashMap<ClaimRole, List<ClaimPermission>> permissions = new HashMap<>();
+        HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions = new HashMap<>();
 
         for (ClaimRole role : ClaimRole.values()) {
             // Skip owners as they have every perm
             if (role == ClaimRole.OWNER) continue;
 
-            // The list of permissions this role will have
-            List<ClaimPermission> rolePermissions = new ArrayList<>();
+            // The list of set permissions
+            HashMap<ClaimPermission, Boolean> rolePermissions = new HashMap<>();
 
             for (ClaimPermission permission : ClaimPermission.values()) {
-                boolean bool;
+                // If they don't have this setting specifically set, we don't need to add it as it will take the default value
+                if (!claimConfig.isSet("Permissions." + permission.name() + "." + role.name())) continue;
 
-                // If they don't have this permission specifically set yet, get the default value for this role. Else get their set value
-                if (!claimConfig.isSet("Permissions." + permission.name() + "." + role.name())) {
-                    bool = permission.getDefaultPermission(role);
-
-                } else {
-                    bool = claimConfig.getBoolean("Permissions." + permission.name() + "." + role.name());
-                }
-
-                if (bool) {
-                    rolePermissions.add(permission);
-                }
+                rolePermissions.put(permission, claimConfig.getBoolean("Permissions." + permission.name() + "." + role.name()));
             }
 
             permissions.put(role, rolePermissions);
