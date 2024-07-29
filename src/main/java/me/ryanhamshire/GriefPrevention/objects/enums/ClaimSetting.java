@@ -1,5 +1,8 @@
 package me.ryanhamshire.GriefPrevention.objects.enums;
 
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
+import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFile;
+
 public enum ClaimSetting {
 
     LEAF_DECAY(ClaimSettingValue.TRUE),
@@ -23,5 +26,9 @@ public enum ClaimSetting {
 
     public ClaimSettingValue getDefaultValue() {
         return settingDefaultValue;
+    }
+
+    public int getUnlockCost() {
+        return (SettingsGUIFile.get().getInt("Settings." + this.name() + ".iCoins"));
     }
 }

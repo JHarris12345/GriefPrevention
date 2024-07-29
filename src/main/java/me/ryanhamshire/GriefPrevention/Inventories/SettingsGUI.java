@@ -1,6 +1,7 @@
 package me.ryanhamshire.GriefPrevention.Inventories;
 
 import com.sk89q.util.StringUtil;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFile;
 import me.ryanhamshire.GriefPrevention.logs.PermissionChangeLogs;
@@ -17,6 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -87,6 +89,14 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 owningPlayerName = SettingsGUIFile.get().getString("Settings." + key + ".OwningPlayer");
             }
 
+            int unlockCost = claimSetting.getUnlockCost();
+            if (unlockCost > 0 && !claim.isSettingUnlocked(claimSetting)) {
+                lore.add("");
+                lore.add(Utils.colour("&4&lToggling LOCKED"));
+                lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability"));
+                lore.add(Utils.colour("&cto toggle this for &l" + unlockCost + " iCoins"));
+            }
+
             ItemStack item = Utils.createItemStack(material, base64Value, owningPlayerName, displayName, lore, amount);
             ItemMeta meta = item.getItemMeta();
 
@@ -139,6 +149,29 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MANAGE_SETTINGS)) {
             player.sendMessage(Utils.colour(ClaimPermission.MANAGE_SETTINGS.getDenialMessage()));
             return;
+        }
+
+        // If the setting hasn't been unlocked OR unlock it
+        if (e.getClick() != ClickType.RIGHT) {
+            if (!claim.isSettingUnlocked(setting)) {
+                player.sendMessage(Utils.colour("&cYou must unlock this setting before you can toggle it"));
+                return;
+            }
+
+        } else {
+            if (!claim.isSettingUnlocked(setting)) {
+                int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
+                if (iCoinsBalance < setting.getUnlockCost()) {
+                    player.sendMessage(Utils.colour("&cYou don't have enough iCoins to unlock this setting. Get iCoins from the &o/shop"));
+                    return;
+                }
+
+                claim.unlockClaimSetting(setting);
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + settingName + " setting for this claim"));
+                Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + setting.getUnlockCost());
+                refreshContents(claim);
+                return;
+            }
         }
 
         // Handling for all the true / false settings and then handling for the weather and time settings

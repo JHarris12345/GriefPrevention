@@ -166,6 +166,7 @@ commands:
   claimmenu:
     description: Open the menu for the claim you're standing in
     usage: /ClaimMenu
+    aliases: [ manageclaim ]
     permission: griefprevention.claims
   claimslist:
     description: Lists information about a player's claim blocks and claims.

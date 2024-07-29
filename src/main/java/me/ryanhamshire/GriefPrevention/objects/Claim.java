@@ -682,4 +682,21 @@ public class Claim {
 
         this.settings = settings;
     }
+
+    public void unlockClaimSetting(ClaimSetting claimSetting) {
+        Claim claim = (parent == null) ? this : parent;
+
+        if (!claim.unlockedSettings.contains(claimSetting)) {
+            claim.unlockedSettings.add(claimSetting);
+        }
+
+        GriefPrevention.plugin.dataStore.saveClaim(claim);
+    }
+
+    public boolean isSettingUnlocked(ClaimSetting claimSetting) {
+        if (claimSetting.getUnlockCost() == 0) return true;
+
+        // If it's a subclaim then we always take the value of the main claim
+        return (parent == null) ? unlockedSettings.contains(claimSetting) : parent.unlockedSettings.contains(claimSetting);
+    }
 }
