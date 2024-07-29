@@ -527,25 +527,47 @@ public class CommandHandler {
             return true;
         }
 
-        // claimmenu
+        // claimmenu (-sub/-main)
         else if (cmd.getName().equalsIgnoreCase("claimmenu")) {
-            if (args.length != 0) return false;
+            if (args.length == 0 || (args.length == 1 && (args[0].equalsIgnoreCase("-sub") || args[0].equalsIgnoreCase("-main")))) {
+                Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+                if (claim == null) {
+                    player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                    return true;
+                }
 
-            if (claim == null) {
-                player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
+                    player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
+                    return true;
+                }
+
+                if (claim.parent != null && args.length == 0) {
+                    player.sendMessage(Utils.colour("&aYou are standing in a sub-claim. Use &2/" + commandLabel + " -sub &ato open the sub claim's menu OR &2/" + commandLabel + " -main &ato open the main claim's menu"));
+                    return true;
+                }
+
+                // They've used -sub but aren't standing in a sub claim
+                if (claim.parent == null && args.length == 1 && args[0].equalsIgnoreCase("-sub")) {
+                    player.sendMessage(Utils.colour("&cYou aren't standing in a sub-claim"));
+                    return true;
+
+                // They've used -sub in a sub claim - Open the sub's menu
+                } else if (claim.parent != null && args.length == 1 && args[0].equalsIgnoreCase("-sub")) {
+                    player.openInventory(new MenuGUI(claim).getInventory());
+                    return true;
+
+                // They've used -main in a sub claim - Open the main's menu
+                } else if (claim.parent != null && args.length == 1 && args[0].equalsIgnoreCase("-main"))  {
+                    player.openInventory(new MenuGUI(claim.parent).getInventory());
+                    return true;
+                }
+
+                player.openInventory(new MenuGUI(claim).getInventory());
                 return true;
             }
 
-            if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
-                player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
-                return true;
-            }
-
-            player.openInventory(new MenuGUI(claim).getInventory());
-
-            return true;
+            return false; // Yes it's meant to be return false
         }
 
         // claimoutlines

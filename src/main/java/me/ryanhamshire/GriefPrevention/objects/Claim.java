@@ -232,6 +232,9 @@ public class Claim {
     public boolean hasClaimPermission(UUID uuid, ClaimPermission claimPermission) {
         if (uuid.equals(this.getOwnerID())) return true;
 
+        PlayerData data = GriefPrevention.plugin.dataStore.getPlayerData(uuid);
+        if (data != null && data.ignoreClaims) return true;
+
         ClaimRole playerRole = getPlayerRole(uuid);
 
         if (parent == null) {
