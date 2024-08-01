@@ -89,12 +89,12 @@ public class GUI {
         }
     }
 
-    public void backButtonClickMethod(InventoryClickEvent e, Claim claim) {
+    public void backButtonClickMethod(InventoryClickEvent e, Claim claim, boolean waterfall) {
         Player player = (Player) e.getWhoClicked();
         if (claim == null) return;
 
         if (e.getSlot() == e.getInventory().getSize()-5) {
-            player.openInventory(new MenuGUI(claim).getInventory());
+            player.openInventory(new MenuGUI(claim, waterfall).getInventory());
         }
 
         return;
@@ -105,11 +105,11 @@ public class GUI {
         return false;
     }
 
-    public void backButtonClickMethodPermissions(InventoryClickEvent e, Claim claim) {
+    public void backButtonClickMethodPermissions(InventoryClickEvent e, Claim claim, boolean waterfall) {
         Player player = (Player) e.getWhoClicked();
         if (!clickedBackButton(e)) return;
 
-        player.openInventory(new RoleSelectGUI(claim).getInventory());
+        player.openInventory(new RoleSelectGUI(claim, waterfall).getInventory());
     }
 
     public boolean isAdminClicking(Player player, InventoryClickEvent e) {

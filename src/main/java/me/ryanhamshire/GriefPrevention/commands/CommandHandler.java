@@ -554,16 +554,16 @@ public class CommandHandler {
 
                 // They've used -sub in a sub claim - Open the sub's menu
                 } else if (claim.parent != null && args.length == 1 && args[0].equalsIgnoreCase("-sub")) {
-                    player.openInventory(new MenuGUI(claim).getInventory());
+                    player.openInventory(new MenuGUI(claim, false).getInventory());
                     return true;
 
                 // They've used -main in a sub claim - Open the main's menu
                 } else if (claim.parent != null && args.length == 1 && args[0].equalsIgnoreCase("-main"))  {
-                    player.openInventory(new MenuGUI(claim.parent).getInventory());
+                    player.openInventory(new MenuGUI(claim.parent, false).getInventory());
                     return true;
                 }
 
-                player.openInventory(new MenuGUI(claim).getInventory());
+                player.openInventory(new MenuGUI(claim, false).getInventory());
                 return true;
             }
 
@@ -1265,7 +1265,6 @@ public class CommandHandler {
         else if (cmd.getName().equalsIgnoreCase("gpreload")) {
             plugin.loadConfig();
             plugin.dataStore.loadMessages();
-            plugin.playerEventHandler.resetPattern();
             plugin.setupFiles();
 
             if (player != null) {

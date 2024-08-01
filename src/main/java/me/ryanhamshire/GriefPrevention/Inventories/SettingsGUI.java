@@ -35,11 +35,13 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
     private Claim claim;
+    private boolean waterfall;
 
 
-    public SettingsGUI(Claim claim) {
+    public SettingsGUI(Claim claim, boolean waterfall) {
         this.inv = Bukkit.createInventory(this, super.getNeededSize(ClaimSetting.values().length), Utils.colour(SettingsGUIFile.get().getString("Title")));
         this.claim = claim;
+        this.waterfall = waterfall;
 
         this.addContents(claim);
     }
@@ -115,7 +117,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         for (UUID uuid : claim.getClaimMembers(true).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof SettingsGUI) {
-                player.openInventory(new SettingsGUI(claim).getInventory());
+                player.openInventory(new SettingsGUI(claim, waterfall).getInventory());
             }
         }
     }
@@ -134,7 +136,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         e.setCancelled(true);
 
         // Back to menu button method
-        backButtonClickMethod(e, claim);
+        backButtonClickMethod(e, claim, waterfall);
 
         // Prevent an admin modifying the claim
         if (isAdminClicking(player, e)) return;
@@ -181,10 +183,26 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to FALSE" +
                         " for claim " + claim.id, true);
 
+                if (waterfall) {
+                    for (Claim sub : claim.children) {
+                        sub.disableSetting(setting);
+                        SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to FALSE" +
+                                " for claim " + sub.id, true);
+                    }
+                }
+
             } else {
                 claim.enableSetting(setting);
                 SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to TRUE" +
                         " for claim " + claim.id, true);
+
+                if (waterfall) {
+                    for (Claim sub : claim.children) {
+                        sub.enableSetting(setting);
+                        SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to TRUE" +
+                                " for claim " + sub.id, true);
+                    }
+                }
             }
 
         } else if (setting == ClaimSetting.FORCED_TIME) {
@@ -194,18 +212,42 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                     claim.setForcedTimeSetting(ClaimSettingValue.DAY);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to DAY" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedTimeSetting(ClaimSettingValue.DAY);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to DAY" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
 
                 case DAY:
                     claim.setForcedTimeSetting(ClaimSettingValue.NIGHT);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NIGHT" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedTimeSetting(ClaimSettingValue.NIGHT);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NIGHT" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
 
                 case NIGHT:
                     claim.setForcedTimeSetting(ClaimSettingValue.NONE);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NONE" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedTimeSetting(ClaimSettingValue.NONE);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NONE" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
             }
 
@@ -216,18 +258,42 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                     claim.setForcedWeatherSetting(ClaimSettingValue.SUNNY);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to SUNNY" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedWeatherSetting(ClaimSettingValue.SUNNY);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to SUNNY" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
 
                 case SUNNY:
                     claim.setForcedWeatherSetting(ClaimSettingValue.RAINY);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to RAINY" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedWeatherSetting(ClaimSettingValue.RAINY);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to RAINY" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
 
                 case RAINY:
                     claim.setForcedWeatherSetting(ClaimSettingValue.NONE);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NONE" +
                             " for claim " + claim.id, true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedWeatherSetting(ClaimSettingValue.NONE);
+                            SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NONE" +
+                                    " for claim " + sub.id, true);
+                        }
+                    }
                     break;
             }
         }

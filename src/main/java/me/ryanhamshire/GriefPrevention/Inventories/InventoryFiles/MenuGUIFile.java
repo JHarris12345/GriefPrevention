@@ -30,6 +30,13 @@ public class MenuGUIFile {
                 customFile.set("Title", "&0%sub%Claim Menu &7(ID: %id%)");
                 customFile.set("Size", 27);
 
+                customFile.set("Icons.Waterfall.Slot", 4);
+                customFile.set("Icons.Waterfall.ItemEnabled", "WARPED_BUTTON");
+                customFile.set("Icons.Waterfall.ItemDisabled", "CRIMSON_BUTTON");
+                customFile.set("Icons.Waterfall.Name", "&bWaterfall Mode");
+                customFile.set("Icons.Waterfall.Lore", new ArrayList<>(Arrays.asList("&7With this &fenabled, &7any changes you", "&7make to this claim will carry down to",
+                        "&7all the sub-claims as well", "", "&fCurrently %status%", "&7Click to %changeStatus%")));
+
                 customFile.set("Icons.Members.Slot", 10);
                 customFile.set("Icons.Members.Item", "PLAYER_HEAD");
                 customFile.set("Icons.Members.HeadOwner", "%claimOwner%");

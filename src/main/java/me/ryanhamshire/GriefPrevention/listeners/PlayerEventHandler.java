@@ -140,10 +140,6 @@ public class PlayerEventHandler implements Listener {
         this.instance = plugin;
     }
 
-    public void resetPattern() {
-        this.howToClaimPattern = null;
-    }
-
     //when a player chats, monitor for spam
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     synchronized void onPlayerChat(AsyncPlayerChatEvent event) {

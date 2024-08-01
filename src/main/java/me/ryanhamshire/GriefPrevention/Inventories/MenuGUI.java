@@ -25,10 +25,12 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
     private Claim claim;
+    private boolean waterfall;
 
-    public MenuGUI(Claim claim) {
+    public MenuGUI(Claim claim, boolean waterfall) {
         this.inv = Bukkit.createInventory(this, MenuGUIFile.get().getInt("Size"), Utils.colour(MenuGUIFile.get().getString("Title").replace("%id%", claim.id + "").replace("%sub%", (claim.parent == null) ? "" : "Sub ")));
         this.claim = claim;
+        this.waterfall = waterfall;
 
         addContents(claim);
     }
@@ -40,14 +42,19 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
         int slot = 0;
 
         for (String key : MenuGUIFile.get().getConfigurationSection("Icons").getKeys(false)) {
-            item.setType(Material.valueOf(MenuGUIFile.get().getString("Icons." + key + ".Item")));
+            if (key.equals("Waterfall") && (claim.parent != null || claim.children.isEmpty())) continue; // Don't have waterfall mode for sub claims
+
+            String materialKey = (key.equals("Waterfall")) ? (waterfall) ? ".ItemEnabled" : ".ItemDisabled" : ".Item";
+            item.setType(Material.valueOf(MenuGUIFile.get().getString("Icons." + key + materialKey)));
             ItemMeta meta = item.getItemMeta();
 
             meta.setDisplayName(Utils.colour(MenuGUIFile.get().getString("Icons." + key + ".Name")));
 
             lore.clear();
             for (String loreLine : MenuGUIFile.get().getStringList("Icons." + key + ".Lore")) {
-                lore.add(Utils.colour(loreLine));
+                lore.add(Utils.colour(loreLine
+                        .replace("%status%", (waterfall ? "&aenabled" : "&cdisabled"))
+                        .replace("%changeStatus%", (waterfall ? "disable" : "enable"))));
             }
             meta.setLore(lore);
 
@@ -99,20 +106,24 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
 
         switch (icon) {
             case "Members":
-                e.getWhoClicked().openInventory(new MembersGUI(claim).getInventory());
+                e.getWhoClicked().openInventory(new MembersGUI(claim, waterfall).getInventory());
                 break;
 
             case "Permissions":
-                e.getWhoClicked().openInventory(new RoleSelectGUI(claim).getInventory());
+                e.getWhoClicked().openInventory(new RoleSelectGUI(claim, waterfall).getInventory());
                 break;
 
             case "Settings":
-                e.getWhoClicked().openInventory(new SettingsGUI(claim).getInventory());
+                e.getWhoClicked().openInventory(new SettingsGUI(claim, waterfall).getInventory());
                 break;
 
             case "SetName":
                 e.getWhoClicked().closeInventory();
                 e.getWhoClicked().sendMessage(Utils.colour("&aSet your claim's name using &2/nameclaim [name]"));
+                break;
+
+            case "Waterfall":
+                e.getWhoClicked().openInventory(new MenuGUI(claim, !waterfall).getInventory());
                 break;
         }
     }

@@ -24,11 +24,13 @@ public class RoleSelectGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
     private Claim claim;
+    private boolean waterfall;
 
 
-    public RoleSelectGUI(Claim claim) {
+    public RoleSelectGUI(Claim claim, boolean waterfall) {
         this.inv = Bukkit.createInventory(this, RoleSelectGUIFile.get().getInt("Size"), Utils.colour(RoleSelectGUIFile.get().getString("Title")));
         this.claim = claim;
+        this.waterfall = waterfall;
 
         this.addContents();
     }
@@ -71,12 +73,12 @@ public class RoleSelectGUI extends GUI implements InventoryHolder, ClaimMenu {
         e.setCancelled(true);
 
         // Back to menu button method
-        backButtonClickMethod(e, claim);
+        backButtonClickMethod(e, claim, waterfall);
 
         String roleName = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "role"), PersistentDataType.STRING);
         if (roleName == null) return;
 
         ClaimRole role = ClaimRole.valueOf(roleName);
-        player.openInventory(new TogglePermissionsGUI(claim, role).getInventory());
+        player.openInventory(new TogglePermissionsGUI(claim, role, waterfall).getInventory());
     }
 }

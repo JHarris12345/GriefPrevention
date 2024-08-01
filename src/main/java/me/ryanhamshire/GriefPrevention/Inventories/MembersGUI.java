@@ -31,10 +31,12 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
     private Claim claim;
+    private boolean waterfall;
 
-    public MembersGUI(Claim claim) {
+    public MembersGUI(Claim claim, boolean waterfall) {
         this.inv = Bukkit.createInventory(this, getNeededSize(claim.members.size() + 1), Utils.colour(MembersGUIFile.get().getString("Title")));
         this.claim = claim;
+        this.waterfall = waterfall;
 
         this.addContents(claim);
     }
@@ -75,7 +77,7 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         for (UUID uuid : claim.getClaimMembers(true).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof MembersGUI) {
-                player.openInventory(new MembersGUI(claim).getInventory());
+                player.openInventory(new MembersGUI(claim, waterfall).getInventory());
             }
         }
     }
@@ -93,7 +95,7 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         Player player = (Player) e.getWhoClicked();
 
         // Back to menu button method
-        backButtonClickMethod(e, this.claim);
+        backButtonClickMethod(e, this.claim, waterfall);
 
         // Prevent an admin modifying the claim
         if (isAdminClicking(player, e)) return;
@@ -145,6 +147,12 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
                 target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " promoted you to the " + nextRoleUp + " role on their claim"));
             }
 
+            if (waterfall) {
+                for (Claim sub : claim.children) {
+                    sub.setClaimRole(target.getUniqueId(), nextRoleUp);
+                }
+            }
+
             refreshContents(claim);
         }
 
@@ -183,6 +191,12 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
 
             if (target.isOnline()) {
                 target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " demoted you to the " + nextRoleDown + " role on their claim"));
+            }
+
+            if (waterfall) {
+                for (Claim sub : claim.children) {
+                    sub.setClaimRole(target.getUniqueId(), nextRoleDown);
+                }
             }
 
             refreshContents(claim);

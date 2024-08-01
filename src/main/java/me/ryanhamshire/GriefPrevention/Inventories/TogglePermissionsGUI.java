@@ -5,9 +5,11 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RolePermissionsGUIFile;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RoleSelectGUIFile;
 import me.ryanhamshire.GriefPrevention.logs.PermissionChangeLogs;
+import me.ryanhamshire.GriefPrevention.logs.SettingsChangeLogs;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.GUIBackgroundType;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import org.bukkit.Bukkit;
@@ -33,13 +35,15 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
     private ClaimRole role;
     private int guiSize;
     private Claim claim;
+    private boolean waterfall;
 
 
-    public TogglePermissionsGUI(Claim claim, ClaimRole role) {
+    public TogglePermissionsGUI(Claim claim, ClaimRole role, boolean waterfall) {
         this.guiSize = super.getNeededSize(ClaimPermission.values().length);
         this.inv = Bukkit.createInventory(this, guiSize, Utils.colour(RoleSelectGUIFile.get().getString("Roles." + role.name() + ".GUIName")));
         this.role = role;
         this.claim = claim;
+        this.waterfall = waterfall;
 
         this.addContents(claim);
     }
@@ -93,7 +97,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         for (UUID uuid : claim.getClaimMembers(true).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof TogglePermissionsGUI) {
-                player.openInventory(new TogglePermissionsGUI(claim, role).getInventory());
+                player.openInventory(new TogglePermissionsGUI(claim, role, waterfall).getInventory());
             }
         }
     }
@@ -112,7 +116,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         e.setCancelled(true);
 
         // Back to menu button method
-        backButtonClickMethodPermissions(e, claim);
+        backButtonClickMethodPermissions(e, claim, waterfall);
 
         // If it's owner permissions, return as they can't be changed
         if (role == ClaimRole.OWNER) return;
@@ -165,6 +169,19 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
 
         PermissionChangeLogs.logToFile(player.getName() + " set the " + permissionName + " permission to " + newBoolean +
                 " for the " + role.name() + " role for claim " + claim.id, true);
+
+        if (waterfall) {
+            for (Claim sub : claim.children) {
+                if (newBoolean) {
+                    sub.addPermissionToRole(permission, role);
+                } else {
+                    sub.removePermissionFromRole(permission, role);
+                }
+
+                PermissionChangeLogs.logToFile(player.getName() + " set the " + permissionName + " permission to " + newBoolean +
+                        " for the " + role.name() + " role for claim " + sub.id, true);
+            }
+        }
 
         refreshContents(claim);
     }
