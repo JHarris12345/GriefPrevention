@@ -60,6 +60,7 @@ public class Claim {
 
     public Location lesserBoundaryCorner;
     public Location greaterBoundaryCorner;
+    public long created; // The time the claim was created
     public Date modifiedDate; // Modification date. This comes from the file timestamp during load, and is updated with runtime changes
     public Long id = null; // Unique claim ID
     public String name; // Players can name their claims so they appear more custom on /claimlist and other places claims can appear

@@ -122,7 +122,7 @@ public class Utils {
                         z != minZ && z != maxZ) continue;
 
                 // We don't want to spawn particles over X blocks away
-                int maxDistance = 20;
+                int maxDistance = 15;
                 if (Math.abs(x - playerX) > maxDistance || Math.abs(z - playerZ) > maxDistance) continue;
 
                 for (int y=playerY-5; y<=playerY+5; y++) {

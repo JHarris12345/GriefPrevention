@@ -1700,7 +1700,7 @@ public class GriefPrevention extends JavaPlugin {
                 }
             }
 
-        }.runTaskTimer(plugin, 0, 10);
+        }.runTaskTimer(plugin, 0, 15);
         claimOutlines.put(player.getUniqueId(), bukkitTask.getTaskId());
     }
  }
