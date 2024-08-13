@@ -58,8 +58,8 @@ import java.util.regex.PatternSyntaxException;
 //only claims which have been added to the datastore have any effect
 public class Claim {
 
-    public Location lesserBoundaryCorner;
-    public Location greaterBoundaryCorner;
+    public String lesserBoundaryCorner;
+    public String greaterBoundaryCorner;
     public long created; // The time the claim was created
     public Date modifiedDate; // Modification date. This comes from the file timestamp during load, and is updated with runtime changes
     public Long id = null; // Unique claim ID
@@ -80,7 +80,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
+    public Claim(String name, String lesserBoundaryCorner, String greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;

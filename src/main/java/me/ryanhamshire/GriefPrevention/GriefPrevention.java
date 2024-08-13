@@ -370,8 +370,13 @@ public class GriefPrevention extends JavaPlugin {
                 }
             }
             try {
-                // This loads the claims
-                this.dataStore = new FlatFileDataStore();
+                long start = System.currentTimeMillis();
+                this.dataStore = new FlatFileDataStore(); // This loads the claims
+
+                plugin.getLogger().info("Loaded all claims in " + (System.currentTimeMillis() - start) + "ms. Section loading times...");
+                for (String section : FlatFileDataStore.loadingTimes.keySet()) {
+                    plugin.getLogger().info(section + " - " + FlatFileDataStore.loadingTimes.get(section) + "ms");
+                }
             }
             catch (Exception e) {
                 GriefPrevention.AddLogEntry("Unable to initialize the file system data store.  Details:");

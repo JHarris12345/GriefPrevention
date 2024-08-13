@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,6 +58,7 @@ public class FlatFileDataStore extends DataStore {
     private final static String claimDataFolderPath = dataLayerFolderPath + File.separator + "ClaimData";
     private final static String nextClaimIdFilePath = claimDataFolderPath + File.separator + "_nextClaimID";
     private final static String schemaVersionFilePath = dataLayerFolderPath + File.separator + "_schemaVersion";
+    public static final LinkedHashMap<String, Long> loadingTimes = new LinkedHashMap<>(); // A map of every key section in a claim and the total time it took to load across EVERY claim
 
     public static boolean hasData() {
         File claimsDataFolder = new File(claimDataFolderPath);
@@ -230,17 +232,23 @@ public class FlatFileDataStore extends DataStore {
     }
 
     Claim loadClaim(String input, ArrayList<Long> out_parentID, long lastModifiedDate, long claimID, List<World> validWorlds) throws InvalidConfigurationException, Exception {
+        long start = System.currentTimeMillis();
         Claim claim = null;
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(input);
 
         //boundaries
-        Location lesserBoundaryCorner = this.locationFromString(yaml.getString("Lesser Boundary Corner"), validWorlds);
-        Location greaterBoundaryCorner = this.locationFromString(yaml.getString("Greater Boundary Corner"), validWorlds);
+        String lesserBoundaryCorner = this.locationFromString(yaml.getString("Lesser Boundary Corner"), validWorlds);
+        String greaterBoundaryCorner = this.locationFromString(yaml.getString("Greater Boundary Corner"), validWorlds);
+        loadingTimes.put("corners", loadingTimes.getOrDefault("corners", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
         // JHarris - Set the lesser boundary corner Y value to -64 and the greater boundary corner Y value to 320
         lesserBoundaryCorner.setY(-66);
         greaterBoundaryCorner.setY(320);
+
+        loadingTimes.put("cornerSetY", loadingTimes.getOrDefault("cornerSetY", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
         // name
         String name = yaml.getString("Name");
@@ -257,6 +265,9 @@ public class FlatFileDataStore extends DataStore {
                 GriefPrevention.AddLogEntry("  Converted land claim to administrative @ " + lesserBoundaryCorner.toString());
             }
         }
+
+        loadingTimes.put("ownerID", loadingTimes.getOrDefault("ownerID", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
         HashMap<UUID, ClaimRole> members = new HashMap<>();
 
@@ -280,6 +291,9 @@ public class FlatFileDataStore extends DataStore {
             }
         }
 
+        loadingTimes.put("members", loadingTimes.getOrDefault("members", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
         //instantiate
@@ -288,7 +302,12 @@ public class FlatFileDataStore extends DataStore {
         claim.id = claimID;
 
         claim.loadPermissions(yaml);
+        loadingTimes.put("permissions", loadingTimes.getOrDefault("permissions", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
         claim.loadSettings(yaml);
+        loadingTimes.put("settings", loadingTimes.getOrDefault("settings", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
         claimMap.put(claim.id, claim);
         return claim;
