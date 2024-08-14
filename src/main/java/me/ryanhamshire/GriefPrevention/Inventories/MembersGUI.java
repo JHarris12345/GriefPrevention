@@ -98,7 +98,7 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         backButtonClickMethod(e, this.claim, waterfall);
 
         // Prevent an admin modifying the claim
-        if (isAdminClicking(player, e)) return;
+        if (isAdminClicking(player, e, claim)) return;
 
         String memberUUID = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "uuid"), PersistentDataType.STRING);
         if (memberUUID == null) return;

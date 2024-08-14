@@ -139,7 +139,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         backButtonClickMethod(e, claim, waterfall);
 
         // Prevent an admin modifying the claim
-        if (isAdminClicking(player, e)) return;
+        if (isAdminClicking(player, e, claim)) return;
 
         if (e.getCurrentItem() == null) return;
         String settingName = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "setting"), PersistentDataType.STRING);

@@ -122,7 +122,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         if (role == ClaimRole.OWNER) return;
 
         // Prevent an admin modifying the island
-        if (isAdminClicking(player, e)) return;
+        if (isAdminClicking(player, e, claim)) return;
 
         String permissionName = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "permission"), PersistentDataType.STRING);
         if (permissionName == null) return;

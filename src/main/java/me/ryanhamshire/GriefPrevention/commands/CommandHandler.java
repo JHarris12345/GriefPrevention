@@ -553,7 +553,7 @@ public class CommandHandler {
                     return true;
                 }
 
-                if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
+                if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC && !GriefPrevention.plugin.dataStore.isBypassing(player.getUniqueId())) {
                     player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
                     return true;
                 }

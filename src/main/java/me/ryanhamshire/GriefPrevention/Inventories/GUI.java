@@ -3,6 +3,7 @@ package me.ryanhamshire.GriefPrevention.Inventories;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.GUISettingsFile;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.GUIBackgroundType;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import org.bukkit.Material;
@@ -112,8 +113,8 @@ public class GUI {
         player.openInventory(new RoleSelectGUI(claim, waterfall).getInventory());
     }
 
-    public boolean isAdminClicking(Player player, InventoryClickEvent e) {
-        if (plugin.adminViewers.containsKey(player.getUniqueId()) && !clickedBackButton(e)) {
+    public boolean isAdminClicking(Player player, InventoryClickEvent e, Claim claim) {
+        if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
             e.setCancelled(true);
             player.sendMessage(Utils.colour("&7You can't modify a claim from the admin GUI"));
             return true;
