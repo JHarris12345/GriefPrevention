@@ -591,6 +591,11 @@ public abstract class DataStore {
         return playerData;
     }
 
+    public boolean isBypassing(UUID uuid) {
+        PlayerData data = getPlayerData(uuid);
+        return (data != null && data.ignoreClaims);
+    }
+
     public abstract PlayerData getPlayerDataFromStorage(UUID playerID);
 
     //deletes a claim or subdivision

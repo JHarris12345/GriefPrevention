@@ -37,11 +37,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -50,6 +52,9 @@ import java.util.function.Supplier;
 public class CommandHandler {
 
     GriefPrevention plugin;
+
+    public static List<UUID> abandonClaimConfirmations = new ArrayList<>();
+    private List<UUID> abandonAllClaimConfirmations = new ArrayList<>();
 
     public CommandHandler(GriefPrevention plugin) {
         this.plugin = plugin;
@@ -314,12 +319,12 @@ public class CommandHandler {
 
         // abandonclaim
         if (cmd.getName().equalsIgnoreCase("abandonclaim") && player != null) {
-            return plugin.abandonClaimHandler(player, false);
+            return plugin.abandonClaimHandler(player, false, cmd.getLabel());
         }
 
         // abandontoplevelclaim
         if (cmd.getName().equalsIgnoreCase("abandontoplevelclaim") && player != null) {
-            return plugin.abandonClaimHandler(player, true);
+            return plugin.abandonClaimHandler(player, true, cmd.getLabel());
         }
 
         // ignoreclaims
@@ -341,10 +346,20 @@ public class CommandHandler {
 
         // abandonallclaims
         else if (cmd.getName().equalsIgnoreCase("abandonallclaims") && player != null) {
-            if (args.length > 1) return false;
+            if (args.length > 0) return false;
 
-            if (args.length != 1 || !"confirm".equalsIgnoreCase(args[0])) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ConfirmAbandonAllClaims);
+            if (!abandonAllClaimConfirmations.contains(player.getUniqueId())) {
+                player.sendMessage(Utils.colour("&cAre you sure you want to delete &lALL&c of your claims? You will lose any unlocked settings and permissions. Type &f" + cmd.getLabel() + "&c again to confirm!"));
+
+                abandonAllClaimConfirmations.add(player.getUniqueId());
+                Player finalPlayer1 = player;
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        abandonAllClaimConfirmations.remove(finalPlayer1.getUniqueId());
+                    }
+                }.runTaskLater(plugin, 20 * 10);
                 return true;
             }
 
@@ -633,7 +648,7 @@ public class CommandHandler {
                 return true;
             }
 
-            if (otherPlayer == player) {
+            if (otherPlayer == player && !plugin.dataStore.isBypassing(player.getUniqueId())) {
                 player.sendMessage(Utils.colour("&cYou can't untrust yourself"));
                 return true;
             }
@@ -646,7 +661,7 @@ public class CommandHandler {
                 return true;
             }
 
-            if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole)) {
+            if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole) && !plugin.dataStore.isBypassing(player.getUniqueId())) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You cannot untrust someone who has the same or higher role than you");
                 return true;
             }

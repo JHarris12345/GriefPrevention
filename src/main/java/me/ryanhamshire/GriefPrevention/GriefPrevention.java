@@ -1034,17 +1034,17 @@ public class GriefPrevention extends JavaPlugin {
         return claimCorner.world.getName() + ": " + claimCorner.x + " " + claimCorner.z;
     }
 
-    public boolean abandonClaimHandler(Player player, boolean deleteTopLevelClaim) {
+    public boolean abandonClaimHandler(Player player, boolean deleteTopLevelClaim, String cmdLabel) {
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 
         //which claim is being abandoned?
-        Claim claim = this.dataStore.getClaimAt(player.getLocation(), true /*ignore height*/, null);
+        Claim claim = this.dataStore.getClaimAt(player.getLocation(), true, null);
         if (claim == null) {
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.AbandonClaimMissing);
         }
 
         //verify ownership
-        else if (claim.getPlayerRole(player.getUniqueId()) != ClaimRole.OWNER) {
+        else if (claim.getPlayerRole(player.getUniqueId()) != ClaimRole.OWNER && !playerData.ignoreClaims) {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
         }
 
@@ -1054,6 +1054,21 @@ public class GriefPrevention extends JavaPlugin {
             return true;
         }
         else {
+            if (!CommandHandler.abandonClaimConfirmations.contains(player.getUniqueId())) {
+                player.sendMessage(Utils.colour("&cAre you sure you want to delete this claim? You will lose any unlocked settings and permissions. Type &f/" + cmdLabel + "&c again to confirm!"));
+
+                CommandHandler.abandonClaimConfirmations.add(player.getUniqueId());
+                Player finalPlayer = player;
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        CommandHandler.abandonClaimConfirmations.remove(finalPlayer.getUniqueId());
+                    }
+                }.runTaskLater(plugin, 20 * 10);
+                return true;
+            }
+
             //delete it
             claim.removeSurfaceFluids(null);
             this.dataStore.deleteClaim(claim, true, false);
