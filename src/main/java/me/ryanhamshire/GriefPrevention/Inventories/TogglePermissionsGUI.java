@@ -135,6 +135,12 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
             return;
         }
 
+        // If the player is trying to change the permissions of their own role or higher
+        if (!ClaimRole.isRole1HigherThanRole2(claim.getPlayerRole(player.getUniqueId()), role)) {
+            player.sendMessage(Utils.colour("&cYou can only manage permissions for lower roles"));
+            return;
+        }
+
         // If the permission hasn't been unlocked OR unlock it
         if (e.getClick() != ClickType.RIGHT) {
             if (!claim.isPermissionUnlocked(permission)) {
