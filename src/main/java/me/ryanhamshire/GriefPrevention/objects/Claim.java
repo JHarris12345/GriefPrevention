@@ -29,7 +29,6 @@ import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,6 +41,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -51,15 +51,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.PatternSyntaxException;
 
 //represents a player claim
 //creating an instance doesn't make an effective claim
 //only claims which have been added to the datastore have any effect
 public class Claim {
 
-    public String lesserBoundaryCorner;
-    public String greaterBoundaryCorner;
+    public ClaimCorner lesserBoundaryCorner;
+    public ClaimCorner greaterBoundaryCorner;
     public long created; // The time the claim was created
     public Date modifiedDate; // Modification date. This comes from the file timestamp during load, and is updated with runtime changes
     public Long id = null; // Unique claim ID
@@ -80,7 +79,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, String lesserBoundaryCorner, String greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
+    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -94,8 +93,8 @@ public class Claim {
     //produces a copy of a claim.
     public Claim(Claim claim) {
         this.modifiedDate = claim.modifiedDate;
-        this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
-        this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.lesserBoundaryCorner = claim.greaterBoundaryCorner;
+        this.greaterBoundaryCorner = claim.greaterBoundaryCorner;
         this.id = claim.id;
         this.ownerID = claim.ownerID;
         this.members = new HashMap<>(claim.members);
@@ -119,8 +118,8 @@ public class Claim {
         //only in creative mode worlds
         if (!GriefPrevention.plugin.creativeRulesApply(this.lesserBoundaryCorner)) return;
 
-        Location lesser = this.getLesserBoundaryCorner();
-        Location greater = this.getGreaterBoundaryCorner();
+        Location lesser = DataStore.locationFromClaimCorner(this.getLesserBoundaryCorner());
+        Location greater = DataStore.locationFromClaimCorner(this.getGreaterBoundaryCorner());
 
         if (lesser.getWorld().getEnvironment() == Environment.NETHER) return;  //don't clean up lava in the nether
 
@@ -135,7 +134,7 @@ public class Claim {
                 for (int y = seaLevel - 1; y <= lesser.getWorld().getMaxHeight(); y++) {
                     //dodge the exclusion claim
                     Block block = lesser.getWorld().getBlockAt(x, y, z);
-                    if (exclusionClaim != null && exclusionClaim.contains(block.getLocation(), true, false)) continue;
+                    if (exclusionClaim != null && exclusionClaim.contains(block.getLocation(), false)) continue;
 
                     if (block.getType() == Material.LAVA || block.getType() == Material.WATER) {
                         block.setType(Material.AIR);
@@ -159,8 +158,8 @@ public class Claim {
     //determines whether or not a claim has surface lava
     //used to warn players when they abandon their claims about automatic fluid cleanup
     boolean hasSurfaceFluids() {
-        Location lesser = this.getLesserBoundaryCorner();
-        Location greater = this.getGreaterBoundaryCorner();
+        Location lesser = DataStore.locationFromClaimCorner(this.getLesserBoundaryCorner());
+        Location greater = DataStore.locationFromClaimCorner(this.getGreaterBoundaryCorner());
 
         //don't bother for very large claims, too expensive
         if (this.getArea() > 10000) return false;
@@ -189,28 +188,31 @@ public class Claim {
 
     //measurements.  all measurements are in blocks
     public int getArea() {
-        int claimWidth = this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
-        int claimHeight = this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
+        int claimWidth = this.greaterBoundaryCorner.x - this.lesserBoundaryCorner.x + 1;
+        int claimHeight = this.greaterBoundaryCorner.z - this.lesserBoundaryCorner.z + 1;
 
         return claimWidth * claimHeight;
     }
 
     public int getWidth() {
-        return this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
+        return this.greaterBoundaryCorner.x - this.lesserBoundaryCorner.x + 1;
     }
 
     public int getHeight() {
-        return this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
+        return this.greaterBoundaryCorner.z - this.lesserBoundaryCorner.z + 1;
     }
 
     //distance check for claims, distance in this case is a band around the outside of the claim rather then euclidean distance
     public boolean isNear(Location location, int howNear) {
-        Claim claim = new Claim
-                (null, new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
-                        new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
-                        null, new HashMap<>(), new HashMap<>(),null);
+        int x = this.lesserBoundaryCorner.x;
+        int y = this.lesserBoundaryCorner.y;
+        int z = this.lesserBoundaryCorner.z;
 
-        return claim.contains(location, false, true);
+        ClaimCorner newLesser = new ClaimCorner(location.getWorld(), (x - howNear), y, (z - howNear));
+        ClaimCorner newGreater = new ClaimCorner(location.getWorld(), (x + howNear), y, (z + howNear));
+
+        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(),null);
+        return claim.contains(location, true);
     }
 
     private static final Set<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
@@ -278,14 +280,14 @@ public class Claim {
     }
 
     //returns a copy of the location representing lower x, y, z limits
-    public Location getLesserBoundaryCorner() {
-        return this.lesserBoundaryCorner.clone();
+    public ClaimCorner getLesserBoundaryCorner() {
+        return this.lesserBoundaryCorner;
     }
 
     //returns a copy of the location representing upper x, y, z limits
     //NOTE: remember upper Y will always be ignored, all claims always extend to the sky
-    public Location getGreaterBoundaryCorner() {
-        return this.greaterBoundaryCorner.clone();
+    public ClaimCorner getGreaterBoundaryCorner() {
+        return this.greaterBoundaryCorner;
     }
 
     //returns a friendly owner name (for admin claims, returns "an administrator" as the owner)
@@ -325,54 +327,55 @@ public class Claim {
         return this.ownerID;
     }
 
+    public boolean contains(ClaimCorner claimCorner, boolean excludeSubdivisions) {
+        return contains(claimCorner.location(), excludeSubdivisions);
+    }
+
     //whether or not a location is in a claim
-    //ignoreHeight = true means location UNDER the claim will return TRUE
-    //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE
-    public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions) {
+    //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE (unless the claim itself IS the sub division)
+    public boolean contains(Location location, boolean excludeSubdivisions) {
         //not in the same world implies false
-        if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
+        if (!Objects.equals(location.getWorld(), lesserBoundaryCorner.world)) return false;
 
-        BoundingBox boundingBox = new BoundingBox(this);
-        int x = location.getBlockX();
-        int z = location.getBlockZ();
+        int smallX = lesserBoundaryCorner.x;
+        int smallZ = lesserBoundaryCorner.z;
+        int bigX = greaterBoundaryCorner.x;
+        int bigZ = greaterBoundaryCorner.z;
 
-        // If we're ignoring height, use 2D containment check.
-        if (ignoreHeight && !boundingBox.contains2d(x, z)) {
-            return false;
-        }
-        // Otherwise use full containment check.
-        else if (!ignoreHeight && !boundingBox.contains(x, location.getBlockY(), z)) {
-            return false;
-        }
-
+        // JHarris - Is this needed?
         //additional check for subdivisions
         //you're only in a subdivision when you're also in its parent claim
         //NOTE: if a player creates subdivions then resizes the parent claim, it's possible that
         //a subdivision can reach outside of its parent's boundaries.  so this check is important!
-        if (this.parent != null) {
-            return this.parent.contains(location, ignoreHeight, false);
-        }
+        /*if (this.parent != null) {
+            return this.parent.contains(location, false);
+        }*/
 
-        //code to exclude subdivisions in this check
-        else if (excludeSubdivisions) {
-            //search all subdivisions to see if the location is in any of them
+        if (location.getBlockX() >= smallX && location.getBlockX() <= bigX &&
+                location.getBlockZ() >= smallZ && location.getBlockZ() <= bigZ) {
+
+            // The location is inside the claim. If we aren't excluding subdivisions (or the claim has no sub claims), we can just return true now
+            if (!excludeSubdivisions || this.children.isEmpty()) return true;
+
+            // We ARE excluding subdivisions so now we need to see if this location is in the
+            // claim's subdivision and, if it is, return false
             for (Claim child : this.children) {
-                //if we find such a subdivision, return false
-                if (child.contains(location, ignoreHeight, true)) {
+                if (child.contains(location, true)) {
                     return false;
                 }
             }
+
+            // The location was NOT in a sub claim
+            return true;
         }
 
-        //otherwise yes
-        return true;
+        return false;
     }
 
     //whether or not two claims overlap
     //used internally to prevent overlaps when creating claims
     public boolean overlaps(Claim otherClaim) {
-        if (!Objects.equals(this.lesserBoundaryCorner.getWorld(), otherClaim.getLesserBoundaryCorner().getWorld()))
-            return false;
+        if (!Objects.equals(lesserBoundaryCorner.world, otherClaim.lesserBoundaryCorner.world)) return false;
 
         return new BoundingBox(this).intersects(new BoundingBox(otherClaim));
     }
@@ -400,7 +403,7 @@ public class Claim {
         for (Chunk chunk : chunks) {
             Entity[] entities = chunk.getEntities();
             for (Entity entity : entities) {
-                if (!(entity instanceof Player) && this.contains(entity.getLocation(), false, false)) {
+                if (!(entity instanceof Player) && this.contains(entity.getLocation(), false)) {
                     totalEntities++;
                     if (remove && totalEntities > maxEntities) entity.remove();
                 }
@@ -428,7 +431,7 @@ public class Claim {
             BlockState[] actives = chunk.getTileEntities();
             for (BlockState active : actives) {
                 if (BlockEventHandler.isActiveBlock(active)) {
-                    if (this.contains(active.getLocation(), false, false)) {
+                    if (this.contains(active.getLocation(), false)) {
                         totalActives++;
                     }
                 }
@@ -443,36 +446,43 @@ public class Claim {
 
     //implements a strict ordering of claims, used to keep the claims collection sorted for faster searching
     boolean greaterThan(Claim otherClaim) {
-        Location thisCorner = this.getLesserBoundaryCorner();
-        Location otherCorner = otherClaim.getLesserBoundaryCorner();
+        String thisWorld = lesserBoundaryCorner.world.getName();
+        int thisX = lesserBoundaryCorner.x;
+        int thisZ = lesserBoundaryCorner.z;
 
-        if (thisCorner.getBlockX() > otherCorner.getBlockX()) return true;
+        String otherWorld = otherClaim.lesserBoundaryCorner.world.getName();
+        int otherX = otherClaim.lesserBoundaryCorner.x;
+        int otherZ = otherClaim.lesserBoundaryCorner.z;
 
-        if (thisCorner.getBlockX() < otherCorner.getBlockX()) return false;
+        if (thisX > otherX) return true;
 
-        if (thisCorner.getBlockZ() > otherCorner.getBlockZ()) return true;
+        if (thisX < otherX) return false;
 
-        if (thisCorner.getBlockZ() < otherCorner.getBlockZ()) return false;
+        if (thisZ > otherZ) return true;
 
-        return thisCorner.getWorld().getName().compareTo(otherCorner.getWorld().getName()) < 0;
+        if (thisZ < otherZ) return false;
+
+        return thisWorld.compareTo(otherWorld) < 0;
     }
 
 
     public long getPlayerInvestmentScore() {
         //decide which blocks will be considered player placed
-        Location lesserBoundaryCorner = this.getLesserBoundaryCorner();
-        Set<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
+        ClaimCorner lesserBoundaryCorner = this.getLesserBoundaryCorner();
+        Location lesserBoundaryLocation = DataStore.locationFromClaimCorner(lesserBoundaryCorner);
+
+        Set<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.world.getEnvironment(), lesserBoundaryLocation.getBlock().getBiome());
 
         //scan the claim for player placed blocks
         double score = 0;
 
         boolean creativeMode = GriefPrevention.plugin.creativeRulesApply(lesserBoundaryCorner);
 
-        for (int x = this.lesserBoundaryCorner.getBlockX(); x <= this.greaterBoundaryCorner.getBlockX(); x++) {
-            for (int z = this.lesserBoundaryCorner.getBlockZ(); z <= this.greaterBoundaryCorner.getBlockZ(); z++) {
-                int y = this.lesserBoundaryCorner.getBlockY();
-                for (; y < GriefPrevention.plugin.getSeaLevel(this.lesserBoundaryCorner.getWorld()) - 5; y++) {
-                    Block block = this.lesserBoundaryCorner.getWorld().getBlockAt(x, y, z);
+        for (int x = this.lesserBoundaryCorner.x; x <= this.greaterBoundaryCorner.x; x++) {
+            for (int z = this.lesserBoundaryCorner.z; z <= this.greaterBoundaryCorner.z; z++) {
+                int y = this.lesserBoundaryCorner.y;
+                for (; y < GriefPrevention.plugin.getSeaLevel(this.lesserBoundaryCorner.world) - 5; y++) {
+                    Block block = this.lesserBoundaryCorner.world.getBlockAt(x, y, z);
                     if (playerBlocks.contains(block.getType())) {
                         if (block.getType() == Material.CHEST && !creativeMode) {
                             score += 10;
@@ -483,8 +493,8 @@ public class Claim {
                     }
                 }
 
-                for (; y < this.lesserBoundaryCorner.getWorld().getMaxHeight(); y++) {
-                    Block block = this.lesserBoundaryCorner.getWorld().getBlockAt(x, y, z);
+                for (; y < this.lesserBoundaryCorner.world.getMaxHeight(); y++) {
+                    Block block = this.lesserBoundaryCorner.world.getBlockAt(x, y, z);
                     if (playerBlocks.contains(block.getType())) {
                         if (block.getType() == Material.CHEST && !creativeMode) {
                             score += 10;
@@ -506,9 +516,9 @@ public class Claim {
     public ArrayList<Chunk> getChunks() {
         ArrayList<Chunk> chunks = new ArrayList<>();
 
-        World world = this.getLesserBoundaryCorner().getWorld();
-        Chunk lesserChunk = this.getLesserBoundaryCorner().getChunk();
-        Chunk greaterChunk = this.getGreaterBoundaryCorner().getChunk();
+        World world = this.getLesserBoundaryCorner().world;
+        Chunk lesserChunk = this.getLesserBoundaryCorner().chunk();
+        Chunk greaterChunk = this.getGreaterBoundaryCorner().chunk();
 
         for (int x = lesserChunk.getX(); x <= greaterChunk.getX(); x++) {
             for (int z = lesserChunk.getZ(); z <= greaterChunk.getZ(); z++) {

@@ -13,6 +13,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -23,6 +24,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +32,8 @@ import java.util.regex.Pattern;
 public class Utils {
 
     private static GriefPrevention plugin = GriefPrevention.getInstance();
+
+    private static HashMap<String, World> worldMap = new HashMap<>(); // A cache for getting worlds from their string names
 
     public static String colour(String string) {
         Pattern pattern = Pattern.compile("&?#[A-Fa-f0-9]{6}");
@@ -42,6 +46,16 @@ public class Utils {
         }
 
         return output;
+    }
+
+    public static World getWorld(String worldName) {
+        World world = worldMap.getOrDefault(worldName, null);
+        if (world != null) return world;
+
+        world = Bukkit.getWorld(worldName);
+        worldMap.put(worldName, world);
+
+        return world;
     }
 
     public static void giveHeadItemBase64Value(ItemMeta headMeta, String base64Value) {
@@ -110,11 +124,11 @@ public class Utils {
     public static void showClaimOutline(Claim claim, Player player, int playerX, int playerY, int playerZ) {
         Color colour = (claim.parent == null) ? (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) ? Color.RED : (claim.ownerID.equals(player.getUniqueId()) ? Color.AQUA : Color.LIME) : Color.FUCHSIA;
 
-        double minX = claim.getLesserBoundaryCorner().getBlockX();
-        double maxX = claim.getGreaterBoundaryCorner().getBlockX() + 1; // +1 because we need it to spawn on the block 1 further away as it appears on the inside face
+        double minX = claim.getLesserBoundaryCorner().x;
+        double maxX = claim.getGreaterBoundaryCorner().x + 1; // +1 because we need it to spawn on the block 1 further away as it appears on the inside face
 
-        double minZ = claim.getLesserBoundaryCorner().getBlockZ();
-        double maxZ = claim.getGreaterBoundaryCorner().getBlockZ() + 1; // +1 because we need it to spawn on the block 1 further away as it appears on the inside face
+        double minZ = claim.getLesserBoundaryCorner().z;
+        double maxZ = claim.getGreaterBoundaryCorner().z + 1; // +1 because we need it to spawn on the block 1 further away as it appears on the inside face
 
         for (double x=minX; x<=maxX; x++) {
             for (double z=minZ; z<=maxZ; z++) {

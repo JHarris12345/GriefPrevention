@@ -499,7 +499,7 @@ public class BlockEventHandler implements Listener {
 
                 for (Claim claim : chunkClaims) {
                     // Ensure claim is not piston claim and is in same world.
-                    if (pistonClaim != claim && pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
+                    if (pistonClaim != claim && pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().world))
                         intersectable.add(claim);
                 }
             }

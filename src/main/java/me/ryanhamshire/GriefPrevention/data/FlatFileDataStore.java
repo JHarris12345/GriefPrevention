@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention.data;
 import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
@@ -236,19 +237,17 @@ public class FlatFileDataStore extends DataStore {
         Claim claim = null;
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.loadFromString(input);
+        loadingTimes.put("yaml", loadingTimes.getOrDefault("yaml", 0L) + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
         //boundaries
-        String lesserBoundaryCorner = this.locationFromString(yaml.getString("Lesser Boundary Corner"), validWorlds);
-        String greaterBoundaryCorner = this.locationFromString(yaml.getString("Greater Boundary Corner"), validWorlds);
+        ClaimCorner lesserBoundaryCorner = DataStore.locationStringToClaimCorner(yaml.getString("Lesser Boundary Corner"));
+        ClaimCorner greaterBoundaryCorner = DataStore.locationStringToClaimCorner(yaml.getString("Greater Boundary Corner"));
         loadingTimes.put("corners", loadingTimes.getOrDefault("corners", 0L) + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
 
-        // JHarris - Set the lesser boundary corner Y value to -64 and the greater boundary corner Y value to 320
-        lesserBoundaryCorner.setY(-66);
-        greaterBoundaryCorner.setY(320);
-
-        loadingTimes.put("cornerSetY", loadingTimes.getOrDefault("cornerSetY", 0L) + (System.currentTimeMillis() - start));
-        start = System.currentTimeMillis();
+        lesserBoundaryCorner.y = -64;
+        greaterBoundaryCorner.y = 320;
 
         // name
         String name = yaml.getString("Name");
@@ -301,6 +300,7 @@ public class FlatFileDataStore extends DataStore {
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
+        start = System.currentTimeMillis();
         claim.loadPermissions(yaml);
         loadingTimes.put("permissions", loadingTimes.getOrDefault("permissions", 0L) + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
@@ -317,8 +317,8 @@ public class FlatFileDataStore extends DataStore {
         YamlConfiguration yaml = new YamlConfiguration();
 
         //boundaries
-        yaml.set("Lesser Boundary Corner", this.locationToString(claim.lesserBoundaryCorner));
-        yaml.set("Greater Boundary Corner", this.locationToString(claim.greaterBoundaryCorner));
+        yaml.set("Lesser Boundary Corner", DataStore.locationStringFromClaimCorner(claim.lesserBoundaryCorner));
+        yaml.set("Greater Boundary Corner", DataStore.locationStringFromClaimCorner(claim.greaterBoundaryCorner));
 
         //owner
         String ownerID = "";

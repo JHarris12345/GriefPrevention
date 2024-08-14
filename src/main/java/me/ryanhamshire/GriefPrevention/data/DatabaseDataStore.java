@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention.data;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.utils.UUIDFetcher;
@@ -255,14 +256,14 @@ public class DatabaseDataStore extends DataStore {
                 long parentId = results.getLong("parentid");
                 claimID = results.getLong("id");
                 boolean inheritNothing = results.getBoolean("inheritNothing");
-                Location lesserBoundaryCorner = null;
-                Location greaterBoundaryCorner = null;
+                ClaimCorner lesserBoundaryCorner = null;
+                ClaimCorner greaterBoundaryCorner = null;
                 String lesserCornerString = "(location not available)";
                 try {
                     lesserCornerString = results.getString("lessercorner");
-                    lesserBoundaryCorner = this.locationFromString(lesserCornerString, validWorlds);
+                    lesserBoundaryCorner = locationStringToClaimCorner(lesserCornerString);
                     String greaterCornerString = results.getString("greatercorner");
-                    greaterBoundaryCorner = this.locationFromString(greaterCornerString, validWorlds);
+                    greaterBoundaryCorner = locationStringToClaimCorner(greaterCornerString);
                 }
                 catch (Exception e) {
                     if (e.getMessage() != null && e.getMessage().contains("World not found")) {
@@ -321,7 +322,7 @@ public class DatabaseDataStore extends DataStore {
         //add subdivisions to their parent claims
         for (Claim childClaim : subdivisionsToLoad) {
             //find top level claim parent
-            Claim topLevelClaim = this.getClaimAt(childClaim.getLesserBoundaryCorner(), true, null);
+            Claim topLevelClaim = this.getClaimAt(childClaim.getLesserBoundaryCorner().location(), true, null);
 
             if (topLevelClaim == null) {
                 claimsToRemove.add(childClaim);
@@ -361,15 +362,15 @@ public class DatabaseDataStore extends DataStore {
             this.writeClaimData(claim);
         }
         catch (SQLException e) {
-            GriefPrevention.AddLogEntry("Unable to save data for claim at " + this.locationToString(claim.lesserBoundaryCorner) + ".  Details:");
+            GriefPrevention.AddLogEntry("Unable to save data for claim at " + locationStringFromClaimCorner(claim.lesserBoundaryCorner) + ".  Details:");
             GriefPrevention.AddLogEntry(e.getMessage());
         }
     }
 
     //actually writes claim data to the database
     synchronized private void writeClaimData(Claim claim) throws SQLException {
-        String lesserCornerString = this.locationToString(claim.getLesserBoundaryCorner());
-        String greaterCornerString = this.locationToString(claim.getGreaterBoundaryCorner());
+        String lesserCornerString = this.locationStringFromClaimCorner(claim.getLesserBoundaryCorner());
+        String greaterCornerString = this.locationStringFromClaimCorner(claim.getGreaterBoundaryCorner());
         String owner = "";
         if (claim.ownerID != null) owner = claim.ownerID.toString();
 
@@ -398,7 +399,7 @@ public class DatabaseDataStore extends DataStore {
             insertStmt.executeUpdate();
         }
         catch (SQLException e) {
-            GriefPrevention.AddLogEntry("Unable to save data for claim at " + this.locationToString(claim.lesserBoundaryCorner) + ".  Details:");
+            GriefPrevention.AddLogEntry("Unable to save data for claim at " + this.locationStringFromClaimCorner(claim.lesserBoundaryCorner) + ".  Details:");
             GriefPrevention.AddLogEntry(e.getMessage());
         }
     }

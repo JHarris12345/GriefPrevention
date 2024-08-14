@@ -21,7 +21,6 @@ public class InventoryHandler implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onClaimMenuClick(InventoryClickEvent e) {
         if (e.getClickedInventory() == null) return;
-        if (e.getCurrentItem() == null) return;
         if (e.getWhoClicked().getOpenInventory().getTopInventory().getType() != InventoryType.CHEST) return;
 
         InventoryHolder holder = e.getWhoClicked().getOpenInventory().getTopInventory().getHolder();

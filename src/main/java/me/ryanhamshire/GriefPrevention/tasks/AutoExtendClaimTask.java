@@ -2,6 +2,7 @@ package me.ryanhamshire.GriefPrevention.tasks;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -30,16 +31,16 @@ public class AutoExtendClaimTask implements Runnable {
      * @param claim the claim to extend the depth of
      */
     public static void scheduleAsync(Claim claim) {
-        Location lesserCorner = claim.getLesserBoundaryCorner();
-        Location greaterCorner = claim.getGreaterBoundaryCorner();
-        World world = lesserCorner.getWorld();
+        ClaimCorner lesserCorner = claim.getLesserBoundaryCorner();
+        ClaimCorner greaterCorner = claim.getGreaterBoundaryCorner();
+        World world = lesserCorner.world;
 
         if (world == null) return;
 
-        int lowestLootableTile = lesserCorner.getBlockY();
+        int lowestLootableTile = lesserCorner.y;
         ArrayList<ChunkSnapshot> snapshots = new ArrayList<>();
-        for (int chunkX = lesserCorner.getBlockX() / 16; chunkX <= greaterCorner.getBlockX() / 16; chunkX++) {
-            for (int chunkZ = lesserCorner.getBlockZ() / 16; chunkZ <= greaterCorner.getBlockZ() / 16; chunkZ++) {
+        for (int chunkX = lesserCorner.x/ 16; chunkX <= greaterCorner.x / 16; chunkX++) {
+            for (int chunkZ = lesserCorner.z / 16; chunkZ <= greaterCorner.z / 16; chunkZ++) {
                 if (world.isChunkLoaded(chunkX, chunkZ)) {
                     Chunk chunk = world.getChunkAt(chunkX, chunkZ);
 
@@ -83,16 +84,16 @@ public class AutoExtendClaimTask implements Runnable {
         this.claim = claim;
         this.chunks = chunks;
         this.worldType = worldType;
-        this.lowestExistingY = Math.min(lowestExistingY, claim.getLesserBoundaryCorner().getBlockY());
+        this.lowestExistingY = Math.min(lowestExistingY, claim.getLesserBoundaryCorner().y);
         this.minY = Math.max(
-                Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()).getMinHeight(),
+                Objects.requireNonNull(claim.getLesserBoundaryCorner().world).getMinHeight(),
                 GriefPrevention.plugin.config_claims_maxDepth);
     }
 
     @Override
     public void run() {
         int newY = this.getLowestBuiltY();
-        if (newY < this.claim.getLesserBoundaryCorner().getBlockY()) {
+        if (newY < this.claim.getLesserBoundaryCorner().y) {
             Bukkit.getScheduler().runTask(GriefPrevention.plugin, new ExecuteExtendClaimTask(claim, newY));
         }
     }

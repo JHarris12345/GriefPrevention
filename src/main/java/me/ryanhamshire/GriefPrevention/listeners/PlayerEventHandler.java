@@ -1397,25 +1397,25 @@ public class PlayerEventHandler implements Listener {
 
                 //figure out what the coords of his new claim would be
                 int newx1, newx2, newz1, newz2, newy1, newy2;
-                if (playerData.lastShovelLocation.getBlockX() == playerData.claimResizing.getLesserBoundaryCorner().getBlockX()) {
+                if (playerData.lastShovelLocation.getBlockX() == playerData.claimResizing.getLesserBoundaryCorner().x) {
                     newx1 = clickedBlock.getX();
-                    newx2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockX();
+                    newx2 = playerData.claimResizing.getGreaterBoundaryCorner().x;
                 }
                 else {
-                    newx1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockX();
+                    newx1 = playerData.claimResizing.getLesserBoundaryCorner().x;
                     newx2 = clickedBlock.getX();
                 }
 
-                if (playerData.lastShovelLocation.getBlockZ() == playerData.claimResizing.getLesserBoundaryCorner().getBlockZ()) {
+                if (playerData.lastShovelLocation.getBlockZ() == playerData.claimResizing.getLesserBoundaryCorner().z) {
                     newz1 = clickedBlock.getZ();
-                    newz2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockZ();
+                    newz2 = playerData.claimResizing.getGreaterBoundaryCorner().z;
                 }
                 else {
-                    newz1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockZ();
+                    newz1 = playerData.claimResizing.getLesserBoundaryCorner().z;
                     newz2 = clickedBlock.getZ();
                 }
 
-                newy1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockY();
+                newy1 = playerData.claimResizing.getLesserBoundaryCorner().y;
                 newy2 = clickedBlock.getY() - instance.config_claims_claimsExtendIntoGroundDistance;
 
                 this.dataStore.resizeClaimWithChecks(player, playerData, newx1, newx2, newy1, newy2, newz1, newz2);
@@ -1431,7 +1431,7 @@ public class PlayerEventHandler implements Listener {
                 //if the player has permission to edit the claim or subdivision
                 if (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY)) {
                     //if he clicked on a corner, start resizing it
-                    if ((clickedBlock.getX() == claim.getLesserBoundaryCorner().getBlockX() || clickedBlock.getX() == claim.getGreaterBoundaryCorner().getBlockX()) && (clickedBlock.getZ() == claim.getLesserBoundaryCorner().getBlockZ() || clickedBlock.getZ() == claim.getGreaterBoundaryCorner().getBlockZ())) {
+                    if ((clickedBlock.getX() == claim.getLesserBoundaryCorner().x || clickedBlock.getX() == claim.getGreaterBoundaryCorner().x) && (clickedBlock.getZ() == claim.getLesserBoundaryCorner().z || clickedBlock.getZ() == claim.getGreaterBoundaryCorner().z)) {
                         playerData.claimResizing = claim;
                         playerData.lastShovelLocation = clickedBlock.getLocation();
                         if (event.getHand() == EquipmentSlot.HAND)

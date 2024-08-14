@@ -9,6 +9,7 @@ import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
@@ -257,14 +258,14 @@ public class CommandHandler {
                 return true;
             }
 
-            Location lc = claim.getLesserBoundaryCorner();
-            Location gc = claim.getGreaterBoundaryCorner();
-            int newx1 = lc.getBlockX();
-            int newx2 = gc.getBlockX();
-            int newy1 = lc.getBlockY();
-            int newy2 = gc.getBlockY();
-            int newz1 = lc.getBlockZ();
-            int newz2 = gc.getBlockZ();
+            ClaimCorner lc = claim.getLesserBoundaryCorner();
+            ClaimCorner gc = claim.getGreaterBoundaryCorner();
+            int newx1 = lc.x;
+            int newx2 = gc.x;
+            int newy1 = lc.y;
+            int newy2 = gc.y;
+            int newz1 = lc.z;
+            int newz2 = gc.z;
 
             // if changing Z only
             if (Math.abs(direction.getX()) < .3) {
@@ -1017,13 +1018,13 @@ public class CommandHandler {
                             claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ()));*/
 
                     String claimName = (claim.name != null) ? claim.name + " - " : "";
-                    String coords = claim.getLesserBoundaryCorner().getWorld().getName() + ": " + claim.getLesserBoundaryCorner().getBlockX() + " " + claim.getLesserBoundaryCorner().getBlockZ();
-                    String world = claim.getLesserBoundaryCorner().getWorld().getName();
+                    String coords = claim.getLesserBoundaryCorner().world.getName() + ": " + claim.getLesserBoundaryCorner().x + " " + claim.getLesserBoundaryCorner().z;
+                    String world = claim.getLesserBoundaryCorner().world.getName();
                     String area = plugin.df.format(claim.getArea()) + " blocks";
 
                     TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ")"));
                     line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tppos " +
-                            claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ() + " " + world));
+                            claim.getLesserBoundaryCorner().x + " 100 " + claim.getLesserBoundaryCorner().z + " " + world));
 
                     player.spigot().sendMessage(line);
                     // GriefPrevention.sendMessage(player, TextMode.Instr, );

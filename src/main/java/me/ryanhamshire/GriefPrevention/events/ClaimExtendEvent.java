@@ -1,6 +1,7 @@
 package me.ryanhamshire.GriefPrevention.events;
 
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,9 +26,9 @@ public class ClaimExtendEvent extends ClaimChangeEvent {
     public ClaimExtendEvent(@NotNull Claim claim, int newDepth) {
         super(claim, new Claim(claim) {
             @Override
-            public Location getLesserBoundaryCorner() {
-                Location lesserBoundaryCorner = super.getLesserBoundaryCorner();
-                lesserBoundaryCorner.setY(newDepth);
+            public ClaimCorner getLesserBoundaryCorner() {
+                ClaimCorner lesserBoundaryCorner = super.getLesserBoundaryCorner();
+                lesserBoundaryCorner.y = newDepth;
                 return lesserBoundaryCorner;
             }
         });

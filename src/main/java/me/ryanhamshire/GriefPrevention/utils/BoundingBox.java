@@ -144,8 +144,8 @@ public class BoundingBox implements Cloneable {
      * @param claim the claim
      */
     public BoundingBox(@NotNull Claim claim) {
-        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner(), false);
-        this.maxY = Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()).getMaxHeight();
+        this(claim.getLesserBoundaryCorner().location(), claim.getGreaterBoundaryCorner().location(), false);
+        this.maxY = Objects.requireNonNull(claim.getLesserBoundaryCorner().world).getMaxHeight();
     }
 
     /**

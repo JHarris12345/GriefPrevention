@@ -37,6 +37,7 @@ import me.ryanhamshire.GriefPrevention.listeners.WorldEventHandler;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.BlockSnapshot;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
@@ -1029,6 +1030,10 @@ public class GriefPrevention extends JavaPlugin {
         return location.getWorld().getName() + ": " + location.getBlockX() + " " + location.getBlockZ();
     }
 
+    public static String getfriendlyLocationString(ClaimCorner claimCorner) {
+        return claimCorner.world.getName() + ": " + claimCorner.x + " " + claimCorner.z;
+    }
+
     public boolean abandonClaimHandler(Player player, boolean deleteTopLevelClaim) {
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 
@@ -1372,7 +1377,8 @@ public class GriefPrevention extends JavaPlugin {
 
             //if there's a claim here, keep looking
             if (claim != null) {
-                candidateLocation = new Location(claim.lesserBoundaryCorner.getWorld(), claim.lesserBoundaryCorner.getBlockX() - 1, claim.lesserBoundaryCorner.getBlockY(), claim.lesserBoundaryCorner.getBlockZ() - 1);
+                ClaimCorner lessCorner = claim.lesserBoundaryCorner;
+                candidateLocation = new Location(lessCorner.world, lessCorner.x - 1, lessCorner.y, lessCorner.z - 1);
                 continue;
             }
 
@@ -1450,7 +1456,14 @@ public class GriefPrevention extends JavaPlugin {
     public boolean creativeRulesApply(Location location) {
         if (!this.config_creativeWorldsExist) return false;
 
-        return this.config_claims_worldModes.get((location.getWorld())) == ClaimsMode.Creative;
+        return this.config_claims_worldModes.get(location.getWorld()) == ClaimsMode.Creative;
+    }
+
+    //determines whether creative anti-grief rules apply at a location
+    public boolean creativeRulesApply(ClaimCorner claimCorner) {
+        if (!this.config_creativeWorldsExist) return false;
+
+        return this.config_claims_worldModes.get(claimCorner.world) == ClaimsMode.Creative;
     }
 
     //restores nature in multiple chunks, as described by a claim instance
@@ -1491,7 +1504,7 @@ public class GriefPrevention extends JavaPlugin {
 
         //create task
         //when done processing, this task will create a main thread task to actually update the world with processing results
-        RestoreNatureProcessingTask task = new RestoreNatureProcessingTask(snapshots, miny, chunk.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome(), lesserBoundaryCorner, greaterBoundaryCorner, this.getSeaLevel(chunk.getWorld()), aggressiveMode, GriefPrevention.plugin.creativeRulesApply(lesserBoundaryCorner), playerReceivingVisualization);
+        RestoreNatureProcessingTask task = new RestoreNatureProcessingTask(snapshots, miny, chunk.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome(), lesserBoundaryCorner, greaterBoundaryCorner, this.getSeaLevel(chunk.getWorld()), aggressiveMode, GriefPrevention.plugin.creativeRulesApply(DataStore.locationToClaimCorner(lesserBoundaryCorner)), playerReceivingVisualization);
         GriefPrevention.plugin.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.plugin, task, delayInTicks);
     }
 

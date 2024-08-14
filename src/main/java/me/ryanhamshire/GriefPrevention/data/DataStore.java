@@ -29,6 +29,7 @@ import me.ryanhamshire.GriefPrevention.events.ClaimModifiedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimResizeEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimTransferEvent;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
+import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.CustomizableMessage;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
@@ -37,6 +38,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.utils.UUIDFetcher;
+import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.WorldGuardWrapper;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -51,6 +53,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
+import scala.Int;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -72,7 +75,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 //singleton class which manages all GriefPrevention data (except for config options)
 public abstract class DataStore {
@@ -471,30 +473,67 @@ public abstract class DataStore {
         }
     }
 
-    //turns a location into a string, useful in data storage
-    private final String locationStringDelimiter = ";";
-
-    String locationToString(Location location) {
+    public static String locationToString(Location location) {
         StringBuilder stringBuilder = new StringBuilder(location.getWorld().getName());
-        stringBuilder.append(locationStringDelimiter);
+        stringBuilder.append(";");
         stringBuilder.append(location.getBlockX());
-        stringBuilder.append(locationStringDelimiter);
+        stringBuilder.append(";");
         stringBuilder.append(location.getBlockY());
-        stringBuilder.append(locationStringDelimiter);
+        stringBuilder.append(";");
         stringBuilder.append(location.getBlockZ());
 
         return stringBuilder.toString();
     }
 
-    //turns a location string back into a location
-    Location locationFromString(String string, List<World> validWorlds) throws Exception {
-        //split the input string on the space
-        String[] elements = string.split(locationStringDelimiter);
+    private static String locationStringFromInput(World world, int x, int y, int z) {
+        return world.toString() + ";" + x + ";" + y + ";" + z;
+    }
 
-        //expect four elements - world name, X, Y, and Z, respectively
-        if (elements.length < 4) {
-            throw new Exception("Expected four distinct parts to the location string: \"" + string + "\"");
+    private static String getWorldFromLocationString(String locationString) {
+        return locationString.split(";")[0];
+    }
+
+    private static int getCoordIntFromLocationString(String locationString, String coordLetter) {
+        if (coordLetter.equalsIgnoreCase("x")) {
+            return Integer.parseInt(locationString.split(";")[1]);
+
+        } else if (coordLetter.equalsIgnoreCase("y")) {
+            return Integer.parseInt(locationString.split(";")[2]);
+
+        } else if (coordLetter.equalsIgnoreCase("z")) {
+            return Integer.parseInt(locationString.split(";")[3]);
         }
+
+        return 0;
+    }
+
+    public static Location locationFromClaimCorner(ClaimCorner claimCorner) {
+        return new Location(claimCorner.world, claimCorner.x, claimCorner.y, claimCorner.z);
+    }
+
+    public static ClaimCorner locationToClaimCorner(Location location) {
+        return new ClaimCorner(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
+
+    public static ClaimCorner locationStringToClaimCorner(String locationString) {
+        String[] elements = locationString.split(";");
+
+        String worldName = elements[0];
+        String xString = elements[1];
+        String yString = elements[2];
+        String zString = elements[3];
+
+        return new ClaimCorner(Utils.getWorld(worldName), Integer.parseInt(xString), Integer.parseInt(yString), Integer.parseInt(zString));
+    }
+
+    public static String locationStringFromClaimCorner(ClaimCorner claimCorner) {
+        return claimCorner.world.toString() + ";" + claimCorner.x + ";" + claimCorner.y + ";" + claimCorner.z;
+    }
+
+    //turns a location string back into a location
+    private static Location locationFromString(String string) {
+        //split the input string on the space
+        String[] elements = string.split(";");
 
         String worldName = elements[0];
         String xString = elements[1];
@@ -502,17 +541,8 @@ public abstract class DataStore {
         String zString = elements[3];
 
         //identify world the claim is in
-        World world = null;
-        for (World w : validWorlds) {
-            if (w.getName().equalsIgnoreCase(worldName)) {
-                world = w;
-                break;
-            }
-        }
-
-        if (world == null) {
-            throw new Exception("World not found: \"" + worldName + "\"");
-        }
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return null;
 
         //convert those numerical strings to integer values
         int x = Integer.parseInt(xString);
@@ -671,7 +701,7 @@ public abstract class DataStore {
         if (!GriefPrevention.plugin.claimsEnabledForWorld(location.getWorld())) return null;
 
         //check cachedClaim guess first.  if it's in the datastore and the location is inside it, we're done
-        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, !ignoreSubclaims)) {
+        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, !ignoreSubclaims)) {
             return cachedClaim;
         }
 
@@ -681,7 +711,7 @@ public abstract class DataStore {
         if (claimsInChunk == null) return null;
 
         for (Claim claim : claimsInChunk) {
-            if (claim.inDataStore && claim.contains(location, ignoreHeight, false)) {
+            if (claim.inDataStore && claim.contains(location, false)) {
                 // If ignoring subclaims, claim is a match.
                 if (ignoreSubclaims) return claim;
 
@@ -689,7 +719,7 @@ public abstract class DataStore {
                 //return the SUBDIVISION, not the top level claim
                 for (int j = 0; j < claim.children.size(); j++) {
                     Claim subdivision = claim.children.get(j);
-                    if (subdivision.inDataStore && subdivision.contains(location, ignoreHeight, false))
+                    if (subdivision.inDataStore && subdivision.contains(location, false))
                         return subdivision;
                 }
 
@@ -748,12 +778,12 @@ public abstract class DataStore {
         return getChunkHashes(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner());
     }
 
-    public static ArrayList<Long> getChunkHashes(Location min, Location max) {
+    public static ArrayList<Long> getChunkHashes(ClaimCorner lesserCorner, ClaimCorner greaterCorner) {
         ArrayList<Long> hashes = new ArrayList<>();
-        int smallX = min.getBlockX() >> 4;
-        int smallZ = min.getBlockZ() >> 4;
-        int largeX = max.getBlockX() >> 4;
-        int largeZ = max.getBlockZ() >> 4;
+        int smallX = lesserCorner.x >> 4;
+        int smallZ = lesserCorner.z >> 4;
+        int largeX = greaterCorner.x >> 4;
+        int largeZ = greaterCorner.z >> 4;
 
         for (int x = smallX; x <= largeX; x++) {
             for (int z = smallZ; z <= largeZ; z++) {
@@ -820,9 +850,9 @@ public abstract class DataStore {
         }
 
         if (parent != null) {
-            Location lesser = parent.getLesserBoundaryCorner();
-            Location greater = parent.getGreaterBoundaryCorner();
-            if (smallx < lesser.getX() || smallz < lesser.getZ() || bigx > greater.getX() || bigz > greater.getZ()) {
+            ClaimCorner lesser = parent.getLesserBoundaryCorner();
+            ClaimCorner greater = parent.getGreaterBoundaryCorner();
+            if (smallx < lesser.x || smallz < lesser.z || bigx > greater.x || bigz > greater.z) {
                 result.succeeded = false;
                 result.claim = parent;
                 return result;
@@ -838,8 +868,8 @@ public abstract class DataStore {
         //create a new claim instance (but don't save it, yet)
         Claim newClaim = new Claim(
                 null,
-                new Location(world, smallx, smally, smallz),
-                new Location(world, bigx, bigy, bigz),
+                new ClaimCorner(world, smallx, smally, smallz),
+                new ClaimCorner(world, bigx, bigy, bigz),
                 ownerID,
                 new HashMap<>(),
                 new HashMap<>(),
@@ -868,7 +898,7 @@ public abstract class DataStore {
 
         //if worldguard is installed, also prevent claims from overlapping any worldguard regions
         if (GriefPrevention.plugin.config_claims_respectWorldGuard && this.worldGuard != null && creatingPlayer != null) {
-            if (!this.worldGuard.canBuild(newClaim.lesserBoundaryCorner, newClaim.greaterBoundaryCorner, creatingPlayer)) {
+            if (!this.worldGuard.canBuild(locationFromClaimCorner(newClaim.lesserBoundaryCorner), locationFromClaimCorner(newClaim.greaterBoundaryCorner), creatingPlayer)) {
                 result.succeeded = false;
                 result.claim = null;
                 return result;
@@ -959,9 +989,6 @@ public abstract class DataStore {
         ClaimExtendEvent event = new ClaimExtendEvent(claim, newDepth);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return;
-
-        //adjust to new depth
-        setNewDepth(claim, event.getNewDepth());
     }
 
     /**
@@ -976,8 +1003,8 @@ public abstract class DataStore {
 
         // Get the old depth including the depth of the lowest subdivision.
         int oldDepth = Math.min(
-                claim.getLesserBoundaryCorner().getBlockY(),
-                claim.children.stream().mapToInt(child -> child.getLesserBoundaryCorner().getBlockY())
+                claim.getLesserBoundaryCorner().y,
+                claim.children.stream().mapToInt(child -> child.getLesserBoundaryCorner().y)
                         .min().orElse(Integer.MAX_VALUE));
 
         // Use the lowest of the old and new depths.
@@ -985,28 +1012,10 @@ public abstract class DataStore {
         // Cap depth to maximum depth allowed by the configuration.
         newDepth = Math.max(newDepth, GriefPrevention.plugin.config_claims_maxDepth);
         // Cap the depth to the world's minimum height.
-        World world = Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld());
+        World world = Objects.requireNonNull(claim.getLesserBoundaryCorner().world);
         newDepth = Math.max(newDepth, world.getMinHeight());
 
         return newDepth;
-    }
-
-    /**
-     * Helper method for sanitizing and setting claim depth. Saves affected claims.
-     *
-     * @param claim the claim
-     * @param newDepth the new depth
-     */
-    private void setNewDepth(Claim claim, int newDepth) {
-        if (claim.parent != null) claim = claim.parent;
-
-        final int depth = sanitizeClaimDepth(claim, newDepth);
-
-        Stream.concat(Stream.of(claim), claim.children.stream()).forEach(localClaim -> {
-            localClaim.lesserBoundaryCorner.setY(depth);
-            localClaim.greaterBoundaryCorner.setY(Math.max(localClaim.greaterBoundaryCorner.getBlockY(), depth));
-            this.saveClaim(localClaim);
-        });
     }
 
     //deletes all claims owned by a player
@@ -1035,7 +1044,7 @@ public abstract class DataStore {
     //see CreateClaim() for details on return value
     synchronized public CreateClaimResult resizeClaim(Claim claim, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2, Player resizingPlayer) {
         //try to create this new claim, ignoring the original when checking for overlap
-        CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
+        CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().world, newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
 
         //if succeeded
         if (result.succeeded) {
@@ -1045,7 +1054,6 @@ public abstract class DataStore {
             claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
             // Sanitize claim depth, expanding parent down to the lowest subdivision and subdivisions down to parent.
             // Also saves affected claims.
-            setNewDepth(claim, claim.getLesserBoundaryCorner().getBlockY());
             result.claim = claim;
             addToChunkClaimMap(claim); // add the new boundary to the chunk cache
         }
@@ -1094,9 +1102,9 @@ public abstract class DataStore {
 
         Claim oldClaim = playerData.claimResizing;
         Claim newClaim = new Claim(oldClaim);
-        World world = newClaim.getLesserBoundaryCorner().getWorld();
-        newClaim.lesserBoundaryCorner = new Location(world, newx1, newy1, newz1);
-        newClaim.greaterBoundaryCorner = new Location(world, newx2, newy2, newz2);
+        World world = newClaim.getLesserBoundaryCorner().world;
+        newClaim.lesserBoundaryCorner = new ClaimCorner(world, newx1, newy1, newz1);
+        newClaim.greaterBoundaryCorner = new ClaimCorner(world, newx2, newy2, newz2);
 
         //call event here to check if it has been cancelled
         ClaimResizeEvent event = new ClaimModifiedEvent(oldClaim, newClaim, player); // Swap to ClaimResizeEvent when ClaimModifiedEvent is removed
@@ -1110,7 +1118,7 @@ public abstract class DataStore {
         boolean smaller = false;
         if (oldClaim.parent == null) {
             //if the new claim is smaller
-            if (!newClaim.contains(oldClaim.getLesserBoundaryCorner(), true, false) || !newClaim.contains(oldClaim.getGreaterBoundaryCorner(), true, false)) {
+            if (!newClaim.contains(oldClaim.getLesserBoundaryCorner(), false) || !newClaim.contains(oldClaim.getGreaterBoundaryCorner(), false)) {
                 smaller = true;
 
                 //remove surface fluids about to be unclaimed
@@ -1121,12 +1129,12 @@ public abstract class DataStore {
         //ask the datastore to try and resize the claim, this checks for conflicts with other claims
         CreateClaimResult result = GriefPrevention.plugin.dataStore.resizeClaim(
                 playerData.claimResizing,
-                newClaim.getLesserBoundaryCorner().getBlockX(),
-                newClaim.getGreaterBoundaryCorner().getBlockX(),
-                newClaim.getLesserBoundaryCorner().getBlockY(),
-                newClaim.getGreaterBoundaryCorner().getBlockY(),
-                newClaim.getLesserBoundaryCorner().getBlockZ(),
-                newClaim.getGreaterBoundaryCorner().getBlockZ(),
+                newClaim.getLesserBoundaryCorner().x,
+                newClaim.getGreaterBoundaryCorner().x,
+                newClaim.getLesserBoundaryCorner().y,
+                newClaim.getGreaterBoundaryCorner().y,
+                newClaim.getLesserBoundaryCorner().z,
+                newClaim.getGreaterBoundaryCorner().z,
                 player);
 
         if (result.succeeded && result.claim != null) {
@@ -1574,7 +1582,7 @@ public abstract class DataStore {
                 ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
                 if (claimsInChunk != null) {
                     for (Claim claim : claimsInChunk) {
-                        if (claim.inDataStore && claim.getLesserBoundaryCorner().getWorld().equals(location.getWorld())) {
+                        if (claim.inDataStore && claim.getLesserBoundaryCorner().world.equals(location.getWorld())) {
                             claims.add(claim);
                         }
                     }
@@ -1589,7 +1597,7 @@ public abstract class DataStore {
     public void deleteClaimsInWorld(World world, boolean deleteAdminClaims) {
         for (int i = 0; i < claims.size(); i++) {
             Claim claim = claims.get(i);
-            if (claim.getLesserBoundaryCorner().getWorld().equals(world)) {
+            if (claim.getLesserBoundaryCorner().world.equals(world)) {
                 if (!deleteAdminClaims && claim.isAdminClaim()) continue;
                 this.deleteClaim(claim, false, false);
                 i--;
