@@ -75,6 +75,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 //singleton class which manages all GriefPrevention data (except for config options)
 public abstract class DataStore {
@@ -527,7 +528,7 @@ public abstract class DataStore {
     }
 
     public static String locationStringFromClaimCorner(ClaimCorner claimCorner) {
-        return claimCorner.world.toString() + ";" + claimCorner.x + ";" + claimCorner.y + ";" + claimCorner.z;
+        return claimCorner.world.getName() + ";" + claimCorner.x + ";" + claimCorner.y + ";" + claimCorner.z;
     }
 
     //turns a location string back into a location
@@ -904,12 +905,14 @@ public abstract class DataStore {
                 return result;
             }
         }
+
         if (dryRun) {
             // since this is a dry run, just return the unsaved claim as is.
             result.succeeded = true;
             result.claim = newClaim;
             return result;
         }
+
         assignClaimID(newClaim); // assign a claim ID before calling event, in case a plugin wants to know the ID.
         ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
         Bukkit.getPluginManager().callEvent(event);
@@ -917,8 +920,8 @@ public abstract class DataStore {
             result.succeeded = false;
             result.claim = null;
             return result;
-
         }
+
         //otherwise add this new claim to the data store to make it effective
         this.addClaim(newClaim, true);
 
@@ -1054,6 +1057,8 @@ public abstract class DataStore {
             claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
             // Sanitize claim depth, expanding parent down to the lowest subdivision and subdivisions down to parent.
             // Also saves affected claims.
+            setNewDepth(claim, claim.getLesserBoundaryCorner().y); // This is NEEDED to save the claims
+
             result.claim = claim;
             addToChunkClaimMap(claim); // add the new boundary to the chunk cache
         }
@@ -1064,6 +1069,24 @@ public abstract class DataStore {
     public void setClaimName(Claim claim, String claimName) {
         claim.name = claimName;
         saveClaim(claim);
+    }
+
+    /**
+     * Helper method for sanitizing and setting claim depth. Saves affected claims.
+     *
+     * @param claim the claim
+     * @param newDepth the new depth
+     */
+    private void setNewDepth(Claim claim, int newDepth) {
+        if (claim.parent != null) claim = claim.parent;
+
+        final int depth = sanitizeClaimDepth(claim, newDepth);
+
+        Stream.concat(Stream.of(claim), claim.children.stream()).forEach(localClaim -> {
+            localClaim.lesserBoundaryCorner.y = depth;
+            localClaim.greaterBoundaryCorner.y = Math.max(localClaim.greaterBoundaryCorner.y, depth);
+            this.saveClaim(localClaim);
+        });
     }
 
     public void resizeClaimWithChecks(Player player, PlayerData playerData, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2) {
