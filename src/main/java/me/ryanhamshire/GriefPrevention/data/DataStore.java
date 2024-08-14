@@ -28,6 +28,7 @@ import me.ryanhamshire.GriefPrevention.events.ClaimExtendEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimModifiedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimResizeEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimTransferEvent;
+import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
@@ -930,6 +931,11 @@ public abstract class DataStore {
         //otherwise add this new claim to the data store to make it effective
         this.addClaim(newClaim, true);
 
+        // Log it
+        ClaimModificationLog.logToFile(creatingPlayer.getName() + " created claim " + newClaim.id + ". Lesser " +
+                "corner: " + GriefPrevention.getfriendlyLocationString(newClaim.lesserBoundaryCorner.location()) + ". Greater " +
+                "corner: " + GriefPrevention.getfriendlyLocationString(newClaim.greaterBoundaryCorner.location()), true);
+
         //then return success along with reference to new claim
         result.succeeded = true;
         result.claim = newClaim;
@@ -1066,6 +1072,10 @@ public abstract class DataStore {
 
             result.claim = claim;
             addToChunkClaimMap(claim); // add the new boundary to the chunk cache
+
+            ClaimModificationLog.logToFile(resizingPlayer.getName() + " resized claim " + claim.id + ". New " +
+                    "lesser corner: " + GriefPrevention.getfriendlyLocationString(result.claim.lesserBoundaryCorner.location()) + ". New " +
+                    "greater corner: " + GriefPrevention.getfriendlyLocationString(result.claim.greaterBoundaryCorner.location()), true);
         }
 
         return result;

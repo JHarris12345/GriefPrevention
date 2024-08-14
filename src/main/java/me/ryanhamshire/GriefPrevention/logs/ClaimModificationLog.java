@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 
-public class SettingsChangeLogs {
+public class ClaimModificationLog {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
 
     public static void logToFile(String logMessage, boolean consoleLog) {
@@ -20,7 +20,7 @@ public class SettingsChangeLogs {
         String logTime = time.format(now);
 
         try {
-            File folderDir = new File(DataStore.dataLayerFolderPath, "Logs/SettingsChangeLogs");
+            File folderDir = new File(DataStore.dataLayerFolderPath, "Logs/ClaimModificationLogs");
             File file = new File(folderDir.getAbsolutePath() + "/" + LocalDate.now().getYear() + "-" + LocalDate.now().getMonth().name() + ".yml");
 
             if (!file.exists()) {

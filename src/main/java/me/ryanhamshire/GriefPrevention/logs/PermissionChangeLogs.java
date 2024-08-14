@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Date;
 
 public class PermissionChangeLogs {
@@ -19,10 +21,11 @@ public class PermissionChangeLogs {
         String logTime = time.format(now);
 
         try {
-            File folderDir = new File(DataStore.dataLayerFolderPath, "Logs");
-            File file = new File(folderDir.getAbsolutePath() + "/PermissionChangeLog.yml");
+            File folderDir = new File(DataStore.dataLayerFolderPath, "Logs/PermissionChangeLogs");
+            File file = new File(folderDir.getAbsolutePath() + "/" + LocalDate.now().getYear() + "-" + LocalDate.now().getMonth().name() + ".yml");
 
             if (!file.exists()) {
+                folderDir.mkdirs();
                 file.createNewFile();
             }
 

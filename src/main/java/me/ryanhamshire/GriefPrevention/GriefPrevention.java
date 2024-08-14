@@ -34,6 +34,7 @@ import me.ryanhamshire.GriefPrevention.listeners.EntityEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.InventoryHandler;
 import me.ryanhamshire.GriefPrevention.listeners.PlayerEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.WorldEventHandler;
+import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.BlockSnapshot;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
@@ -98,6 +99,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -324,6 +326,10 @@ public class GriefPrevention extends JavaPlugin {
         this.customLogger = new CustomLogger();
 
         AddLogEntry("Finished loading configuration.");
+
+        // Setup the timezone
+        TimeZone timeZone = TimeZone.getTimeZone("Europe/London");
+        TimeZone.setDefault(timeZone);
 
         // Register placeholders
         new Placeholders(this).register();
@@ -1068,6 +1074,9 @@ public class GriefPrevention extends JavaPlugin {
                 }.runTaskLater(plugin, 20 * 10);
                 return true;
             }
+
+            // Log it
+            ClaimModificationLog.logToFile(player.getName() + " deleted claim " + claim.id, true);
 
             //delete it
             claim.removeSurfaceFluids(null);

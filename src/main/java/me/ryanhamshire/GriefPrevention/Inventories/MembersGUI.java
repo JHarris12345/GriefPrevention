@@ -2,6 +2,7 @@ package me.ryanhamshire.GriefPrevention.Inventories;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.MembersGUIFile;
+import me.ryanhamshire.GriefPrevention.logs.MemberModificationLogs;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
@@ -22,7 +23,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -153,6 +153,9 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
                 }
             }
 
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " promoted " + target.getName() + " to " + nextRoleUp + " on claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
+
             refreshContents(claim);
         }
 
@@ -198,6 +201,9 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
                     sub.setClaimRole(target.getUniqueId(), nextRoleDown);
                 }
             }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " demoted " + target.getName() + " to " + nextRoleDown + " on claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
 
             refreshContents(claim);
         }

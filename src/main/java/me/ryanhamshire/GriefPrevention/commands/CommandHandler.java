@@ -7,6 +7,8 @@ import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
+import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
+import me.ryanhamshire.GriefPrevention.logs.MemberModificationLogs;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
@@ -349,7 +351,7 @@ public class CommandHandler {
             if (args.length > 0) return false;
 
             if (!abandonAllClaimConfirmations.contains(player.getUniqueId())) {
-                player.sendMessage(Utils.colour("&cAre you sure you want to delete &lALL&c of your claims? You will lose any unlocked settings and permissions. Type &f" + cmd.getLabel() + "&c again to confirm!"));
+                player.sendMessage(Utils.colour("&cAre you sure you want to delete &lALL&c of your claims? You will lose any unlocked settings and permissions. Type &f/" + cmd.getLabel() + "&c again to confirm!"));
 
                 abandonAllClaimConfirmations.add(player.getUniqueId());
                 Player finalPlayer1 = player;
@@ -380,6 +382,8 @@ public class CommandHandler {
                 }
             }
 
+            // Log it
+            ClaimModificationLog.logToFile(player.getName() + " deleted all their claims", true);
 
             // delete them
             plugin.dataStore.deleteClaimsForPlayer(player.getUniqueId(), false);
@@ -470,6 +474,9 @@ public class CommandHandler {
             if (otherPlayer.isOnline()) {
                 otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
             }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
 
             // save changes
             plugin.dataStore.saveClaim(claim);
@@ -677,6 +684,9 @@ public class CommandHandler {
             if (otherPlayer.isOnline()) {
                 otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " removed you from their claim"));
             }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " untrusted " + otherPlayer.getName() + " on claim " + claim.id, true);
 
             // save changes
             plugin.dataStore.saveClaim(claim);
