@@ -123,6 +123,7 @@ public class Utils {
 
     public static void showClaimOutline(Claim claim, Player player, int playerX, int playerY, int playerZ) {
         Color colour = (claim.parent == null) ? (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) ? Color.RED : (claim.ownerID.equals(player.getUniqueId()) ? Color.AQUA : Color.LIME) : Color.FUCHSIA;
+        playerY += 1; // We want the particles to start at the player's head and not feet
 
         double minX = claim.getLesserBoundaryCorner().x;
         double maxX = claim.getGreaterBoundaryCorner().x + 1; // +1 because we need it to spawn on the block 1 further away as it appears on the inside face
@@ -139,7 +140,8 @@ public class Utils {
                 int maxDistance = 15;
                 if (Math.abs(x - playerX) > maxDistance || Math.abs(z - playerZ) > maxDistance) continue;
 
-                for (int y=playerY-5; y<=playerY+5; y++) {
+                int maxY = 3;
+                for (int y=playerY - maxY; y<=playerY + maxY; y++) {
                     Location location = new Location(player.getWorld(), x, y, z);
                     player.spawnParticle(ParticleUtils.of("DUST"), location, 5, new Particle.DustOptions(colour, 1));
                 }
