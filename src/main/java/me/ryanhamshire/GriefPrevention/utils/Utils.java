@@ -68,6 +68,10 @@ public class Utils {
         skullMeta.setPlayerProfile(profile);
     }
 
+    public static boolean isPlayerBedrock(UUID uuid) {
+        return  (uuid.toString().startsWith("00000000-0000-0000"));
+    }
+
     public static void sendConsoleCommand(String commandNoSlash) {
         ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
         Bukkit.dispatchCommand(console, commandNoSlash);

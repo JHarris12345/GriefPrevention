@@ -34,15 +34,17 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
     private Inventory inv;
     private ClaimRole role;
     private int guiSize;
+    private Player player;
     private Claim claim;
     private boolean waterfall;
 
 
-    public TogglePermissionsGUI(Claim claim, ClaimRole role, boolean waterfall) {
+    public TogglePermissionsGUI(Claim claim, ClaimRole role, boolean waterfall, Player player) {
         this.guiSize = super.getNeededSize(ClaimPermission.values().length);
         this.inv = Bukkit.createInventory(this, guiSize, Utils.colour(RoleSelectGUIFile.get().getString("Roles." + role.name() + ".GUIName")));
         this.role = role;
         this.claim = claim;
+        this.player = player;
         this.waterfall = waterfall;
 
         this.addContents(claim);
@@ -77,9 +79,18 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
             if (unlockCost > 0 && !claim.isPermissionUnlocked(claimPermission)) {
                 lore.add("");
                 lore.add(Utils.colour("&4&lToggling LOCKED"));
-                lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability to toggle"));
-                lore.add(Utils.colour("&cthis permission for this claim and all its"));
-                lore.add(Utils.colour("&croles for &l" + unlockCost + " iCoins"));
+
+                if (!Utils.isPlayerBedrock(player.getUniqueId())) {
+                    lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability to toggle"));
+                    lore.add(Utils.colour("&cthis permission for this claim and all its"));
+                    lore.add(Utils.colour("&croles for &l" + unlockCost + " iCoins"));
+
+                } else {
+                    lore.add(Utils.colour("&cUnlock the ability to toggle this permission for"));
+                    lore.add(Utils.colour("&cthis claim and all its roles for &l" + unlockCost + " iCoins"));
+                    lore.add(Utils.colour("&cusing the command:"));
+                    lore.add(Utils.colour("&c&o/unlockclaimpermission " + claimPermission.name()));
+                }
             }
 
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "permission"), PersistentDataType.STRING, claimPermission.name());
@@ -97,7 +108,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
         for (UUID uuid : claim.getClaimMembers(true).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof TogglePermissionsGUI) {
-                player.openInventory(new TogglePermissionsGUI(claim, role, waterfall).getInventory());
+                player.openInventory(new TogglePermissionsGUI(claim, role, waterfall, player).getInventory());
             }
         }
     }

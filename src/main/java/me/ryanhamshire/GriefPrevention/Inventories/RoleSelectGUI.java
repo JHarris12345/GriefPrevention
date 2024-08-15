@@ -79,6 +79,6 @@ public class RoleSelectGUI extends GUI implements InventoryHolder, ClaimMenu {
         if (roleName == null) return;
 
         ClaimRole role = ClaimRole.valueOf(roleName);
-        player.openInventory(new TogglePermissionsGUI(claim, role, waterfall).getInventory());
+        player.openInventory(new TogglePermissionsGUI(claim, role, waterfall, player).getInventory());
     }
 }

@@ -114,7 +114,7 @@ public class MenuGUI extends GUI implements InventoryHolder, ClaimMenu {
                 break;
 
             case "Settings":
-                e.getWhoClicked().openInventory(new SettingsGUI(claim, waterfall).getInventory());
+                e.getWhoClicked().openInventory(new SettingsGUI(claim, waterfall, (Player) e.getWhoClicked()).getInventory());
                 break;
 
             case "SetName":

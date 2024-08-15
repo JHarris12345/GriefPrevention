@@ -35,12 +35,14 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
     private static GriefPrevention plugin = GriefPrevention.getInstance();
     private Inventory inv;
     private Claim claim;
+    private Player player;
     private boolean waterfall;
 
 
-    public SettingsGUI(Claim claim, boolean waterfall) {
+    public SettingsGUI(Claim claim, boolean waterfall, Player player) {
         this.inv = Bukkit.createInventory(this, super.getNeededSize(ClaimSetting.values().length), Utils.colour(SettingsGUIFile.get().getString("Title")));
         this.claim = claim;
+        this.player = player;
         this.waterfall = waterfall;
 
         this.addContents(claim);
@@ -95,8 +97,16 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
             if (unlockCost > 0 && !claim.isSettingUnlocked(claimSetting)) {
                 lore.add("");
                 lore.add(Utils.colour("&4&lToggling LOCKED"));
-                lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability"));
-                lore.add(Utils.colour("&cto toggle this for &l" + unlockCost + " iCoins"));
+
+                if (!Utils.isPlayerBedrock(player.getUniqueId())) {
+                    lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability"));
+                    lore.add(Utils.colour("&cto toggle this for &l" + unlockCost + " iCoins"));
+
+                } else {
+                    lore.add(Utils.colour("&cUnlock the ability to toggle this for"));
+                    lore.add(Utils.colour("&c&l" + unlockCost + " iCoins &cusing the command:"));
+                    lore.add(Utils.colour("&c&o/unlockclaimsetting " + claimSetting.name()));
+                }
             }
 
             ItemStack item = Utils.createItemStack(material, base64Value, owningPlayerName, displayName, lore, amount);
@@ -117,7 +127,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         for (UUID uuid : claim.getClaimMembers(true).keySet()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.getOpenInventory().getTopInventory().getHolder() instanceof SettingsGUI) {
-                player.openInventory(new SettingsGUI(claim, waterfall).getInventory());
+                player.openInventory(new SettingsGUI(claim, waterfall, player).getInventory());
             }
         }
     }
