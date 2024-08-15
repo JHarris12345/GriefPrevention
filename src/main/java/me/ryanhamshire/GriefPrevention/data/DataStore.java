@@ -932,7 +932,7 @@ public abstract class DataStore {
         this.addClaim(newClaim, true);
 
         // Log it
-        ClaimModificationLog.logToFile(creatingPlayer.getName() + " created claim " + newClaim.id + ". Lesser " +
+        ClaimModificationLog.logToFile(creatingPlayer.getName() + " created" + ((newClaim.parent == null) ? "" : " sub") + " claim " + newClaim.id + ". Lesser " +
                 "corner: " + GriefPrevention.getfriendlyLocationString(newClaim.lesserBoundaryCorner.location()) + ". Greater " +
                 "corner: " + GriefPrevention.getfriendlyLocationString(newClaim.greaterBoundaryCorner.location()), true);
 
