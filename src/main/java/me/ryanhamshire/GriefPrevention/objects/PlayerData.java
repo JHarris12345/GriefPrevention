@@ -243,10 +243,9 @@ public class PlayerData {
             //find all the claims belonging to this player and note them for future reference
             DataStore dataStore = GriefPrevention.plugin.dataStore;
             int totalClaimsArea = 0;
-            for (int i = 0; i < dataStore.claims.size(); i++) {
-                Claim claim = dataStore.claims.get(i);
+            for (Claim claim : dataStore.claimMap.values()) {
                 if (!claim.inDataStore) {
-                    dataStore.claims.remove(i--);
+                    dataStore.claimMap.remove(claim);
                     continue;
                 }
                 if (playerID.equals(claim.ownerID)) {

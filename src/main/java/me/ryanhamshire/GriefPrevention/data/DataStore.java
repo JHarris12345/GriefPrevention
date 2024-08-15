@@ -88,9 +88,9 @@ public abstract class DataStore {
     protected ConcurrentHashMap<String, Integer> permissionToBonusBlocksMap = new ConcurrentHashMap<>();
 
     //in-memory cache for claim data
-    public ArrayList<Claim> claims = new ArrayList<>();
+    //public ArrayList<Claim> claims = new ArrayList<>(); // Don't do this anymore. Instead we use the claimMap below
     public ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<>();
-    public HashMap<Long, Claim> claimMap = new HashMap<>(); // JHarris added - Map of every claim ID and their claim for faster retrieving
+    public ConcurrentHashMap<Long, Claim> claimMap = new ConcurrentHashMap<>(); // JHarris added - Map of every claim ID and their claim for faster retrieving
 
     //in-memory cache for messages
     private String[] messages;
@@ -148,10 +148,8 @@ public abstract class DataStore {
 
     //initialization!
     void initialize() throws Exception {
-        GriefPrevention.AddLogEntry(this.claims.size() + " total claims loaded.");
-
         //RoboMWM: ensure the nextClaimID is greater than any other claim ID. If not, data corruption occurred (out of storage space, usually).
-        for (Claim claim : this.claims) {
+        for (Claim claim : this.claimMap.values()) {
             if (claim.id >= nextClaimID) {
                 GriefPrevention.plugin.getLogger().severe("nextClaimID was lesser or equal to an already-existing claim ID!\n" +
                         "This usually happens if you ran out of storage space.");
@@ -168,13 +166,12 @@ public abstract class DataStore {
 
         //load up all the messages from messages.yml
         this.loadMessages();
-        GriefPrevention.AddLogEntry("Customizable messages loaded.");
 
         //if converting up from an earlier schema version, write all claims back to storage using the latest format
-        if (this.getSchemaVersion() < latestSchemaVersion) {
+        /*if (this.getSchemaVersion() < latestSchemaVersion) {
             GriefPrevention.AddLogEntry("Please wait.  Updating data format.");
 
-            for (Claim claim : this.claims) {
+            for (Claim claim : this.claimMap.values()) {
                 this.saveClaim(claim);
 
                 for (Claim subClaim : claim.children) {
@@ -189,10 +186,10 @@ public abstract class DataStore {
             }
 
             GriefPrevention.AddLogEntry("Update finished.");
-        }
+        }*/
 
         //load list of soft mutes
-        this.loadSoftMutes();
+        //this.loadSoftMutes();
 
         //make a note of the data store schema version
         this.setSchemaVersion(latestSchemaVersion);
@@ -410,9 +407,12 @@ public abstract class DataStore {
     }
 
     //adds a claim to the datastore, making it an effective claim
-    synchronized void addClaim(Claim newClaim, boolean writeToStorage) {
-        //subdivisions are added under their parent, not directly to the hash map for direct search
+    public void addClaim(Claim newClaim, boolean writeToStorage) {
+        long start = System.currentTimeMillis();
+
+        // Ensure sub division claims are correct
         if (newClaim.parent != null) {
+            // Make sure the parent has it's child
             if (!newClaim.parent.children.contains(newClaim)) {
                 newClaim.parent.children.add(newClaim);
             }
@@ -420,11 +420,14 @@ public abstract class DataStore {
             if (writeToStorage) {
                 this.saveClaim(newClaim);
             }
+            if (newClaim.ownerID == null) {
+                newClaim.ownerID = newClaim.parent.ownerID;
+            }
             return;
         }
 
         //add it and mark it as added
-        this.claims.add(newClaim);
+        this.claimMap.put(newClaim.id, newClaim);
         addToChunkClaimMap(newClaim);
 
         newClaim.inDataStore = true;
@@ -439,6 +442,8 @@ public abstract class DataStore {
         if (writeToStorage) {
             this.saveClaim(newClaim);
         }
+
+        FlatFileDataStore.loadingTimes.put("storage add", FlatFileDataStore.loadingTimes.getOrDefault("storage add", 0L) + (System.currentTimeMillis() - start));
     }
 
     private void addToChunkClaimMap(Claim claim) {
@@ -625,13 +630,7 @@ public abstract class DataStore {
         claim.inDataStore = false;
 
         //remove from memory
-        for (int i = 0; i < this.claims.size(); i++) {
-            if (claims.get(i).id.equals(claim.id)) {
-                this.claims.remove(i);
-                break;
-            }
-        }
-
+        claimMap.remove(claim.id);
         removeFromChunkClaimMap(claim);
 
         //remove from secondary storage
@@ -726,8 +725,9 @@ public abstract class DataStore {
                 //return the SUBDIVISION, not the top level claim
                 for (int j = 0; j < claim.children.size(); j++) {
                     Claim subdivision = claim.children.get(j);
-                    if (subdivision.inDataStore && subdivision.contains(location, false))
+                    if (subdivision.inDataStore && subdivision.contains(location, false)) {
                         return subdivision;
+                    }
                 }
 
                 return claim;
@@ -758,7 +758,7 @@ public abstract class DataStore {
     //if you need to make changes, use provided methods like .deleteClaim() and .createClaim().
     //this will ensure primary memory (RAM) and secondary memory (disk, database) stay in sync
     public Collection<Claim> getClaims() {
-        return Collections.unmodifiableCollection(this.claims);
+        return Collections.unmodifiableCollection(this.claimMap.values());
     }
 
     public Collection<Claim> getClaims(int chunkx, int chunkz) {
@@ -890,7 +890,7 @@ public abstract class DataStore {
             claimsToCheck = newClaim.parent.children;
         }
         else {
-            claimsToCheck = this.claims;
+            claimsToCheck = new ArrayList<>(this.claimMap.values());
         }
 
         for (Claim otherClaim : claimsToCheck) {
@@ -1036,7 +1036,7 @@ public abstract class DataStore {
     synchronized public void deleteClaimsForPlayer(UUID playerID, boolean releasePets) {
         //make a list of the player's claims
         ArrayList<Claim> claimsToDelete = new ArrayList<>();
-        for (Claim claim : this.claims) {
+        for (Claim claim : this.claimMap.values()) {
             if ((playerID == claim.ownerID || (playerID != null && playerID.equals(claim.ownerID))))
                 claimsToDelete.add(claim);
         }
@@ -1633,12 +1633,10 @@ public abstract class DataStore {
 
     //deletes all the land claims in a specified world
     public void deleteClaimsInWorld(World world, boolean deleteAdminClaims) {
-        for (int i = 0; i < claims.size(); i++) {
-            Claim claim = claims.get(i);
+        for (Claim claim : claimMap.values()) {
             if (claim.getLesserBoundaryCorner().world.equals(world)) {
                 if (!deleteAdminClaims && claim.isAdminClaim()) continue;
                 this.deleteClaim(claim, false, false);
-                i--;
             }
         }
     }

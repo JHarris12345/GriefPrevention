@@ -45,6 +45,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -160,36 +161,43 @@ public class FlatFileDataStore extends DataStore {
 
     void loadClaimData(File[] files) throws Exception {
         long claimDataStart = System.currentTimeMillis();
+        long sectionStart = System.currentTimeMillis();
 
         ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<>();
-        for (int i = 0; i < files.length; i++) {
-            if (files[i].isFile())  //avoids folders
-            {
+        Arrays.stream(files).parallel().forEach(file -> {
+            //avoids folders
+            if (file.isFile()) {
+                String fileName = file.getName();
+
+                // DEPRECATED - The try block below this that parses the claim ID should be enough
                 //skip any file starting with an underscore, to avoid special files not representing land claims
-                if (files[i].getName().startsWith("_")) continue;
+                /*if (fileName.startsWith("_")) return;
 
                 //delete any which don't end in .yml
-                if (!files[i].getName().endsWith(".yml")) {
-                    files[i].delete();
-                    continue;
-                }
+                if (!fileName.endsWith(".yml")) {
+                    file.delete();
+                    return;
+                }*/
 
                 //the filename is the claim ID.  try to parse it
                 long claimID;
-
                 try {
-                    claimID = Long.parseLong(files[i].getName().split("\\.")[0]);
+                    claimID = Long.parseLong(fileName.split("\\.")[0]);
                 }
                 catch (Exception e) {
-                    continue;
+                    return;
                 }
 
                 try {
-                    ArrayList<Long> out_parentID = new ArrayList<>();  //hacky output parameter
-                    Claim claim = this.loadClaim(files[i], out_parentID, claimID);
+                    ArrayList<Long> out_parentID = new ArrayList<>();  //hacky output parameter to see if it has a parent
+                    Claim claim = this.loadClaim(file, out_parentID, claimID);
+
+                    // Doesn't have a parent - Is a main claim (load now)
                     if (out_parentID.size() == 0 || out_parentID.get(0) == -1) {
                         this.addClaim(claim, false);
                     }
+
+                    // Has a parent - Is a sub claim (load later)
                     else {
                         orphans.put(claim, out_parentID.get(0));
                     }
@@ -203,11 +211,11 @@ public class FlatFileDataStore extends DataStore {
                     else {
                         StringWriter errors = new StringWriter();
                         e.printStackTrace(new PrintWriter(errors));
-                        GriefPrevention.AddLogEntry(files[i].getName() + " " + errors.toString(), CustomLogEntryTypes.Exception);
+                        GriefPrevention.AddLogEntry(file.getName() + " " + errors.toString(), CustomLogEntryTypes.Exception);
                     }
                 }
             }
-        }
+        });
 
         // link children to parents
         for (Claim child : orphans.keySet()) {
@@ -582,7 +590,7 @@ public class FlatFileDataStore extends DataStore {
 
     public synchronized void migrateData(DatabaseDataStore databaseStore) {
         //migrate claims
-        for (Claim claim : this.claims) {
+        for (Claim claim : this.claimMap.values()) {
             databaseStore.addClaim(claim, true);
             for (Claim child : claim.children) {
                 databaseStore.addClaim(child, true);

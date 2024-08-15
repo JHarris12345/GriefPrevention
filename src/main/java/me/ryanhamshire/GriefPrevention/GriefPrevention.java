@@ -318,6 +318,8 @@ public class GriefPrevention extends JavaPlugin {
 
     //initializes well...   everything
     public void onEnable() {
+        long bootStart = System.currentTimeMillis();
+
         plugin = this;
         log = plugin.getLogger();
 
@@ -338,6 +340,7 @@ public class GriefPrevention extends JavaPlugin {
         setupFiles();
 
         //when datastore initializes, it loads player and claim data, and posts some stats to the log
+        long start = System.currentTimeMillis();
         if (this.databaseUrl.length() > 0) {
             this.getLogger().info("Using database storage");
             try {
@@ -360,6 +363,8 @@ public class GriefPrevention extends JavaPlugin {
                 return;
             }
         }
+        plugin.getLogger().info("Startup stage 1 complete in " + (System.currentTimeMillis() - start) + "ms");
+        start = System.currentTimeMillis();
 
         //if not using the database because it's not configured or because there was a problem, use the file system to store data
         //this is the preferred method, as it's simpler than the database scenario
@@ -376,20 +381,32 @@ public class GriefPrevention extends JavaPlugin {
                     oldplayerdata.renameTo(playerdata);
                 }
             }
+
+            plugin.getLogger().info("Startup stage 2 complete in " + (System.currentTimeMillis() - start) + "ms");
+            start = System.currentTimeMillis();
+
             try {
-                long start = System.currentTimeMillis();
+                long claimLoadStart = System.currentTimeMillis();
                 this.dataStore = new FlatFileDataStore(); // This loads the claims
 
-                plugin.getLogger().info("Loaded all claims in " + (System.currentTimeMillis() - start) + "ms. Section loading times...");
+                /*plugin.getLogger().info("Loaded all claims in " + (System.currentTimeMillis() - claimLoadStart) + "ms. Section loading times...");
+
+                long totalSectionLoadingTime = 0;
                 for (String section : FlatFileDataStore.loadingTimes.keySet()) {
                     plugin.getLogger().info(section + " - " + FlatFileDataStore.loadingTimes.get(section) + "ms");
+                    totalSectionLoadingTime += FlatFileDataStore.loadingTimes.get(section);
                 }
+
+                plugin.getLogger().info("All sections loaded in " + totalSectionLoadingTime + "ms");*/
             }
             catch (Exception e) {
                 GriefPrevention.AddLogEntry("Unable to initialize the file system data store.  Details:");
                 GriefPrevention.AddLogEntry(e.getMessage());
                 e.printStackTrace();
             }
+
+            plugin.getLogger().info("Startup stage 3 complete in " + (System.currentTimeMillis() - start) + "ms");
+            start = System.currentTimeMillis();
         }
 
         String dataMode = (this.dataStore instanceof FlatFileDataStore) ? "(File Mode)" : "(Database Mode)";
@@ -419,14 +436,23 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new WorldEventHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
 
+        plugin.getLogger().info("Startup stage 4 complete in " + (System.currentTimeMillis() - start) + "ms");
+        start = System.currentTimeMillis();
+
         //cache offline players
         OfflinePlayer[] offlinePlayers = this.getServer().getOfflinePlayers();
         CacheOfflinePlayerNamesThread namesThread = new CacheOfflinePlayerNamesThread(offlinePlayers, this.playerNameToIDMap);
         namesThread.setPriority(Thread.MIN_PRIORITY);
         namesThread.start();
 
+        plugin.getLogger().info("Startup stage 5 complete in " + (System.currentTimeMillis() - start) + "ms");
+        start = System.currentTimeMillis();
+
         // Register the commands
         this.commandHandler = new CommandHandler(this);
+
+        plugin.getLogger().info("Startup stage 6 complete in " + (System.currentTimeMillis() - start) + "ms");
+        start = System.currentTimeMillis();
 
         //load ignore lists for any already-online players
         @SuppressWarnings("unchecked")
@@ -435,7 +461,10 @@ public class GriefPrevention extends JavaPlugin {
             new IgnoreLoaderThread(player.getUniqueId(), this.dataStore.getPlayerData(player.getUniqueId()).ignoredPlayers).start();
         }
 
-        AddLogEntry("Boot finished.");
+        plugin.getLogger().info("Startup stage 7 complete in " + (System.currentTimeMillis() - start) + "ms");
+        start = System.currentTimeMillis();
+
+        AddLogEntry("Startup FINISHED. Loaded " + dataStore.claimMap.size() + " claims in " + (System.currentTimeMillis() - bootStart) + "ms");
     }
 
     @Override

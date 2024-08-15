@@ -239,14 +239,7 @@ public class Claim {
         if (data != null && data.ignoreClaims) return true;
 
         ClaimRole playerRole = getPlayerRole(uuid);
-
-        if (parent == null) {
-            return permissions.getOrDefault(playerRole, new HashMap<>()).getOrDefault(claimPermission, claimPermission.getDefaultPermission(playerRole));
-        }
-
-        // If it's a subclaim then we take the parent value if not explicitly set
-        HashMap<ClaimPermission, Boolean> subPerms = permissions.getOrDefault(playerRole, new HashMap<>());
-        return (subPerms.containsKey(claimPermission)) ? subPerms.get(claimPermission) : parent.hasClaimPermission(uuid, claimPermission);
+        return permissions.getOrDefault(playerRole, new HashMap<>()).getOrDefault(claimPermission, claimPermission.getDefaultPermission(playerRole));
     }
 
     public boolean doesRoleHavePermission(ClaimRole claimRole, ClaimPermission claimPermission) {

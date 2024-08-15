@@ -1069,7 +1069,7 @@ public class CommandHandler {
         else if (cmd.getName().equalsIgnoreCase("adminclaimslist")) {
             // find admin claims
             Vector<Claim> claims = new Vector<>();
-            for (Claim claim : plugin.dataStore.claims) {
+            for (Claim claim : plugin.dataStore.claimMap.values()) {
                 if (claim.ownerID == null)  // admin claim
                 {
                     claims.add(claim);
