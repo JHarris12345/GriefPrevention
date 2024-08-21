@@ -2,6 +2,7 @@ package me.ryanhamshire.GriefPrevention.commands;
 
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
@@ -9,6 +10,8 @@ import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
 import me.ryanhamshire.GriefPrevention.logs.MemberModificationLogs;
+import me.ryanhamshire.GriefPrevention.logs.PermissionChangeLogs;
+import me.ryanhamshire.GriefPrevention.logs.SettingsChangeLogs;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
@@ -17,6 +20,7 @@ import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.ShovelMode;
@@ -43,6 +47,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +62,8 @@ public class CommandHandler {
 
     public static List<UUID> abandonClaimConfirmations = new ArrayList<>();
     private List<UUID> abandonAllClaimConfirmations = new ArrayList<>();
+    private HashMap<UUID, ClaimSetting> unlockingSettings = new HashMap<>();
+    private HashMap<UUID, ClaimPermission> unlockingPermissions = new HashMap<>();
 
     public CommandHandler(GriefPrevention plugin) {
         this.plugin = plugin;
@@ -1347,6 +1354,169 @@ public class CommandHandler {
             return true;
         }
 
+        else if (cmd.getName().equalsIgnoreCase("unlockclaimsetting") && player != null) {
+            if (args.length != 1) return false;
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+
+            if (claim == null) {
+                player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MANAGE_SETTINGS)) {
+                player.sendMessage(Utils.colour(ClaimPermission.MANAGE_SETTINGS.getDenialMessage()));
+                return true;
+            }
+
+            ClaimSetting setting;
+            try {
+                setting = ClaimSetting.valueOf(args[0].toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                sender.sendMessage(Utils.colour("&c'" + args[0] + "' is not a valid claim setting"));
+                return true;
+            }
+
+            if (!claim.isSettingUnlocked(setting)) {
+                ClaimSetting unlockingSetting = unlockingSettings.getOrDefault(player.getUniqueId(), null);
+                if (unlockingSetting == null || unlockingSetting != setting) {
+                    unlockingSettings.put(player.getUniqueId(), setting);
+                    sender.sendMessage(Utils.colour("&aTo confirm unlocking the " + setting.name() + " claim setting for " + setting.getUnlockCost() + " iCoins, type this command again"));
+                    return true;
+                }
+
+                int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
+                if (iCoinsBalance < setting.getUnlockCost()) {
+                    player.sendMessage(Utils.colour("&cYou don't have enough iCoins to unlock this setting. Get iCoins from the &o/shop"));
+                    return true;
+                }
+
+                claim.unlockClaimSetting(setting);
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + setting + " setting for this claim"));
+                Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + setting.getUnlockCost());
+
+                long id = (claim.parent == null) ? claim.id : claim.parent.id;
+                SettingsChangeLogs.logToFile(player.getName() + " unlocked the " + setting.name() + " setting" +
+                        " for claim " + id, true);
+
+                unlockingSettings.remove(player.getUniqueId());
+
+            } else {
+                player.sendMessage(Utils.colour("&cThis claim already has unlocked this setting"));
+            }
+
+            return true;
+        }
+
+        else if (cmd.getName().equalsIgnoreCase("unlockclaimpermission") && player != null) {
+            if (args.length != 1) return false;
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+
+            if (claim == null) {
+                player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MANAGE_PERMISSIONS)) {
+                player.sendMessage(Utils.colour(ClaimPermission.MANAGE_PERMISSIONS.getDenialMessage()));
+                return true;
+            }
+
+            ClaimPermission permission;
+            try {
+                permission = ClaimPermission.valueOf(args[0].toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                sender.sendMessage(Utils.colour("&c'" + args[0] + "' is not a valid claim permission"));
+                return true;
+            }
+
+            if (!claim.isPermissionUnlocked(permission)) {
+                ClaimPermission unlockingPermission = unlockingPermissions.getOrDefault(player.getUniqueId(), null);
+                if (unlockingPermission == null || unlockingPermission != permission) {
+                    unlockingPermissions.put(player.getUniqueId(), permission);
+                    sender.sendMessage(Utils.colour("&aTo confirm unlocking the " + permission.name() + " claim permission for " + permission.getUnlockCost() + " iCoins, type this command again"));
+                    return true;
+                }
+
+                int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
+                if (iCoinsBalance < permission.getUnlockCost()) {
+                    player.sendMessage(Utils.colour("&cYou don't have enough iCoins to unlock this setting. Get iCoins from the &o/shop"));
+                    return true;
+                }
+
+                claim.unlockClaimPermission(permission);
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + permission + " permission for this claim"));
+                Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());
+
+                long id = (claim.parent == null) ? claim.id : claim.parent.id;
+                PermissionChangeLogs.logToFile(player.getName() + " unlocked the " + permission.name() + " permission" +
+                        " for claim " + id, true);
+
+                unlockingPermissions.remove(player.getUniqueId());
+
+            } else {
+                player.sendMessage(Utils.colour("&cThis claim already has unlocked this permission"));
+            }
+
+            return true;
+        }
+
+        else if (cmd.getName().equalsIgnoreCase("demoteclaimmember") && player != null) {
+            if (args.length != 1) return false;
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+
+            if (claim == null) {
+                player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PROMOTE_DEMOTE)) {
+                player.sendMessage(Utils.colour(ClaimPermission.PROMOTE_DEMOTE.getDenialMessage()));
+                return true;
+            }
+
+            OfflinePlayer target = plugin.resolvePlayerByName(args[0]);
+            if (target == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
+            ClaimRole playerRole = claim.getPlayerRole(player.getUniqueId());
+
+            if (target.getName().equalsIgnoreCase(player.getName())) {
+                player.sendMessage(Utils.colour("&cYou can't change your own role"));
+                return true;
+            }
+
+            if (!ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
+                player.sendMessage(Utils.colour("&cYou can't change the role of someone with the same role as you or higher"));
+                return true;
+            }
+
+            if (targetRole == ClaimRole.OWNER) {
+                player.sendMessage("&cYou can't demote the owner of the claim");
+                return true;
+            }
+
+            if (targetRole == ClaimRole.GUEST) {
+                player.sendMessage(Utils.colour("&cYou can't demote someone from the lowest role. To untrust them from the claim use &o/untrust " + target.getName()));
+                return true;
+            }
+
+            ClaimRole nextRoleDown = ClaimRole.getLowerRole(targetRole);
+
+            claim.setClaimRole(target.getUniqueId(), nextRoleDown);
+            player.sendMessage(Utils.colour("&aYou demoted " + target.getName() + " to the " + nextRoleDown + " role on this claim"));
+
+            if (target.isOnline()) {
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " demoted you to the " + nextRoleDown + " role on their claim"));
+            }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " demoted " + target.getName() + " to " + nextRoleDown + " on claim " + claim.id, true);
+            return true;
+        }
+
         // ignoreplayer
         /*else if (cmd.getName().equalsIgnoreCase("ignoreplayer") && player != null)
         {
@@ -1487,7 +1657,21 @@ public class CommandHandler {
         return false;
     }
 
-    public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] strings) {
-        return Collections.emptyList();
+    public List<String> onTabComplete(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        if (args.length == 1) {
+            if (command.getName().equalsIgnoreCase("unlockclaimsetting")) {
+                Arrays.stream(ClaimSetting.values()).toList().forEach(setting -> completions.add(setting.name()));
+                return Utils.tabComplete(args[0], completions);
+            }
+
+            if (command.getName().equalsIgnoreCase("unlockclaimpermission")) {
+                Arrays.stream(ClaimPermission.values()).toList().stream().filter(permission -> permission.getUnlockCost() > 0).forEach(permission -> completions.add(permission.name()));
+                return Utils.tabComplete(args[0], completions);
+            }
+        }
+
+        return null;
     }
 }

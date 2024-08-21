@@ -182,6 +182,10 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 player.sendMessage(Utils.colour("&aYou just unlocked the " + settingName + " setting for this claim"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + setting.getUnlockCost());
                 refreshContents(claim);
+
+                long id = (claim.parent == null) ? claim.id : claim.parent.id;
+                SettingsChangeLogs.logToFile(player.getName() + " unlocked the " + settingName + " setting" +
+                        " for claim " + id, true);
                 return;
             }
         }

@@ -18,6 +18,18 @@ commands:
     description: Deletes ALL your claims.
     usage: /AbandonAllClaims
     permission: griefprevention.abandonallclaims
+  unlockclaimsetting:
+    description: Unlocks a claim setting.
+    usage: /unlockclaimsetting [setting]
+    permission: griefprevention.claims
+  unlockclaimpermission:
+    description: Unlocks a claim permission.
+    usage: /unlockclaimpermission [permission]
+    permission: griefprevention.claims
+  demoteclaimmember:
+    description: Demotes a member on the claim
+    usage: /demoteclaimmember [member]
+    permission: griefprevention.claims
   trust:
     description: Grants a player full access to your claim(s).
     usage: /Trust <player>  Grants a player permission to build.  See also /UnTrust, /ContainerTrust, /AccessTrust, and /PermissionTrust.

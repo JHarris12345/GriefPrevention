@@ -472,6 +472,11 @@ public class GriefPrevention extends JavaPlugin {
         return commandHandler.onCommand(sender, command, label, args);
     }
 
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        return commandHandler.onTabComplete(sender, command, alias, args);
+    }
+
     public void loadConfig() {
         //load the config if it exists
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(DataStore.configFilePath));

@@ -25,9 +25,11 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Utils {
 
@@ -70,6 +72,11 @@ public class Utils {
 
     public static boolean isPlayerBedrock(UUID uuid) {
         return  (uuid.toString().startsWith("00000000-0000-0000"));
+    }
+
+    public static List<String> tabComplete(String input, List<String> list) {
+        return new ArrayList<>(list).stream()
+                .filter(s -> s.toLowerCase().startsWith(input.toLowerCase())).collect(Collectors.toList());
     }
 
     public static void sendConsoleCommand(String commandNoSlash) {
