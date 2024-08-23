@@ -1111,7 +1111,13 @@ public class GriefPrevention extends JavaPlugin {
             // Log it
             ClaimModificationLog.logToFile(player.getName() + " deleted claim " + claim.id, true);
 
-            //delete it
+            // delete all the sub claims
+            for (Claim sub : claim.children) {
+                sub.removeSurfaceFluids(null);
+                this.dataStore.deleteClaim(sub, true, false);
+            }
+
+            //delete the main claim it
             claim.removeSurfaceFluids(null);
             this.dataStore.deleteClaim(claim, true, false);
 

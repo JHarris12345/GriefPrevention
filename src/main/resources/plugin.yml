@@ -8,7 +8,7 @@ commands:
   abandonclaim:
     description: Deletes a claim.
     usage: /AbandonClaim
-    aliases: [ unclaim, declaim, removeclaim, disclaim ]
+    aliases: [ unclaim, declaim, removeclaim, disclaim, deleteclaim, delclaim ]
     permission: griefprevention.claims
   abandontoplevelclaim:
     description: Deletes a claim and all its subdivisions.
@@ -69,14 +69,6 @@ commands:
     usage: /SetAccruedClaimBlocks <player> <amount>
     permission: griefprevention.adjustclaimblocks
     aliases: scb
-  deleteclaim:
-    description: Deletes the claim you're standing in, even if it's not your claim.
-    usage: /DeleteClaim
-    permission: griefprevention.deleteclaims
-  deleteallclaims:
-    description: Deletes all of another player's claims.
-    usage: /DeleteAllClaims <player>
-    permission: griefprevention.deleteclaims
   deleteclaimsinworld:
     description: Deletes all the claims in a world.  Only usable at the server console.
     usage: /DeleteClaimsInWorld <world>

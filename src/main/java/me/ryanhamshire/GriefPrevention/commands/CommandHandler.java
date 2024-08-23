@@ -448,7 +448,7 @@ public class CommandHandler {
             if (args.length != 1) return false;
 
             // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, true, null);
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
 
             if (claim == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
@@ -646,7 +646,7 @@ public class CommandHandler {
             if (args.length != 1) return false;
 
             // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, true, null);
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
 
             if (claim == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
@@ -684,10 +684,10 @@ public class CommandHandler {
 
             claim.members.remove(otherPlayer.getUniqueId());
 
-            for (Claim child : claim.children) {
+            /*for (Claim child : claim.children) {
                 child.members.remove(otherPlayer.getUniqueId());
                 plugin.dataStore.saveClaim(child);
-            }
+            }*/
 
             player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
             if (otherPlayer.isOnline()) {

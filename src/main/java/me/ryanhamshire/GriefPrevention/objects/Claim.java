@@ -539,14 +539,13 @@ public class Claim {
     // LinkedHashMap because we want to retain the order of owner -> guest
     public LinkedHashMap<UUID, ClaimRole> getClaimMembers(boolean includeOwner) {
         LinkedHashMap<UUID, ClaimRole> members = new LinkedHashMap<>();
-        Claim claim = (parent != null) ? parent : this;
 
         if (includeOwner) {
             members.put(ownerID, ClaimRole.OWNER);
         }
 
-        for (UUID member : claim.members.keySet()) {
-            members.put(member, claim.members.get(member));
+        for (UUID member : this.members.keySet()) {
+            members.put(member, this.members.get(member));
         }
 
         return members.entrySet()
@@ -561,21 +560,8 @@ public class Claim {
     }
 
     public ClaimRole getPlayerRole(UUID player) {
-        // If it's the parent claim
-        if (parent == null) {
-            if (player.equals(ownerID)) return ClaimRole.OWNER;
-            return members.getOrDefault(player, ClaimRole.PUBLIC);
-        }
-
-        // If it's a subclaim
-        Claim parentClaim = parent;
-        if (player.equals(parentClaim.ownerID)) return ClaimRole.OWNER;
-
-        // If they've not got a role in the subclaim, give them GUEST if they are a member of the main claim
-        ClaimRole subRole = members.getOrDefault(player, ClaimRole.PUBLIC);
-        ClaimRole parentRole = parent.members.getOrDefault(player, ClaimRole.PUBLIC);
-
-        return (subRole == ClaimRole.PUBLIC) ? (parentRole == ClaimRole.PUBLIC) ? subRole : ClaimRole.GUEST : subRole;
+        if (player.equals(ownerID)) return ClaimRole.OWNER;
+        return members.getOrDefault(player, ClaimRole.PUBLIC);
     }
 
     public void setClaimRole(UUID uuid, ClaimRole claimRole) {
