@@ -16,7 +16,7 @@ public enum ClaimPermission {
     READ_LECTERNS("&cYou don't have permission to read lecterns on this claim", false, true, true, true),
     CHORUS_FRUIT_TELEPORT("&cYou don't have permission to teleport via chorus fruits on this claim", true, true, true, true),
     THRU_ACCESS("&cYou don't have permission to use /thru on this claim", true, true, true, true),
-    SET_WARP_ACCESS("&cYou don't have permission to set warps on this claim", true, true, true, true),
+    SET_WARP_ACCESS("&cYou don't have permission to set warps on this claim", false, true, true, true),
     TRUST_UNTRUST("&cYou don't have permission to manage trust for this claim", false, false, false, true),
     PROMOTE_DEMOTE("&cYou don't have permission to manage roles for this claim", false, false, false, true),
     MANAGE_PERMISSIONS("&cYou don't have permission to manage permissions for this claim", false, false, false, true),
