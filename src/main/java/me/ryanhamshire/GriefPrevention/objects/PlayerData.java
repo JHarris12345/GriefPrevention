@@ -161,8 +161,8 @@ public class PlayerData {
     //the number of claim blocks a player has available for claiming land
     public int getRemainingClaimBlocks() {
         int remainingBlocks = this.getAccruedClaimBlocks() + this.getBonusClaimBlocks() + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID);
-        for (int i = 0; i < this.getClaims().size(); i++) {
-            Claim claim = this.getClaims().get(i);
+        for (int i = 0; i < this.getClaims(true).size(); i++) {
+            Claim claim = this.getClaims(true).get(i);
             remainingBlocks -= claim.getArea();
         }
 
@@ -236,7 +236,7 @@ public class PlayerData {
         }
     }
 
-    public Vector<Claim> getClaims() {
+    public Vector<Claim> getClaims(boolean includeSubClaims) {
         if (this.claims == null) {
             this.claims = new Vector<>();
 
@@ -249,6 +249,8 @@ public class PlayerData {
                     continue;
                 }
                 if (playerID.equals(claim.ownerID)) {
+                    if (!includeSubClaims && claim.parent != null) continue;
+
                     this.claims.add(claim);
                     totalClaimsArea += claim.getArea();
                 }

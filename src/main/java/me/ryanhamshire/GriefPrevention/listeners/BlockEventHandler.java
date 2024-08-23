@@ -33,13 +33,11 @@ import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -80,20 +78,17 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.Crops;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiPredicate;
-import java.util.function.Supplier;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener {
@@ -238,7 +233,7 @@ public class BlockEventHandler implements Listener {
             int radius = GriefPrevention.plugin.config_claims_automaticClaimsForNewPlayersRadius;
 
             //if the player doesn't have any claims yet, automatically create a claim centered at the chest
-            if (playerData.getClaims().size() == 0 && player.getGameMode() == GameMode.SURVIVAL) {
+            if (playerData.getClaims(true).size() == 0 && player.getGameMode() == GameMode.SURVIVAL) {
                 //radius == 0 means protect ONLY the chest
                 if (GriefPrevention.plugin.config_claims_automaticClaimsForNewPlayersRadius == 0) {
                     this.dataStore.createClaim(block.getWorld(), block.getX(), block.getX(), block.getY(), block.getY(), block.getZ(), block.getZ(), player.getUniqueId(), null, null, player);
@@ -316,7 +311,7 @@ public class BlockEventHandler implements Listener {
         else if (!this.trashBlocks.contains(block.getType()) && GriefPrevention.plugin.claimsEnabledForWorld(block.getWorld())) {
             if (!playerData.warnedAboutBuildingOutsideClaims && !player.hasPermission("griefprevention.adminclaims")
                     && player.hasPermission("griefprevention.createclaims") && ((playerData.lastClaim == null
-                    && playerData.getClaims().size() == 0) || (playerData.lastClaim != null
+                    && playerData.getClaims(true).size() == 0) || (playerData.lastClaim != null
                     && playerData.lastClaim.isNear(player.getLocation(), 15)))) {
                 Long now = null;
                 if (playerData.buildWarningTimestamp == null || (now = System.currentTimeMillis()) - playerData.buildWarningTimestamp > 600000)  //10 minute cooldown
@@ -327,7 +322,7 @@ public class BlockEventHandler implements Listener {
                     if (now == null) now = System.currentTimeMillis();
                     playerData.buildWarningTimestamp = now;
 
-                    if (playerData.getClaims().size() < 2) {
+                    if (playerData.getClaims(true).size() < 2) {
                         GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
                     }
 

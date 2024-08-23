@@ -52,7 +52,7 @@ public class CleanupUnusedClaimTask implements Runnable {
         }
 
         //if this claim is a chest claim and those are set to expire
-        if (ownerData.getClaims().size() == 1 && claim.getArea() <= areaOfDefaultClaim && GriefPrevention.plugin.config_claims_chestClaimExpirationDays > 0) {
+        if (ownerData.getClaims(true).size() == 1 && claim.getArea() <= areaOfDefaultClaim && GriefPrevention.plugin.config_claims_chestClaimExpirationDays > 0) {
             //if the owner has been gone at least a week, and if he has ONLY the new player claim, it will be removed
             Calendar sevenDaysAgo = Calendar.getInstance();
             sevenDaysAgo.add(Calendar.DATE, -GriefPrevention.plugin.config_claims_chestClaimExpirationDays);
@@ -80,7 +80,7 @@ public class CleanupUnusedClaimTask implements Runnable {
                 if (expireEventCanceled())
                     return;
                 //make a copy of this player's claim list
-                Vector<Claim> claims = new Vector<>(ownerData.getClaims());
+                Vector<Claim> claims = new Vector<>(ownerData.getClaims(true));
 
                 //delete them
                 GriefPrevention.plugin.dataStore.deleteClaimsForPlayer(claim.ownerID, true);

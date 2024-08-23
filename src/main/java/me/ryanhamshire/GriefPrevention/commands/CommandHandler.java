@@ -7,7 +7,6 @@ import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Inventories.MenuGUI;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
-import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
 import me.ryanhamshire.GriefPrevention.logs.MemberModificationLogs;
 import me.ryanhamshire.GriefPrevention.logs.PermissionChangeLogs;
@@ -32,7 +31,6 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -49,12 +47,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
-import java.util.function.Supplier;
 
 public class CommandHandler {
 
@@ -87,7 +83,7 @@ public class CommandHandler {
             // if he's at the claim count per player limit already and doesn't have permission to bypass, display an error message
             if (GriefPrevention.plugin.config_claims_maxClaimsPerPlayer > 0 &&
                     !player.hasPermission("griefprevention.overrideclaimcountlimit") &&
-                    playerData.getClaims().size() >= GriefPrevention.plugin.config_claims_maxClaimsPerPlayer) {
+                    playerData.getClaims(true).size() >= GriefPrevention.plugin.config_claims_maxClaimsPerPlayer) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClaimCreationFailedOverClaimCountLimit);
                 return true;
             }
@@ -97,9 +93,9 @@ public class CommandHandler {
             if (radius < 0) radius = (int) Math.ceil(Math.sqrt(GriefPrevention.plugin.config_claims_minArea) / 2);
 
             // if player has any claims, respect claim minimum size setting
-            if (playerData.getClaims().size() > 0) {
+            if (playerData.getClaims(true).size() > 0) {
                 // if player has exactly one land claim, this requires the claim modification tool to be in hand (or creative mode player)
-                if (playerData.getClaims().size() == 1 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
+                if (playerData.getClaims(true).size() == 1 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.MustHoldModificationToolForThat);
                     return true;
                 }
@@ -109,7 +105,7 @@ public class CommandHandler {
 
             // allow for specifying the radius
             if (args.length > 0) {
-                if (playerData.getClaims().size() < 2 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
+                if (playerData.getClaims(true).size() < 2 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.RadiusRequiresGoldenShovel);
                     return true;
                 }
@@ -374,7 +370,7 @@ public class CommandHandler {
 
             // count claims
             PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
-            int originalClaimCount = playerData.getClaims().size();
+            int originalClaimCount = playerData.getClaims(true).size();
 
             // check count
             if (originalClaimCount == 0) {
@@ -384,7 +380,7 @@ public class CommandHandler {
 
             if (plugin.config_claims_abandonReturnRatio != 1.0D) {
                 // adjust claim blocks
-                for (Claim claim : playerData.getClaims()) {
+                for (Claim claim : playerData.getClaims(true)) {
                     playerData.setAccruedClaimBlocks(playerData.getAccruedClaimBlocks() - (int) Math.ceil((claim.getArea() * (1 - plugin.config_claims_abandonReturnRatio))));
                 }
             }
@@ -547,7 +543,7 @@ public class CommandHandler {
             }
 
             PlayerData fromData = plugin.dataStore.getPlayerData(fromPlayer.getUniqueId());
-            for (Claim claim : new Vector<>(fromData.getClaims())) {
+            for (Claim claim : new Vector<>(fromData.getClaims(true))) {
                 plugin.dataStore.changeClaimOwner(claim, toPlayer.getUniqueId());
             }
 
@@ -1036,15 +1032,15 @@ public class CommandHandler {
 
             // load the target player's data
             PlayerData playerData = plugin.dataStore.getPlayerData(otherPlayer.getUniqueId());
-            Vector<Claim> claims = playerData.getClaims();
+            Vector<Claim> claims = playerData.getClaims(false);
             GriefPrevention.sendMessage(player, TextMode.Instr, Messages.StartBlockMath,
                     String.valueOf(playerData.getAccruedClaimBlocks()),
                     String.valueOf((playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))),
                     String.valueOf((playerData.getAccruedClaimBlocks() + playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))));
             if (claims.size() > 0) {
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
-                for (int i = 0; i < playerData.getClaims().size(); i++) {
-                    Claim claim = playerData.getClaims().get(i);
+                for (int i = 0; i < playerData.getClaims(true).size(); i++) {
+                    Claim claim = playerData.getClaims(true).get(i);
                     /*TextComponent line = Component.text(Utils.colour("&e" + getfriendlyLocationString(claim.getLesserBoundaryCorner()) + plugin.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea()))));
                     line = line.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "tppos " +
                             claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ()));*/

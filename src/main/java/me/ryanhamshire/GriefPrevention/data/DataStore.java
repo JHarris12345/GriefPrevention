@@ -54,7 +54,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
-import scala.Int;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -398,11 +397,11 @@ public abstract class DataStore {
 
         //adjust blocks and other records
         if (ownerData != null) {
-            ownerData.getClaims().remove(claim);
+            ownerData.getClaims(true).remove(claim);
         }
 
         if (newOwnerData != null) {
-            newOwnerData.getClaims().add(claim);
+            newOwnerData.getClaims(true).add(claim);
         }
     }
 
@@ -435,7 +434,7 @@ public abstract class DataStore {
         //except for administrative claims (which have no owner), update the owner's playerData with the new claim
         if (!newClaim.isAdminClaim() && writeToStorage) {
             PlayerData ownerData = this.getPlayerData(newClaim.ownerID);
-            ownerData.getClaims().add(newClaim);
+            ownerData.getClaims(true).add(newClaim);
         }
 
         //make sure the claim is saved to disk
@@ -639,9 +638,9 @@ public abstract class DataStore {
         //update player data
         if (claim.ownerID != null) {
             PlayerData ownerData = this.getPlayerData(claim.ownerID);
-            for (int i = 0; i < ownerData.getClaims().size(); i++) {
-                if (ownerData.getClaims().get(i).id.equals(claim.id)) {
-                    ownerData.getClaims().remove(i);
+            for (int i = 0; i < ownerData.getClaims(true).size(); i++) {
+                if (ownerData.getClaims(true).get(i).id.equals(claim.id)) {
+                    ownerData.getClaims(true).remove(i);
                     break;
                 }
             }
@@ -946,7 +945,7 @@ public abstract class DataStore {
     public void savePlayerDataSync(UUID playerID, PlayerData playerData) {
         //ensure player data is already read from file before trying to save
         playerData.getAccruedClaimBlocks();
-        playerData.getClaims();
+        playerData.getClaims(true);
 
         this.asyncSavePlayerData(playerID, playerData);
     }
@@ -1601,7 +1600,7 @@ public abstract class DataStore {
         public void run() {
             //ensure player data is already read from file before trying to save
             playerData.getAccruedClaimBlocks();
-            playerData.getClaims();
+            playerData.getClaims(true);
             asyncSavePlayerData(this.playerID, this.playerData);
         }
     }
