@@ -330,6 +330,9 @@ public class GriefPrevention extends JavaPlugin {
         // Register placeholders
         new Placeholders(this).register();
 
+        // Set up the economy manager
+        this.economyManager = new EconomyManager(this);
+
         // Set up files
         setupFiles();
 

@@ -30,6 +30,7 @@ import me.ryanhamshire.GriefPrevention.utils.Utils;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
+import org.apache.commons.codec.binary.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -49,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -616,6 +618,7 @@ public class CommandHandler {
         // trustlist
         else if (cmd.getName().equalsIgnoreCase("trustlist") && player != null) {
             Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+            PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
 
             // if no claim here, error message
             if (claim == null) {
@@ -624,13 +627,16 @@ public class CommandHandler {
             }
 
             // They must be trusted on the claim
-            if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC) {
+            if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC && !playerData.ignoreClaims) {
                 GriefPrevention.sendMessage(player, TextMode.Err, "You must be a member of this claim to see the trust list");
                 return true;
             }
 
-            // TODO: Make this!
-            player.sendMessage(Utils.colour("&cTell JH to add this in!"));
+            player.sendMessage(Utils.colour("&eMembers for claim ID " + claim.id + ":"));
+            for (Map.Entry<UUID, ClaimRole> entry : claim.getClaimMembers(true).entrySet()) {
+                OfflinePlayer p = Bukkit.getOfflinePlayer(entry.getKey());
+                player.sendMessage(Utils.colour("&e" + p.getName() + ": &f" + entry.getValue().readable()));
+            }
             return true;
         }
 

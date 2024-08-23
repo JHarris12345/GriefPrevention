@@ -44,13 +44,17 @@ import org.bukkit.entity.Player;
 import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 //represents a player claim
 //creating an instance doesn't make an effective claim
@@ -532,19 +536,28 @@ public class Claim {
         }
     }*/
 
-    public HashMap<UUID, ClaimRole> getClaimMembers(boolean includeOwner) {
-        HashMap<UUID, ClaimRole> members = new HashMap<>();
+    // LinkedHashMap because we want to retain the order of owner -> guest
+    public LinkedHashMap<UUID, ClaimRole> getClaimMembers(boolean includeOwner) {
+        LinkedHashMap<UUID, ClaimRole> members = new LinkedHashMap<>();
         Claim claim = (parent != null) ? parent : this;
-
-        for (UUID member : claim.members.keySet()) {
-            members.put(member, members.get(member));
-        }
 
         if (includeOwner) {
             members.put(ownerID, ClaimRole.OWNER);
         }
 
-        return members;
+        for (UUID member : claim.members.keySet()) {
+            members.put(member, claim.members.get(member));
+        }
+
+        return members.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.comparingInt(ClaimRole::numericalPriority).reversed()))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
     public ClaimRole getPlayerRole(UUID player) {
