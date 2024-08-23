@@ -1050,7 +1050,7 @@ public class CommandHandler {
                     String world = claim.getLesserBoundaryCorner().world.getName();
                     String area = plugin.df.format(claim.getArea()) + " blocks";
 
-                    TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ")"));
+                    TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ") &8(id: " + claim.id + ")"));
                     line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tppos " +
                             claim.getLesserBoundaryCorner().x + " 100 " + claim.getLesserBoundaryCorner().z + " " + world));
 

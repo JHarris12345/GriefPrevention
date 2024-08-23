@@ -1196,6 +1196,8 @@ public class PlayerEventHandler implements Listener {
                             GriefPrevention.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
                     }
 
+                    player.sendMessage(Utils.colour("  &bClaim ID: " + claim.id));
+
                     //if permission, tell about the player's offline time
                     if (!claim.isAdminClaim() && (player.hasPermission("griefprevention.deleteclaims") || player.hasPermission("griefprevention.seeinactivity"))) {
                         if (claim.parent != null) {
