@@ -330,9 +330,6 @@ public class GriefPrevention extends JavaPlugin {
         // Register placeholders
         new Placeholders(this).register();
 
-        // Set up the economy manager
-        this.economyManager = new EconomyManager(this);
-
         // Set up files
         setupFiles();
 
@@ -432,6 +429,11 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryHandler(this), this);
         getServer().getPluginManager().registerEvents(new WorldEventHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
+
+        // Set up the mamagers
+        this.economyManager = new EconomyManager(this);
+        this.entityDamageHandler = new EntityDamageHandler(dataStore, this);
+        this.entityEventHandler = new EntityEventHandler(dataStore, this);
 
         plugin.getLogger().info("Startup stage 4 complete in " + (System.currentTimeMillis() - start) + "ms");
         start = System.currentTimeMillis();
