@@ -188,9 +188,6 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
             claim.removePermissionFromRole(permission, role);
         }
 
-        PermissionChangeLogs.logToFile(player.getName() + " set the " + permissionName + " permission to " + newBoolean +
-                " for the " + role.name() + " role for claim " + claim.id, true);
-
         if (waterfall) {
             for (Claim sub : claim.children) {
                 if (newBoolean) {
@@ -198,11 +195,11 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
                 } else {
                     sub.removePermissionFromRole(permission, role);
                 }
-
-                PermissionChangeLogs.logToFile(player.getName() + " set the " + permissionName + " permission to " + newBoolean +
-                        " for the " + role.name() + " role for claim " + sub.id, true);
             }
         }
+
+        PermissionChangeLogs.logToFile(player.getName() + " set the " + permissionName + " permission to " + newBoolean +
+                " for the " + role.name() + " role for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
 
         refreshContents(claim);
     }
