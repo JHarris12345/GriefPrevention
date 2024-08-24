@@ -21,6 +21,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.EvokerFangs;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Horse;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
@@ -374,6 +375,28 @@ public class EntityDamageHandler implements Listener {
         if (attacker == null) {
             event.setCancelled(true);
             return true;
+        }
+
+        // Handle item frames
+        if (event.getEntity() instanceof ItemFrame) {
+            if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.MODIFY_ITEM_FRAMES)) {
+                event.setCancelled(true);
+                GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.MODIFY_ITEM_FRAMES.getDenialMessage());
+                return true;
+            }
+
+            return false;
+        }
+
+        // Handle armor stands
+        if (event.getEntity().getType() == EntityType.ARMOR_STAND) {
+            if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.MODIFY_ARMOR_STANDS)) {
+                event.setCancelled(true);
+                GriefPrevention.sendMessage(attacker, TextMode.Err, ClaimPermission.MODIFY_ARMOR_STANDS.getDenialMessage());
+                return true;
+            }
+
+            return false;
         }
 
         if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.INTERACT)) {

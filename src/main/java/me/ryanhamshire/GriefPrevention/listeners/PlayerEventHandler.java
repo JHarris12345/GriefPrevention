@@ -65,6 +65,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fish;
 import org.bukkit.entity.Hanging;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Mule;
 import org.bukkit.entity.Player;
@@ -536,14 +537,25 @@ public class PlayerEventHandler implements Listener {
             }
         }
 
-        //don't allow interaction with item frames or armor stands in claimed areas without build permission
-        if (entity.getType() == EntityType.ARMOR_STAND || entity instanceof Hanging) {
-            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+        //don't allow interaction with item frames or armor stands in claimed areas without permission
+        if (entity.getType() == EntityType.ARMOR_STAND) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY_ARMOR_STANDS)) {
                 if (event.getHand() == EquipmentSlot.HAND)
-                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.MODIFY_ARMOR_STANDS.getDenialMessage());
                 event.setCancelled(true);
-                return;
             }
+
+            return;
+        }
+
+        if (entity instanceof ItemFrame) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY_ITEM_FRAMES)) {
+                if (event.getHand() == EquipmentSlot.HAND)
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.MODIFY_ITEM_FRAMES.getDenialMessage());
+                event.setCancelled(true);
+            }
+
+            return;
         }
 
         //always allow interactions when player is in ignore claims mode
@@ -562,8 +574,20 @@ public class PlayerEventHandler implements Listener {
             }
         }
 
+        // Villager trading
+        if (entity.getType() == EntityType.VILLAGER) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.VILLAGER_TRADE)) {
+                if (event.getHand() == EquipmentSlot.HAND) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.VILLAGER_TRADE.getDenialMessage());
+                }
+                event.setCancelled(true);
+            }
+
+            return;
+        }
+
         // If the entity is something that does an action when right clicked OR they try to breed the entity
-        if (entity instanceof Fish || entity.getType() == EntityType.VILLAGER || entity.getType() == EntityType.ALLAY) {
+        if (entity instanceof Fish || entity.getType() == EntityType.ALLAY) {
             if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
                 if (event.getHand() == EquipmentSlot.HAND)
                     GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());

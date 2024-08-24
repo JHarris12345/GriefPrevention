@@ -37,17 +37,21 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Painting;
 import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Slime;
+import org.bukkit.entity.Snowball;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -345,6 +349,9 @@ public class EntityEventHandler implements Listener {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.plugin.claimsEnabledForWorld(event.getEntity().getWorld())) return;
 
+        // Ignore item frames as we have a separate event for them
+        if (event.getEntity() instanceof ItemFrame) return;
+
         //Ignore cases where itemframes should break due to no supporting blocks
         if (event.getCause() == RemoveCause.PHYSICS) return;
 
@@ -396,6 +403,36 @@ public class EntityEventHandler implements Listener {
         if (!claim.hasClaimPermission(event.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
             event.setCancelled(true);
             GriefPrevention.sendMessage(event.getPlayer(), TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
+        }
+    }
+
+    // Prevent item frame breaking
+    @EventHandler
+    public void onItemFrame(HangingBreakByEntityEvent e) {
+        if (!(e.getEntity() instanceof ItemFrame)) return;
+
+        Player player = null;
+        if (e.getRemover() instanceof Player) {
+            player = (Player) e.getRemover();
+        }
+
+        if (player == null) {
+            if (e.getRemover() instanceof Projectile) {
+                Projectile projectile = (Projectile) e.getRemover();
+                if (projectile.getShooter() instanceof Player) {
+                    player = (Player) projectile.getShooter();
+                }
+            }
+        }
+
+        if (player == null) return;
+
+        Claim claim = this.dataStore.getClaimAt(e.getEntity().getLocation(), false, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.MODIFY_ITEM_FRAMES)) {
+            e.setCancelled(true);
+            GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.MODIFY_ITEM_FRAMES.getDenialMessage());
         }
     }
 

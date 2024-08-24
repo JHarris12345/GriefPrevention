@@ -38,9 +38,20 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.PLACE_BLOCKS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to place", "&7blocks in your claim")));
 
                 customFile.set("Permissions.INTERACT.Name", "&bInteract");
-                customFile.set("Permissions.INTERACT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with your claim", "&7(flip switches, click entities, modify item frames etc)")));
+                customFile.set("Permissions.INTERACT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with your claim (flip", "&7switches, click buttons, most right-click actions etc)")));
 
-                customFile.set("Permissions.ARMOR_STAND_EDITING.Name", "&bArmor Stand Interaction");
+                customFile.set("Permissions.VILLAGER_TRADE.Name", "&bVillager Trading");
+                customFile.set("Permissions.VILLAGER_TRADE.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to trade with", "&7villagers in your claim")));
+
+                customFile.set("Permissions.MODIFY_ITEM_FRAMES.Name", "&bItem Frame Interaction");
+                customFile.set("Permissions.MODIFY_ITEM_FRAMES.iCoins", 50);
+                customFile.set("Permissions.MODIFY_ITEM_FRAMES.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with", "&7item frames in your claim")));
+
+                customFile.set("Permissions.MODIFY_ARMOR_STANDS.Name", "&bArmor Stand Modification");
+                customFile.set("Permissions.MODIFY_ARMOR_STANDS.iCoins", 50);
+                customFile.set("Permissions.MODIFY_ARMOR_STANDS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to modify", "&7armor stands in your claim")));
+
+                customFile.set("Permissions.ARMOR_STAND_EDITING.Name", "&bArmor Stand Editing");
                 customFile.set("Permissions.ARMOR_STAND_EDITING.iCoins", 50);
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with armor", "&7stands using &f/aa&7 in your claim")));
 
