@@ -1672,6 +1672,20 @@ public class CommandHandler {
                 Arrays.stream(ClaimPermission.values()).toList().stream().filter(permission -> permission.getUnlockCost() > 0).forEach(permission -> completions.add(permission.name()));
                 return Utils.tabComplete(args[0], completions);
             }
+
+            if (command.getName().equalsIgnoreCase("untrust")) {
+                if (commandSender instanceof Player player) {
+                    Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+                    if (claim != null) {
+                        for (UUID uuid : claim.getClaimMembers(false).keySet()) {
+                            OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
+                            completions.add(Utils.getOfflinePlayerNameFast(p));
+                        }
+
+                        return Utils.tabComplete(args[0], completions);
+                    }
+                }
+            }
         }
 
         return null;

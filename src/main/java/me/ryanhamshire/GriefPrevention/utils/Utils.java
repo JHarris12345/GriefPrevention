@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.command.ConsoleCommandSender;
@@ -35,7 +36,18 @@ public class Utils {
 
     private static GriefPrevention plugin = GriefPrevention.getInstance();
 
+    private static HashMap<UUID, String> playerNameCache = new HashMap<>(); // A map of UUIDs and the player name so we can get offline player names fast
     private static HashMap<String, World> worldMap = new HashMap<>(); // A cache for getting worlds from their string names
+
+    public static String getOfflinePlayerNameFast(OfflinePlayer player) {
+        String name = playerNameCache.getOrDefault(player.getUniqueId(), null);
+        if (name != null) return name;
+
+        name = player.getName();
+        playerNameCache.put(player.getUniqueId(), name);
+
+        return name;
+    }
 
     public static String colour(String string) {
         Pattern pattern = Pattern.compile("&?#[A-Fa-f0-9]{6}");
