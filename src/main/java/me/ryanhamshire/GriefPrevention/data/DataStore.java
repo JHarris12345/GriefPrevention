@@ -422,6 +422,8 @@ public abstract class DataStore {
             if (newClaim.ownerID == null) {
                 newClaim.ownerID = newClaim.parent.ownerID;
             }
+
+            this.claimMap.put(newClaim.id, newClaim);
             return;
         }
 
@@ -879,6 +881,7 @@ public abstract class DataStore {
                 ownerID,
                 new HashMap<>(),
                 new HashMap<>(),
+                new ArrayList<>(),
                 id);
 
         newClaim.parent = parent;

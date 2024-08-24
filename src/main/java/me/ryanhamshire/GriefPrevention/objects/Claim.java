@@ -28,6 +28,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
+import net.luckperms.api.model.user.UserManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -75,6 +76,7 @@ public class Claim {
     public HashMap<ClaimSetting, ClaimSettingValue> settings = new HashMap<>(); // A map of the claim settings and their values
     public List<ClaimPermission> unlockedPermissions = new ArrayList<>(); // A list of the permissions they have purchased toggleability for
     public List<ClaimSetting> unlockedSettings = new ArrayList<>(); // A list of the settings they have purchased toggleability for
+    public List<String> ownerRanks = new ArrayList<>(); // A list of the rank permissions the claim owner has access to (for offline rank-based unlocks)
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
@@ -83,7 +85,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, Long id) {
+    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -92,6 +94,7 @@ public class Claim {
         this.ownerID = ownerID;
         this.members = members;
         this.permissions = permissions;
+        this.ownerRanks = ownerRanks;
     }
 
     //produces a copy of a claim.
@@ -107,6 +110,7 @@ public class Claim {
         this.children = new ArrayList<>(claim.children);
         this.permissions = claim.permissions;
         this.name = claim.name;
+        this.ownerRanks = claim.ownerRanks;
     }
 
     //removes any lava above sea level in a claim
@@ -215,7 +219,7 @@ public class Claim {
         ClaimCorner newLesser = new ClaimCorner(location.getWorld(), (x - howNear), y, (z - howNear));
         ClaimCorner newGreater = new ClaimCorner(location.getWorld(), (x + howNear), y, (z + howNear));
 
-        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(),null);
+        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), null);
         return claim.contains(location, true);
     }
 
@@ -617,13 +621,10 @@ public class Claim {
 
     public boolean isSettingEnabled(ClaimSetting setting) {
         if (setting != ClaimSetting.FORCED_TIME && setting != ClaimSetting.FORCED_WEATHER) {
-            if (parent == null) {
-                return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
-            }
+            // Just make sure the owner still has permission for the setting
+            if (!isSettingUnlocked(setting)) return (setting.getDefaultValue() == ClaimSettingValue.TRUE);
 
-            // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
-            ClaimSettingValue setValue = settings.getOrDefault(setting, null);
-            return (setValue == null) ? parent.isSettingEnabled(setting) : setValue == ClaimSettingValue.TRUE;
+            return settings.getOrDefault(setting, setting.getDefaultValue()) == ClaimSettingValue.TRUE;
         }
 
         return false;
@@ -650,21 +651,29 @@ public class Claim {
     }
 
     public ClaimSettingValue getForcedTimeSetting() {
+        // Just make sure the owner still has permission for the setting
+        if (!isSettingUnlocked(ClaimSetting.FORCED_TIME)) return ClaimSettingValue.NONE;
+
         if (parent == null) {
             return settings.getOrDefault(ClaimSetting.FORCED_TIME, ClaimSetting.FORCED_TIME.getDefaultValue());
         }
 
-        // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
+        // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value.
+        // This prevents time glitching when moving between main and sub claims
         ClaimSettingValue setValue = settings.getOrDefault(ClaimSetting.FORCED_TIME, null);
         return (setValue == null) ? parent.getForcedTimeSetting() : setValue;
     }
 
     public ClaimSettingValue getForcedWeatherSetting() {
+        // Just make sure the owner still has permission for the setting
+        if (!isSettingUnlocked(ClaimSetting.FORCED_TIME)) return ClaimSettingValue.NONE;
+
         if (parent == null) {
             return settings.getOrDefault(ClaimSetting.FORCED_WEATHER, ClaimSetting.FORCED_WEATHER.getDefaultValue());
         }
 
         // If it's a subclaim we check if the setting is set for it. If not, get the main claim's setting value
+        // This prevents weather glitching when moving between main and sub claims
         ClaimSettingValue setValue = settings.getOrDefault(ClaimSetting.FORCED_WEATHER, null);
         return (setValue == null) ? parent.getForcedWeatherSetting() : setValue;
     }
@@ -680,11 +689,12 @@ public class Claim {
             settings.put(setting, setValue);
         }
 
+        // DEPRECATED - Settings are unlocked via ranks now and not bought unlocks
         // Now load if they have purchased any settings
-        List<String> unlockedSettings = claimConfig.getStringList("UnlockedSettings");
+        /*List<String> unlockedSettings = claimConfig.getStringList("UnlockedSettings");
         for (String uSetting : unlockedSettings) {
             this.unlockedSettings.add(ClaimSetting.valueOf(uSetting));
-        }
+        }*/
 
         this.settings = settings;
     }
@@ -700,9 +710,42 @@ public class Claim {
     }
 
     public boolean isSettingUnlocked(ClaimSetting claimSetting) {
-        if (claimSetting.getUnlockCost() == 0) return true;
+        //if (claimSetting.getUnlockCost() == 0) return true;
+        OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
+        String permission = claimSetting.getUnlockPermission();
 
+        // They're online
+        if (owner.getPlayer() != null) {
+            return owner.getPlayer().hasPermission(permission);
+        }
+
+        // They're offline - Use the stored ranks they have
+        return (this.ownerRanks.contains(permission));
+
+        // DEPRECATED - They're permission unlocks now
         // If it's a subclaim then we always take the value of the main claim
-        return (parent == null) ? unlockedSettings.contains(claimSetting) : parent.unlockedSettings.contains(claimSetting);
+        //return (parent == null) ? unlockedSettings.contains(claimSetting) : parent.unlockedSettings.contains(claimSetting);
+    }
+
+    public void setOwnerRanks(boolean save) {
+        OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
+        List<String> allRankPermissions = GriefPrevention.plugin.getAllRequiredOwnerRanks();
+
+        List<String> newRanks = new ArrayList<>();
+
+        if (owner.getPlayer() != null) {
+            for (String permission : allRankPermissions) {
+                if (owner.getPlayer().hasPermission(permission)) {
+                    if (!newRanks.contains(permission)) {
+                        newRanks.add(permission);
+                    }
+                }
+            }
+
+            if (!newRanks.toString().equals(this.ownerRanks.toString())) {
+                this.ownerRanks = newRanks;
+                if (save) GriefPrevention.plugin.dataStore.saveClaim(this);
+            }
+        }
     }
 }

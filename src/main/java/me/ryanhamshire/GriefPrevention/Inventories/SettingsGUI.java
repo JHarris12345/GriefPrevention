@@ -46,6 +46,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         this.waterfall = waterfall;
 
         this.addContents(claim);
+        claim.setOwnerRanks(true);
     }
 
     private void addContents(Claim claim) {
@@ -93,20 +94,11 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 owningPlayerName = SettingsGUIFile.get().getString("Settings." + key + ".OwningPlayer");
             }
 
-            int unlockCost = claimSetting.getUnlockCost();
-            if (unlockCost > 0 && !claim.isSettingUnlocked(claimSetting)) {
+            if (!claim.isSettingUnlocked(claimSetting)) {
                 lore.add("");
                 lore.add(Utils.colour("&4&lToggling LOCKED"));
-
-                if (!Utils.isPlayerBedrock(player.getUniqueId())) {
-                    lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability"));
-                    lore.add(Utils.colour("&cto toggle this for &l" + unlockCost + " iCoins"));
-
-                } else {
-                    lore.add(Utils.colour("&cUnlock the ability to toggle this for"));
-                    lore.add(Utils.colour("&c&l" + unlockCost + " iCoins &cusing the command:"));
-                    lore.add(Utils.colour("&c&o/unlockclaimsetting " + claimSetting.name()));
-                }
+                lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimSetting.getUnlockPermission())));
+                lore.add(Utils.colour("&crank to unlock toggling this setting"));
             }
 
             ItemStack item = Utils.createItemStack(material, base64Value, owningPlayerName, displayName, lore, amount);

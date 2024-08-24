@@ -220,10 +220,14 @@ public class FlatFileDataStore extends DataStore {
         // link children to parents
         for (Claim child : orphans.keySet()) {
             Claim parent = this.getClaim(orphans.get(child));
+
             if (parent != null) {
                 child.parent = parent;
                 child.ownerID = parent.ownerID;
                 this.addClaim(child, false);
+
+            } else {
+                GriefPrevention.plugin.getLogger().info("Claim " + child.id + " is a sub claim but the parent is null");
             }
         }
 
@@ -304,7 +308,7 @@ public class FlatFileDataStore extends DataStore {
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), new ArrayList<>(), claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
@@ -317,7 +321,8 @@ public class FlatFileDataStore extends DataStore {
         loadingTimes.put("settings", loadingTimes.getOrDefault("settings", 0L) + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
 
-        claimMap.put(claim.id, claim);
+        claim.ownerRanks = yaml.getStringList("OwnerRanks");
+
         return claim;
     }
 
@@ -370,12 +375,15 @@ public class FlatFileDataStore extends DataStore {
             yaml.set("Settings." + setting.name(), value.name());
         }
 
-        // Unlocked settings
+        // Unlocked settings - Despite not using bought unlocks anymore, we still want to keep this data incase we ever go back to it
         List<String> unlockedSettings = new ArrayList<>();
         for (ClaimSetting setting : claim.unlockedSettings) {
             unlockedSettings.add(setting.name());
         }
         yaml.set("UnlockedSettings", unlockedSettings);
+
+        // Owner ranks
+        yaml.set("OwnerRanks", claim.ownerRanks);
 
         return yaml.saveToString();
     }

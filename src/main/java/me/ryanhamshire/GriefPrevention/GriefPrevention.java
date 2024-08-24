@@ -43,6 +43,7 @@ import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
@@ -58,6 +59,7 @@ import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
 import me.ryanhamshire.GriefPrevention.utils.Placeholders;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -78,9 +80,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1783,5 +1787,21 @@ public class GriefPrevention extends JavaPlugin {
 
         }.runTaskTimer(plugin, 0, 15);
         claimOutlines.put(player.getUniqueId(), bukkitTask.getTaskId());
+    }
+
+    public List<String> getAllRequiredOwnerRanks() {
+        List<String> ranks = new ArrayList<>();
+
+        for (ClaimSetting setting : ClaimSetting.values()) {
+            if (!ranks.contains(setting.getUnlockPermission())) {
+                ranks.add(setting.getUnlockPermission());
+            }
+        }
+
+        return ranks;
+    }
+
+    public String getRankFromPermission(String permission) {
+        return StringUtils.capitalise(permission.split("\\.")[1].toLowerCase());
     }
  }

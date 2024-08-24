@@ -31,4 +31,8 @@ public enum ClaimSetting {
     public int getUnlockCost() {
         return (SettingsGUIFile.get().getInt("Settings." + this.name() + ".iCoins"));
     }
+
+    public String getUnlockPermission() {
+        return (SettingsGUIFile.get().getString("Settings." + this.name() + ".Permission"));
+    }
 }
