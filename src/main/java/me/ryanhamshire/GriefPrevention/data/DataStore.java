@@ -415,12 +415,14 @@ public abstract class DataStore {
             if (!newClaim.parent.children.contains(newClaim)) {
                 newClaim.parent.children.add(newClaim);
             }
+
+            if (newClaim.ownerID == null) {
+                newClaim.ownerID = newClaim.parent.ownerID;
+            }
+
             newClaim.inDataStore = true;
             if (writeToStorage) {
                 this.saveClaim(newClaim);
-            }
-            if (newClaim.ownerID == null) {
-                newClaim.ownerID = newClaim.parent.ownerID;
             }
 
             this.claimMap.put(newClaim.id, newClaim);
@@ -867,7 +869,7 @@ public abstract class DataStore {
             }
             smally = sanitizeClaimDepth(parent, smally);
         }
-
+        
         //creative mode claims always go to bedrock
         if (GriefPrevention.plugin.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
             smally = world.getMinHeight();
@@ -882,6 +884,8 @@ public abstract class DataStore {
                 new HashMap<>(),
                 new HashMap<>(),
                 new ArrayList<>(),
+                System.currentTimeMillis(),
+                false,
                 id);
 
         newClaim.parent = parent;
@@ -1385,7 +1389,7 @@ public abstract class DataStore {
         this.addDefault(defaults, Messages.CreateClaimInsufficientBlocks, "You don't have enough blocks to claim that entire area. You need {0} more blocks.", "0: additional blocks needed");
         this.addDefault(defaults, Messages.AbandonClaimAdvertisement, "To delete another claim and free up some blocks, use /AbandonClaim.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlapShort, "Your selected area overlaps an existing claim.", null);
-        this.addDefault(defaults, Messages.CreateClaimSuccess, "Claim created! Use /trust to share it with friends.", null);
+        this.addDefault(defaults, Messages.CreateClaimSuccess, "Claim created! Use /trust to share it with friends and ", null);
         this.addDefault(defaults, Messages.SiegeWinDoorsOpen, "Congratulations! Buttons and levers are temporarily unlocked.", null);
         this.addDefault(defaults, Messages.RescueAbortedMoved, "You moved! Rescue cancelled.", null);
         this.addDefault(defaults, Messages.SiegeDoorsLockedEjection, "Looting time is up! Ejected from the claim.", null);

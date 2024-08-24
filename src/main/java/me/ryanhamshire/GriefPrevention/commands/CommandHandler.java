@@ -356,7 +356,7 @@ public class CommandHandler {
             if (args.length > 0) return false;
 
             if (!abandonAllClaimConfirmations.contains(player.getUniqueId())) {
-                player.sendMessage(Utils.colour("&cAre you sure you want to delete &lALL&c of your claims? You will lose any unlocked settings and permissions. Type &f/" + cmd.getLabel() + "&c again to confirm!"));
+                player.sendMessage(Utils.colour("&cAre you sure you want to delete &lALL&c of your claims? You will lose any unlocked permissions. Type &f/" + cmd.getLabel() + "&c again to confirm!"));
 
                 abandonAllClaimConfirmations.add(player.getUniqueId());
                 Player finalPlayer1 = player;

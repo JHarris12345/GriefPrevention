@@ -222,6 +222,11 @@ public class FlatFileDataStore extends DataStore {
             Claim parent = this.getClaim(orphans.get(child));
 
             if (parent != null) {
+                if (!parent.contains(child.lesserBoundaryCorner, true) || !parent.contains(child.greaterBoundaryCorner, true)) {
+                    GriefPrevention.plugin.getLogger().info("Claim " + child.id + " is a sub claim that is not full within its parent claim");
+                    continue;
+                }
+
                 child.parent = parent;
                 child.ownerID = parent.ownerID;
                 this.addClaim(child, false);
@@ -307,8 +312,12 @@ public class FlatFileDataStore extends DataStore {
 
         out_parentID.add(yaml.getLong("Parent Claim ID", -1L));
 
+        long created = yaml.getLong("Created");
+        boolean builtOn = yaml.getBoolean("BuiltOn");
+        List<String> ownerRanks = yaml.getStringList("OwnerRanks");
+
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), new ArrayList<>(), claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
@@ -320,8 +329,6 @@ public class FlatFileDataStore extends DataStore {
         claim.loadSettings(yaml);
         loadingTimes.put("settings", loadingTimes.getOrDefault("settings", 0L) + (System.currentTimeMillis() - start));
         start = System.currentTimeMillis();
-
-        claim.ownerRanks = yaml.getStringList("OwnerRanks");
 
         return claim;
     }
@@ -375,15 +382,22 @@ public class FlatFileDataStore extends DataStore {
             yaml.set("Settings." + setting.name(), value.name());
         }
 
-        // Unlocked settings - Despite not using bought unlocks anymore, we still want to keep this data incase we ever go back to it
-        List<String> unlockedSettings = new ArrayList<>();
+        // DEPRECATED - Settings are unlocked with ranks now
+        // Unlocked settings
+        /*List<String> unlockedSettings = new ArrayList<>();
         for (ClaimSetting setting : claim.unlockedSettings) {
             unlockedSettings.add(setting.name());
         }
-        yaml.set("UnlockedSettings", unlockedSettings);
+        yaml.set("UnlockedSettings", unlockedSettings);*/
 
         // Owner ranks
         yaml.set("OwnerRanks", claim.ownerRanks);
+
+        // Claim creation time
+        yaml.set("Created", claim.created);
+
+        // If it's been built on
+        yaml.set("BuiltOn", claim.builtOn);
 
         return yaml.saveToString();
     }
@@ -594,70 +608,6 @@ public class FlatFileDataStore extends DataStore {
             }
         }
         catch (IOException exception) {}
-    }
-
-    public synchronized void migrateData(DatabaseDataStore databaseStore) {
-        //migrate claims
-        for (Claim claim : this.claimMap.values()) {
-            databaseStore.addClaim(claim, true);
-            for (Claim child : claim.children) {
-                databaseStore.addClaim(child, true);
-            }
-        }
-
-        //migrate groups
-        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet()) {
-            databaseStore.saveGroupBonusBlocks(groupEntry.getKey(), groupEntry.getValue());
-        }
-
-        //migrate players
-        File playerDataFolder = new File(playerDataFolderPath);
-        File[] files = playerDataFolder.listFiles();
-        for (File file : files) {
-            if (!file.isFile()) continue;  //avoids folders
-            if (file.isHidden()) continue; //avoid hidden files, which are likely not created by GriefPrevention
-
-            //all group data files start with a dollar sign.  ignoring those, already handled above
-            if (file.getName().startsWith("$")) continue;
-
-            //ignore special files
-            if (file.getName().startsWith("_")) continue;
-            if (file.getName().endsWith(".ignore")) continue;
-
-            UUID playerID = UUID.fromString(file.getName());
-            databaseStore.savePlayerData(playerID, this.getPlayerData(playerID));
-            this.clearCachedPlayerData(playerID);
-        }
-
-        //migrate next claim ID
-        if (this.nextClaimID > databaseStore.nextClaimID) {
-            databaseStore.setNextClaimID(this.nextClaimID);
-        }
-
-        //rename player and claim data folders so the migration won't run again
-        int i = 0;
-        File claimsBackupFolder;
-        File playersBackupFolder;
-        do {
-            String claimsFolderBackupPath = claimDataFolderPath;
-            if (i > 0) claimsFolderBackupPath += String.valueOf(i);
-            claimsBackupFolder = new File(claimsFolderBackupPath);
-
-            String playersFolderBackupPath = playerDataFolderPath;
-            if (i > 0) playersFolderBackupPath += String.valueOf(i);
-            playersBackupFolder = new File(playersFolderBackupPath);
-            i++;
-        } while (claimsBackupFolder.exists() || playersBackupFolder.exists());
-
-        File claimsFolder = new File(claimDataFolderPath);
-        File playersFolder = new File(playerDataFolderPath);
-
-        claimsFolder.renameTo(claimsBackupFolder);
-        playersFolder.renameTo(playersBackupFolder);
-
-        GriefPrevention.AddLogEntry("Backed your file system data up to " + claimsBackupFolder.getName() + " and " + playersBackupFolder.getName() + ".");
-        GriefPrevention.AddLogEntry("If your migration encountered any problems, you can restore those data with a quick copy/paste.");
-        GriefPrevention.AddLogEntry("When you're satisfied that all your data have been safely migrated, consider deleting those folders.");
     }
 
     @Override

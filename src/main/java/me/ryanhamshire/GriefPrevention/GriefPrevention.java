@@ -26,7 +26,6 @@ import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.RoleSelectGUIF
 import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFile;
 import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
-import me.ryanhamshire.GriefPrevention.data.DatabaseDataStore;
 import me.ryanhamshire.GriefPrevention.data.FlatFileDataStore;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityDamageHandler;
@@ -49,6 +48,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.tasks.CheckForPortalTrapTask;
+import me.ryanhamshire.GriefPrevention.tasks.DeleteUnBuilts;
 import me.ryanhamshire.GriefPrevention.tasks.DeliverClaimBlocksTask;
 import me.ryanhamshire.GriefPrevention.tasks.EntityCleanupTask;
 import me.ryanhamshire.GriefPrevention.tasks.FindUnusedClaimsTask;
@@ -59,7 +59,6 @@ import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
 import me.ryanhamshire.GriefPrevention.utils.Placeholders;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
-import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -80,7 +79,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -108,6 +106,12 @@ import java.util.stream.Collectors;
 public class GriefPrevention extends JavaPlugin {
     //for convenience, a reference to the instance of this plugin
     public static GriefPrevention plugin;
+
+    // This is the (pretty exact) time that my (JH's) version was loaded on IC survivals for the first time
+    public long firstLoad = 1724409000000L;
+
+    // How many hours before an un-built-on claim gets removed
+    public long unBuiltExpirationHours = 168;
 
     //for logging to the console and log file
     private static Logger log;
@@ -337,38 +341,11 @@ public class GriefPrevention extends JavaPlugin {
         // Set up files
         setupFiles();
 
-        //when datastore initializes, it loads player and claim data, and posts some stats to the log
         long start = System.currentTimeMillis();
-        if (this.databaseUrl.length() > 0) {
-            this.getLogger().info("Using database storage");
-            try {
-                DatabaseDataStore databaseStore = new DatabaseDataStore(this.databaseUrl, this.databaseUserName, this.databasePassword);
-
-                if (FlatFileDataStore.hasData()) {
-                    GriefPrevention.AddLogEntry("There appears to be some data on the hard drive.  Migrating those data to the database...");
-                    FlatFileDataStore flatFileStore = new FlatFileDataStore();
-                    this.dataStore = flatFileStore;
-                    flatFileStore.migrateData(databaseStore);
-                    GriefPrevention.AddLogEntry("Data migration process complete.");
-                }
-
-                this.dataStore = databaseStore;
-            }
-            catch (Exception e) {
-                GriefPrevention.AddLogEntry("Because there was a problem with the database, GriefPrevention will not function properly.  Either update the database config settings resolve the issue, or delete those lines from your config.yml so that GriefPrevention can use the file system to store data.");
-                e.printStackTrace();
-                this.getServer().getPluginManager().disablePlugin(this);
-                return;
-            }
-        }
-        plugin.getLogger().info("Startup stage 1 complete in " + (System.currentTimeMillis() - start) + "ms");
-        start = System.currentTimeMillis();
 
         //if not using the database because it's not configured or because there was a problem, use the file system to store data
         //this is the preferred method, as it's simpler than the database scenario
         if (this.dataStore == null) {
-            this.getLogger().info("Using file storage");
-
             File oldclaimdata = new File(getDataFolder(), "ClaimData");
             if (oldclaimdata.exists()) {
                 if (!FlatFileDataStore.hasData()) {
@@ -417,6 +394,9 @@ public class GriefPrevention extends JavaPlugin {
             this.getServer().getScheduler().scheduleSyncRepeatingTask(this, task, 20L * 60 * 10, 20L * 60 * 10);
         }
 
+        // Start the task for deleting un-built-on claims
+        new DeleteUnBuilts(this).runTaskTimer(plugin, 20 * 3600, 20 * 3600);
+
         //start the recurring cleanup event for entities in creative worlds
         EntityCleanupTask task = new EntityCleanupTask(0);
         this.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, task, 20L * 60 * 2);
@@ -434,7 +414,7 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new WorldEventHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
 
-        // Set up the mamagers
+        // Set up the managers
         this.economyManager = new EconomyManager(this);
         this.entityDamageHandler = new EntityDamageHandler(dataStore, this);
         this.entityEventHandler = new EntityEventHandler(dataStore, this);

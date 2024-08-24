@@ -136,6 +136,12 @@ public class BlockEventHandler implements Listener {
             breakEvent.setCancelled(true);
         }
 
+        // Mark the claim as having been built on
+        if (!claim.builtOn && claim.created > 0) {
+            claim.builtOn = true;
+            dataStore.saveClaim(claim);
+        }
+
         playerData.lastClaim = claim;
     }
 
@@ -212,6 +218,12 @@ public class BlockEventHandler implements Listener {
                 GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.PLACE_BLOCKS.getDenialMessage());
                 placeEvent.setCancelled(true);
                 return;
+            }
+
+            // Mark the claim as having been built on
+            if (!claim.builtOn && claim.created > 0) {
+                claim.builtOn = true;
+                dataStore.saveClaim(claim);
             }
 
             playerData.lastClaim = claim;

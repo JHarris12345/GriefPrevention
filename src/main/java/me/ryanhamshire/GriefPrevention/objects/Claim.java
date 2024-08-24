@@ -65,6 +65,7 @@ public class Claim {
     public ClaimCorner lesserBoundaryCorner;
     public ClaimCorner greaterBoundaryCorner;
     public long created; // The time the claim was created
+    public boolean builtOn; // If the claim has had any building modifications
     public Date modifiedDate; // Modification date. This comes from the file timestamp during load, and is updated with runtime changes
     public Long id = null; // Unique claim ID
     public String name; // Players can name their claims so they appear more custom on /claimlist and other places claims can appear
@@ -80,12 +81,12 @@ public class Claim {
 
     // Whether or not this claim is in the data store
     // If a claim instance isn't in the data store, it isn't "active" - players can't interact with it
-    // Why keep this?  so that claims which have been removed from the data store can be correctly
+    // Why keep this? so that claims which have been removed from the data store can be correctly
     // Ignored even though they may have references floating around
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, Long id) {
+    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -95,6 +96,8 @@ public class Claim {
         this.members = members;
         this.permissions = permissions;
         this.ownerRanks = ownerRanks;
+        this.created = created;
+        this.builtOn = builtOn;
     }
 
     //produces a copy of a claim.
@@ -111,6 +114,8 @@ public class Claim {
         this.permissions = claim.permissions;
         this.name = claim.name;
         this.ownerRanks = claim.ownerRanks;
+        this.created = claim.created;
+        this.builtOn = claim.builtOn;
     }
 
     //removes any lava above sea level in a claim
@@ -219,7 +224,7 @@ public class Claim {
         ClaimCorner newLesser = new ClaimCorner(location.getWorld(), (x - howNear), y, (z - howNear));
         ClaimCorner newGreater = new ClaimCorner(location.getWorld(), (x + howNear), y, (z + howNear));
 
-        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), null);
+        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), 0, false, null);
         return claim.contains(location, true);
     }
 

@@ -103,6 +103,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockIterator;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -1197,6 +1198,7 @@ public class PlayerEventHandler implements Listener {
                     }
 
                     player.sendMessage(Utils.colour("  &bClaim ID: " + claim.id));
+                    if (claim.created > 0) player.sendMessage(Utils.colour("  &bClaim Created: " + new SimpleDateFormat("dd MMM yyyy @ HH:mm").format(new Date(claim.created))));
 
                     //if permission, tell about the player's offline time
                     if (!claim.isAdminClaim() && (player.hasPermission("griefprevention.deleteclaims") || player.hasPermission("griefprevention.seeinactivity"))) {
@@ -1614,7 +1616,7 @@ public class PlayerEventHandler implements Listener {
 
                 //otherwise, advise him on the /trust command and show him his new claim
                 else {
-                    GriefPrevention.sendMessage(player, TextMode.Success, Messages.CreateClaimSuccess);
+                    player.sendMessage(Utils.colour("&aYou created claim! Manage it with &2/claimmenu&a and trust players with &2/trust [name]!"));
                     BoundaryVisualization.visualizeClaim(player, result.claim, VisualizationType.CLAIM, clickedBlock);
                     playerData.lastShovelLocation = null;
 
