@@ -6,19 +6,20 @@ import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFil
 public enum ClaimSetting {
 
     LEAF_DECAY(ClaimSettingValue.TRUE),
-    VINE_GROWTH(ClaimSettingValue.TRUE),
-    CROP_GROWTH(ClaimSettingValue.TRUE),
-    GRASS_SPREAD(ClaimSettingValue.TRUE),
-    ICE_FORM(ClaimSettingValue.TRUE),
+    SNOW_MELT(ClaimSettingValue.TRUE),
     ICE_MELT(ClaimSettingValue.TRUE),
     SNOW_FORM(ClaimSettingValue.TRUE),
-    SNOW_MELT(ClaimSettingValue.TRUE),
-    CORAL_DRY(ClaimSettingValue.TRUE),
+    ICE_FORM(ClaimSettingValue.TRUE),
+    GRASS_SPREAD(ClaimSettingValue.TRUE),
+    CROP_GROWTH(ClaimSettingValue.TRUE),
     COPPER_WEATHERING(ClaimSettingValue.TRUE),
     NATURAL_MONSTER_SPAWNS(ClaimSettingValue.TRUE),
-    NATURAL_ANIMAL_SPAWNS(ClaimSettingValue.TRUE),
     FORCED_TIME(ClaimSettingValue.NONE),
-    FORCED_WEATHER(ClaimSettingValue.NONE);
+    FORCED_WEATHER(ClaimSettingValue.NONE),
+    NATURAL_ANIMAL_SPAWNS(ClaimSettingValue.TRUE),
+    VINE_GROWTH(ClaimSettingValue.TRUE),
+    CORAL_DRY(ClaimSettingValue.TRUE),
+    ;
 
     private final ClaimSettingValue settingDefaultValue;
 

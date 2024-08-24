@@ -53,17 +53,15 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         super.addContents(inv, true, GUIBackgroundType.FILLED);
 
         int slot = 0;
-        for (String key : SettingsGUIFile.get().getConfigurationSection("Settings").getKeys(false)) {
-            ClaimSetting claimSetting = ClaimSetting.valueOf(key);
-
-            Material material = Material.valueOf(SettingsGUIFile.get().getString("Settings." + key + ".Item"));
-            String displayName = Utils.colour(SettingsGUIFile.get().getString("Settings." + key + ".Name"));
+        for (ClaimSetting claimSetting : ClaimSetting.values()) {
+            Material material = Material.valueOf(SettingsGUIFile.get().getString("Settings." + claimSetting.name() + ".Item"));
+            String displayName = Utils.colour(SettingsGUIFile.get().getString("Settings." + claimSetting.name() + ".Name"));
             Integer amount = 1;
             String base64Value = null;
             String owningPlayerName = null;
             ArrayList<String> lore = new ArrayList<>();
 
-            for (String loreLine : SettingsGUIFile.get().getStringList("Settings." + key + ".Lore")) {
+            for (String loreLine : SettingsGUIFile.get().getStringList("Settings." + claimSetting.name() + ".Lore")) {
                 if (claimSetting != ClaimSetting.FORCED_TIME && claimSetting != ClaimSetting.FORCED_WEATHER) {
                     lore.add(Utils.colour(loreLine));
 
@@ -87,11 +85,11 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 }
             }
 
-            if (SettingsGUIFile.get().isSet("Settings." + key + ".Base64Value")) {
-                base64Value = SettingsGUIFile.get().getString("Settings." + key + ".Base64Value");
+            if (SettingsGUIFile.get().isSet("Settings." + claimSetting.name() + ".Base64Value")) {
+                base64Value = SettingsGUIFile.get().getString("Settings." + claimSetting.name() + ".Base64Value");
             }
-            if (SettingsGUIFile.get().isSet("Settings." + key + ".OwningPlayer")) {
-                owningPlayerName = SettingsGUIFile.get().getString("Settings." + key + ".OwningPlayer");
+            if (SettingsGUIFile.get().isSet("Settings." + claimSetting.name() + ".OwningPlayer")) {
+                owningPlayerName = SettingsGUIFile.get().getString("Settings." + claimSetting.name() + ".OwningPlayer");
             }
 
             if (!claim.isSettingUnlocked(claimSetting)) {
@@ -105,7 +103,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
             ItemMeta meta = item.getItemMeta();
 
             meta.addItemFlags(ItemFlagUtils.of("HIDE_ADDITIONAL_TOOLTIP"));
-            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "setting"), PersistentDataType.STRING, key);
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "setting"), PersistentDataType.STRING, claimSetting.name());
 
             item.setItemMeta(meta);
 
@@ -162,7 +160,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 return;
             }
 
-        } else {
+        } /*else {
             if (!claim.isSettingUnlocked(setting)) {
                 int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
                 if (iCoinsBalance < setting.getUnlockCost()) {
@@ -180,7 +178,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                         " for claim " + id, true);
                 return;
             }
-        }
+        }*/
 
         // Handling for all the true / false settings and then handling for the weather and time settings
         if (setting != ClaimSetting.FORCED_TIME && setting != ClaimSetting.FORCED_WEATHER) {
