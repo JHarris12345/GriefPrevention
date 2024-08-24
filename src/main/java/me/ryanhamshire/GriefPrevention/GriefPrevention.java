@@ -1408,6 +1408,9 @@ public class GriefPrevention extends JavaPlugin {
         //dump any remaining unwritten log entries
         this.customLogger.WriteEntries();
 
+        this.dataStore.claimMap.clear();
+        this.dataStore.chunksToClaimsMap.clear();
+
         AddLogEntry("GriefPrevention disabled.");
     }
 
