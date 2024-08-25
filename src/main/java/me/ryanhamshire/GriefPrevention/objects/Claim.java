@@ -100,6 +100,13 @@ public class Claim {
         this.created = created;
         this.builtOn = builtOn;
         this.spentICoins = spentICoins;
+
+        // If the permissions are an empty hashmap, we need to create the role maps inside it so they aren't null
+        if (permissions.isEmpty()) {
+            for (ClaimRole role : ClaimRole.values()) {
+                this.permissions.put(role, new HashMap<>());
+            }
+        }
     }
 
     //produces a copy of a claim.
