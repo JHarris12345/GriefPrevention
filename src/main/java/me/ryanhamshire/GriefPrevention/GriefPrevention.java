@@ -1111,7 +1111,7 @@ public class GriefPrevention extends JavaPlugin {
                 String name = Utils.getOfflinePlayerNameFast(p);
                 long iCoins = claim.spentICoins.get(uuid);
 
-                if (p.getPlayer() != null) p.getPlayer().sendMessage(Utils.colour("&eA claim that you spent " + iCoins + " iCoins on was deleted so you are being refunded the iCoins..."));
+                if (p.getPlayer() != null) p.getPlayer().sendMessage(Utils.colour("&eA claim that you spent " + iCoins + " iCoins on was deleted so you are being refunded..."));
                 Utils.sendConsoleCommand("ipoints add " + name + " iCoins " + iCoins);
                 ClaimModificationLog.logToFile(iCoins + " iCoins were refunded to " + name, true);
             }
