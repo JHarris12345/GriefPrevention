@@ -41,6 +41,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.Container;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
@@ -48,6 +49,8 @@ import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Dispenser;
 import org.bukkit.block.data.type.Lectern;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -134,6 +137,14 @@ public class BlockEventHandler implements Listener {
         if (!claim.hasClaimPermission(breakEvent.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
             GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
             breakEvent.setCancelled(true);
+        }
+
+        // If the block is a container and they don't have container access
+        if (breakEvent.getBlock().getState() instanceof Container) {
+            if (!claim.hasClaimPermission(breakEvent.getPlayer().getUniqueId(), ClaimPermission.CONTAINER_ACCESS)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.CONTAINER_ACCESS.getDenialMessage());
+                breakEvent.setCancelled(true);
+            }
         }
 
         // Mark the claim as having been built on
@@ -419,18 +430,67 @@ public class BlockEventHandler implements Listener {
 
     // Prevent pistons pushing blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
-        onPistonEvent(event, event.getBlocks(), false);
+    public void onBlockPistonExtend(BlockPistonExtendEvent e) {
+        // If the blocks are empty, they might be pushing an armor stand so we need to check for that
+        if (e.getBlocks().isEmpty()) {
+            Location head = e.getBlock().getLocation().add(e.getDirection().getDirection());
+
+            for (Entity entity : head.getNearbyEntities(0.5, 0.5, 0.5)) {
+                if (!(entity instanceof ArmorStand)) continue;
+
+                Location toLocation = head.clone().add(e.getDirection().getDirection());
+
+                Claim fromClaim = dataStore.getClaimAt(head, true, null);
+                Claim toClaim = dataStore.getClaimAt(toLocation, true, null);
+
+                if (fromClaim == null && toClaim == null) continue;
+                if (fromClaim == null || toClaim == null || !fromClaim.id.equals(toClaim.id)) {
+                    e.setCancelled(true);
+                    return;
+                }
+            }
+
+            return;
+        }
+
+        // The blocks are not empty so it's pushing something. We still need to do armor stand checks for the block AFTER the final block
+        Location fromLocation = e.getBlock().getLocation(); // The location of the piston
+        Location toLocation = e.getBlocks().get(e.getBlocks().size()-1).getLocation().add(e.getDirection().getDirection()); // The location the final block will end up
+
+        // We need to see if the block after the final block is an armor stand and then modify the toLocation
+        toLocation.getNearbyEntities(0.5, 0.5, 0.5).forEach(entity -> {
+            if (entity instanceof ArmorStand) toLocation.add(e.getDirection().getDirection());
+        });
+
+        Claim fromClaim = dataStore.getClaimAt(fromLocation, true, null);
+        Claim toClaim = dataStore.getClaimAt(toLocation, true, null);
+
+        if (fromClaim == null && toClaim == null) return;
+        if (fromClaim == null || toClaim == null || !fromClaim.id.equals(toClaim.id)) {
+            e.setCancelled(true);
+        }
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
-        onPistonEvent(event, event.getBlocks(), true);
+    public void onBlockPistonRetract(BlockPistonRetractEvent e) {
+        if (e.getBlocks().isEmpty()) return;
+
+        Location fromLocation = e.getBlock().getLocation(); // The location of the piston
+        Location toLocation = e.getBlocks().get(e.getBlocks().size()-1).getLocation(); // The location the furthest block is being pulled from
+
+        Claim fromClaim = dataStore.getClaimAt(fromLocation, true, null);
+        Claim toClaim = dataStore.getClaimAt(toLocation, true, null);
+
+        if (fromClaim == null && toClaim == null) return;
+
+        if (fromClaim == null || toClaim == null || !fromClaim.id.equals(toClaim.id)) {
+            e.setCancelled(true);
+        }
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isRetract) {
+    /*private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isRetract) {
         PistonMode pistonMode = GriefPrevention.plugin.config_pistonMovement;
         // Return if piston movements are ignored.
         if (pistonMode == PistonMode.IGNORED) return;
@@ -473,12 +533,6 @@ public class BlockEventHandler implements Listener {
             // If blocks are all inside the same claim as the piston, allow.
             if (new BoundingBox(pistonClaim).contains(movedBlocks)) return;
 
-            /*
-             * In claims-only mode, all moved blocks must be inside of the owning claim.
-             * From BigScary:
-             *  - Could push into another land claim, don't want to spend CPU checking for that
-             *  - Push ice out, place torch, get water outside the claim
-             */
             if (pistonMode == PistonMode.CLAIMS_ONLY) {
                 event.setCancelled(true);
                 return;
@@ -569,7 +623,7 @@ public class BlockEventHandler implements Listener {
             // Do additional mode-based handling.
             if (intersectionHandler.test(claim, claimBoundingBox)) return;
         }
-    }
+    }*/
 
     //blocks are ignited ONLY by flint and steel (not by being near lava, open flames, etc), unless configured otherwise
     @EventHandler(priority = EventPriority.LOWEST)
