@@ -38,6 +38,7 @@ public class Utils {
 
     private static HashMap<UUID, String> playerNameCache = new HashMap<>(); // A map of UUIDs and the player name so we can get offline player names fast
     private static HashMap<String, World> worldMap = new HashMap<>(); // A cache for getting worlds from their string names
+    private static HashMap<UUID, Long> timedMessages = new HashMap<>(); // A map of UUID and the last time a message was sent so we know if a long enough time has passed to send another
 
     public static String getOfflinePlayerNameFast(OfflinePlayer player) {
         String name = playerNameCache.getOrDefault(player.getUniqueId(), null);
@@ -47,6 +48,16 @@ public class Utils {
         playerNameCache.put(player.getUniqueId(), name);
 
         return name;
+    }
+
+    public static void sendTimedMessage(Player player, String message, long waitTimeMillis) {
+        long lastSendTime = timedMessages.getOrDefault(player.getUniqueId(), 0L);
+        long nextAllowedSend = lastSendTime + waitTimeMillis;
+
+        if (System.currentTimeMillis() < nextAllowedSend) return;
+
+        timedMessages.put(player.getUniqueId(), System.currentTimeMillis());
+        player.sendMessage(Utils.colour(message));
     }
 
     public static String colour(String string) {

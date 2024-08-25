@@ -31,6 +31,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
+import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -135,7 +136,7 @@ public class BlockEventHandler implements Listener {
         if (claim == null) return;
 
         if (!claim.hasClaimPermission(breakEvent.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
-            GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
+            Utils.sendTimedMessage(player, ClaimPermission.BREAK_BLOCKS.getDenialMessage(), 100); // Timed message so it doesn't spam when using a trencher
             breakEvent.setCancelled(true);
         }
 

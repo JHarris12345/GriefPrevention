@@ -1325,31 +1325,21 @@ public class GriefPrevention extends JavaPlugin {
 
 
     public OfflinePlayer resolvePlayerByName(String name) {
-        //try online players first
+        // Try online players first
         Player targetPlayer = this.getServer().getPlayerExact(name);
         if (targetPlayer != null) return targetPlayer;
 
-        UUID bestMatchID = null;
-
-        //try exact match first
-        bestMatchID = this.playerNameToIDMap.get(name);
-
-        //if failed, try ignore case
-        if (bestMatchID == null) {
-            bestMatchID = this.playerNameToIDMap.get(name.toLowerCase());
-        }
-        if (bestMatchID == null) {
-            try {
-                // Try to parse UUID from string.
-                bestMatchID = UUID.fromString(name);
-            }
-            catch (IllegalArgumentException ignored) {
-                // Not a valid UUID string either.
-                return null;
-            }
+        // If they're offline, try and get the cached UUID
+        UUID uuid = this.playerNameToIDMap.getOrDefault(name.toLowerCase(), null);
+        if (uuid != null) {
+            return Bukkit.getOfflinePlayer(uuid);
         }
 
-        return this.getServer().getOfflinePlayer(bestMatchID);
+        // The UUID isn't cached so get the offline player from the name and then cache it
+        OfflinePlayer player = Bukkit.getOfflinePlayer(name);
+        cacheUUIDNamePair(player.getUniqueId(), name);
+
+        return player;
     }
 
     //helper method to resolve a player name from the player's UUID
@@ -1374,9 +1364,8 @@ public class GriefPrevention extends JavaPlugin {
     }
 
     //cache for player name lookups, to save searches of all offline players
-    public static void cacheUUIDNamePair(UUID playerID, String playerName) {
+    public void cacheUUIDNamePair(UUID playerID, String playerName) {
         //store the reverse mapping
-        GriefPrevention.plugin.playerNameToIDMap.put(playerName, playerID);
         GriefPrevention.plugin.playerNameToIDMap.put(playerName.toLowerCase(), playerID);
     }
 
