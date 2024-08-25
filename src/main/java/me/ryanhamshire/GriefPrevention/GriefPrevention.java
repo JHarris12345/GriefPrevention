@@ -79,6 +79,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -112,6 +113,9 @@ public class GriefPrevention extends JavaPlugin {
 
     // How many hours before an un-built-on claim gets removed
     public long unBuiltExpirationHours = 168;
+
+    // Essentials
+    //public IEssentials essentials;
 
     //for logging to the console and log file
     private static Logger log;
@@ -337,6 +341,12 @@ public class GriefPrevention extends JavaPlugin {
 
         // Register placeholders
         new Placeholders(this).register();
+
+        // Set up hooks
+        /*if (plugin.essentials == null) {
+            Plugin p = plugin.getServer().getPluginManager().getPlugin("Essentials");
+            if (p instanceof IEssentials) plugin.essentials = (IEssentials) p;
+        }*/
 
         // Set up files
         setupFiles();
@@ -1078,7 +1088,7 @@ public class GriefPrevention extends JavaPlugin {
         }
         else {
             if (!CommandHandler.abandonClaimConfirmations.contains(player.getUniqueId())) {
-                player.sendMessage(Utils.colour("&cAre you sure you want to delete this claim? You will lose any unlocked settings and permissions. Type &f/" + cmdLabel + "&c again to confirm!"));
+                player.sendMessage(Utils.colour("&cAre you sure you want to delete this claim? Type &f/" + cmdLabel + "&c again to confirm!"));
 
                 CommandHandler.abandonClaimConfirmations.add(player.getUniqueId());
                 Player finalPlayer = player;
@@ -1095,8 +1105,19 @@ public class GriefPrevention extends JavaPlugin {
             // Log it
             ClaimModificationLog.logToFile(player.getName() + " deleted claim " + claim.id, true);
 
+            // Refund the iCoins
+            for (UUID uuid : claim.spentICoins.keySet()) {
+                OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
+                String name = Utils.getOfflinePlayerNameFast(p);
+                long iCoins = claim.spentICoins.get(uuid);
+
+                if (p.getPlayer() != null) p.getPlayer().sendMessage(Utils.colour("&eA claim that you spent " + iCoins + " iCoins on was deleted so you are being refunded the iCoins..."));
+                Utils.sendConsoleCommand("ipoints add " + name + " iCoins " + iCoins);
+                ClaimModificationLog.logToFile(iCoins + " iCoins were refunded to " + name, true);
+            }
+
             // delete all the sub claims
-            for (Claim sub : claim.children) {
+            for (Claim sub : new ArrayList<>(claim.children)) {
                 sub.removeSurfaceFluids(null);
                 this.dataStore.deleteClaim(sub, true, false);
             }

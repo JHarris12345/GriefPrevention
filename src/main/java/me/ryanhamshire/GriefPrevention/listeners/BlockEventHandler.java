@@ -705,9 +705,6 @@ public class BlockEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockFromTo(BlockFromToEvent spreadEvent) {
-        //always allow fluids to flow straight down
-        if (spreadEvent.getFace() == BlockFace.DOWN) return;
-
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.plugin.claimsEnabledForWorld(spreadEvent.getBlock().getWorld())) return;
 
@@ -725,6 +722,10 @@ public class BlockEventHandler implements Listener {
         this.lastSpreadToClaim = toClaim;
 
         if (!isFluidFlowAllowed(fromClaim, toClaim, isInCreativeRulesWorld)) {
+            spreadEvent.setCancelled(true);
+        }
+
+        if (fromClaim != null && !fromClaim.isSettingEnabled(ClaimSetting.FLUID_FLOW)) {
             spreadEvent.setCancelled(true);
         }
     }

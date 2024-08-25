@@ -5,11 +5,12 @@ import me.ryanhamshire.GriefPrevention.Inventories.InventoryFiles.SettingsGUIFil
 
 public enum ClaimSetting {
 
-    LEAF_DECAY(ClaimSettingValue.TRUE),
+    FLUID_FLOW(ClaimSettingValue.TRUE),
     SNOW_MELT(ClaimSettingValue.TRUE),
     ICE_MELT(ClaimSettingValue.TRUE),
     SNOW_FORM(ClaimSettingValue.TRUE),
     ICE_FORM(ClaimSettingValue.TRUE),
+    LEAF_DECAY(ClaimSettingValue.TRUE),
     GRASS_SPREAD(ClaimSettingValue.TRUE),
     CROP_GROWTH(ClaimSettingValue.TRUE),
     COPPER_WEATHERING(ClaimSettingValue.TRUE),

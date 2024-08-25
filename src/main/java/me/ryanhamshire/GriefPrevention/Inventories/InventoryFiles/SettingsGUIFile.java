@@ -45,9 +45,14 @@ public class SettingsGUIFile {
                 customFile.set("Settings.NATURAL_ANIMAL_SPAWNS.Lore", new ArrayList<>(Arrays.asList("&7Animals mobs will not spawn", "&7with this set to disabled")));
                 
                 customFile.set("Settings.LEAF_DECAY.Name", "&bLeaf Decay");
-                customFile.set("Settings.LEAF_DECAY.Permission", "group.chancellor");
+                customFile.set("Settings.LEAF_DECAY.Permission", "group.legend");
                 customFile.set("Settings.LEAF_DECAY.Item", "OAK_LEAVES");
                 customFile.set("Settings.LEAF_DECAY.Lore", new ArrayList<>(Arrays.asList("&7Leaves will not decay", "&7with this set to disabled")));
+
+                customFile.set("Settings.FLUID_FLOW.Name", "&bLiquid Flow");
+                customFile.set("Settings.FLUID_FLOW.Permission", "group.chancellor");
+                customFile.set("Settings.FLUID_FLOW.Item", "WATER_BUCKET");
+                customFile.set("Settings.FLUID_FLOW.Lore", new ArrayList<>(Arrays.asList("&7Water & lava will not flow", "&7with this set to disabled")));
 
                 customFile.set("Settings.ICE_FORM.Name", "&bIce Form");
                 customFile.set("Settings.ICE_FORM.Permission", "group.legend");

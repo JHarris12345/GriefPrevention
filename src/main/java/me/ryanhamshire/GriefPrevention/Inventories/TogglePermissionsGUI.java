@@ -167,6 +167,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
                     return;
                 }
 
+                claim.logSpentICoins(player, permission.getUnlockCost(), false); // Must be done BEFORE claim.unlockClaimPermission so it's saved
                 claim.unlockClaimPermission(permission);
                 player.sendMessage(Utils.colour("&aYou just unlocked the " + permissionName + " permission for this claim"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());

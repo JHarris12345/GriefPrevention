@@ -67,7 +67,6 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.BREED_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to breed", "&7animals in your claim")));
 
                 customFile.set("Permissions.READ_LECTERNS.Name", "&bRead Lecterns");
-                customFile.set("Permissions.READ_LECTERNS.iCoins", 50);
                 customFile.set("Permissions.READ_LECTERNS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to read", "&7lecterns in your claim")));
 
                 customFile.set("Permissions.TRUST_UNTRUST.Name", "&bTrust Management");
@@ -97,6 +96,10 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.SET_WARP_ACCESS.Name", "&bSet Warp Access");
                 customFile.set("Permissions.SET_WARP_ACCESS.iCoins", 50);
                 customFile.set("Permissions.SET_WARP_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to set", "&7warps in your claim")));
+
+                customFile.set("Permissions.SET_HOME_ACCESS.Name", "&bSet Home Access");
+                customFile.set("Permissions.SET_HOME_ACCESS.iCoins", 50);
+                customFile.set("Permissions.SET_HOME_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to set", "&7homes in your claim")));
 
                 customFile.set("Permissions.MODIFY.Name", "&bClaim Modification");
                 customFile.set("Permissions.MODIFY.iCoins", 50);

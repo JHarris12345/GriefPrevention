@@ -442,49 +442,72 @@ public class CommandHandler {
             return true;
         }
 
-        // trust <player>
+        // trust <player> (all)
         else if (cmd.getName().equalsIgnoreCase("trust") && player != null) {
-            // requires exactly one parameter, the other player's name
-            if (args.length != 1) return false;
+            if (args.length != 1 && args.length != 2) return false;
+            if (args.length == 2 && !args[1].equalsIgnoreCase("all")) return false;
 
-            // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
+            boolean all = args.length == 2;
+            OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
 
-            if (claim == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
+            if (!all) {
+                // determine which claim the player is standing in
+                Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
+
+                if (claim == null) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
+                    return true;
+                }
+
+                if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
+                    return true;
+                }
+
+                ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+                if (targetRole != ClaimRole.PUBLIC) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is already part of this claim");
+                    return true;
+                }
+
+                claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
+
+                player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim. Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName()));
+                if (otherPlayer.isOnline()) {
+                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
+                }
+
+                // Log it
+                MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
+
+                // save changes
+                plugin.dataStore.saveClaim(claim);
                 return true;
+
+            } else {
+                PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
+                Vector<Claim> claims = playerData.getClaims(true);
+
+                for (Claim claim : claims) {
+                    ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+                    if (targetRole != ClaimRole.PUBLIC) continue;
+
+                    claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
+
+                    // Log it
+                    MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
+
+                    // save changes
+                    plugin.dataStore.saveClaim(claim);
+                }
+
+                player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to &lall&a of your claims. Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName() + " all"));
+                if (otherPlayer.isOnline()) {
+                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to all of their claims"));
+                }
             }
 
-            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
-                return true;
-            }
-
-            OfflinePlayer otherPlayer = plugin.resolvePlayerByName(args[0]);
-            if (otherPlayer == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
-                return true;
-            }
-
-            ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
-
-            if (targetRole != ClaimRole.PUBLIC) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is already part of this claim");
-                return true;
-            }
-
-            claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
-
-            player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim. Edit their permissions with &o/claimmenu"));
-            if (otherPlayer.isOnline()) {
-                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
-            }
-
-            // Log it
-            MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
-
-            // save changes
-            plugin.dataStore.saveClaim(claim);
             return true;
         }
 
@@ -640,65 +663,86 @@ public class CommandHandler {
             return true;
         }
 
-        // untrust <player> or untrust [<group>]
+        // untrust <player> (all)
         else if (cmd.getName().equalsIgnoreCase("untrust") && player != null) {
-            // requires exactly one parameter, the other player's name
-            if (args.length != 1) return false;
+            if (args.length != 1 && args.length != 2) return false;
+            if (args.length == 2 && !args[1].equalsIgnoreCase("all")) return false;
 
-            // determine which claim the player is standing in
-            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
+            boolean all = args.length == 2;
+            OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
 
-            if (claim == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
-                return true;
-            }
-
-            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
-                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
-                return true;
-            }
-
-            OfflinePlayer otherPlayer = plugin.resolvePlayerByName(args[0]);
-            if (otherPlayer == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
-                return true;
-            }
-
-            if (otherPlayer == player && !plugin.dataStore.isBypassing(player.getUniqueId())) {
+            if (otherPlayer.getUniqueId().equals(player.getUniqueId()) && !plugin.dataStore.isBypassing(player.getUniqueId())) {
                 player.sendMessage(Utils.colour("&cYou can't untrust yourself"));
                 return true;
             }
 
-            ClaimRole senderRole = claim.getPlayerRole(player.getUniqueId());
-            ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+            if (!all) {
+                // determine which claim the player is standing in
+                Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
 
-            if (targetRole == ClaimRole.PUBLIC) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is not a member of this claim");
+                if (claim == null) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
+                    return true;
+                }
+
+                if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
+                    return true;
+                }
+
+                ClaimRole senderRole = claim.getPlayerRole(player.getUniqueId());
+                ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+                if (targetRole == ClaimRole.PUBLIC) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is not a member of this claim");
+                    return true;
+                }
+
+                if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole) && !plugin.dataStore.isBypassing(player.getUniqueId())) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, "You cannot untrust someone who has the same or higher role than you");
+                    return true;
+                }
+
+                claim.members.remove(otherPlayer.getUniqueId());
+
+                player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
+                if (otherPlayer.isOnline()) {
+                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " removed you from their claim"));
+                }
+
+                // Log it
+                MemberModificationLogs.logToFile(player.getName() + " untrusted " + otherPlayer.getName() + " on claim " + claim.id, true);
+
+                // save changes
+                plugin.dataStore.saveClaim(claim);
                 return true;
+
+            } else {
+                PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
+                Vector<Claim> claims = playerData.getClaims(true);
+
+                for (Claim claim : claims) {
+                    ClaimRole senderRole = claim.getPlayerRole(player.getUniqueId());
+                    ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+                    if (targetRole == ClaimRole.PUBLIC) continue;
+                    if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole) && !plugin.dataStore.isBypassing(player.getUniqueId())) continue;
+
+                    claim.members.remove(otherPlayer.getUniqueId());
+
+                    // Log it
+                    MemberModificationLogs.logToFile(player.getName() + " untrusted " + otherPlayer.getName() + " on claim " + claim.id, true);
+
+                    // save changes
+                    plugin.dataStore.saveClaim(claim);
+                }
+
+                player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from &lall&a of your claims."));
+                if (otherPlayer.isOnline()) {
+                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " removed you from all of their claims"));
+                }
             }
 
-            if (ClaimRole.isRole1HigherThanRole2(targetRole, senderRole) && !plugin.dataStore.isBypassing(player.getUniqueId())) {
-                GriefPrevention.sendMessage(player, TextMode.Err, "You cannot untrust someone who has the same or higher role than you");
-                return true;
-            }
-
-            claim.members.remove(otherPlayer.getUniqueId());
-
-            /*for (Claim child : claim.children) {
-                child.members.remove(otherPlayer.getUniqueId());
-                plugin.dataStore.saveClaim(child);
-            }*/
-
-            player.sendMessage(Utils.colour("&aYou removed " + otherPlayer.getName() + " from this claim"));
-            if (otherPlayer.isOnline()) {
-                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " removed you from their claim"));
-            }
-
-            // Log it
-            MemberModificationLogs.logToFile(player.getName() + " untrusted " + otherPlayer.getName() + " on claim " + claim.id, true);
-
-            // save changes
-            plugin.dataStore.saveClaim(claim);
             return true;
         }
 
@@ -1356,7 +1400,7 @@ public class CommandHandler {
             return true;
         }
 
-        else if (cmd.getName().equalsIgnoreCase("unlockclaimsetting") && player != null) {
+        /*else if (cmd.getName().equalsIgnoreCase("unlockclaimsetting") && player != null) {
             if (args.length != 1) return false;
             Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
 
@@ -1407,7 +1451,7 @@ public class CommandHandler {
             }
 
             return true;
-        }
+        }*/
 
         else if (cmd.getName().equalsIgnoreCase("unlockclaimpermission") && player != null) {
             if (args.length != 1) return false;
@@ -1445,6 +1489,7 @@ public class CommandHandler {
                     return true;
                 }
 
+                claim.logSpentICoins(player, permission.getUnlockCost(), false); // Must be done BEFORE claim.unlockClaimPermission so it's saved
                 claim.unlockClaimPermission(permission);
                 player.sendMessage(Utils.colour("&aYou just unlocked the " + permission + " permission for this claim"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());
@@ -1675,6 +1720,8 @@ public class CommandHandler {
 
             if (command.getName().equalsIgnoreCase("untrust")) {
                 if (commandSender instanceof Player player) {
+                    plugin.getServer().getOnlinePlayers().forEach(p -> completions.add(p.getName()));
+
                     Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
                     if (claim != null) {
                         for (UUID uuid : claim.getClaimMembers(false).keySet()) {
@@ -1683,8 +1730,14 @@ public class CommandHandler {
                         }
 
                         return Utils.tabComplete(args[0], completions);
-                    }
+                    } else return completions;
                 }
+            }
+        }
+
+        if (args.length == 2) {
+            if (command.getName().equalsIgnoreCase("trust") || command.getName().equalsIgnoreCase("untrust")) {
+                return Utils.tabComplete(args[1], Arrays.asList("all"));
             }
         }
 

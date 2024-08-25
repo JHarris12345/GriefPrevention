@@ -1759,7 +1759,10 @@ public class PlayerEventHandler implements Listener {
     // Prevent use of /setwarp in claims they don't have the required perms
     @EventHandler
     public void onSetWarp(PlayerCommandPreprocessEvent e) {
-        if (!e.getMessage().toLowerCase().startsWith("/setwarp")) return;
+        String message = e.getMessage().toLowerCase();
+
+        if (!message.startsWith("/setwarp") && !message.startsWith("/esetwarp") &&
+                !message.startsWith("/createwarp") && !message.startsWith("/ecreatewarp")) return;
 
         Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
         if (claim == null) return;
@@ -1767,6 +1770,23 @@ public class PlayerEventHandler implements Listener {
         if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.SET_WARP_ACCESS)) {
             e.setCancelled(true);
             e.getPlayer().sendMessage(Utils.colour(ClaimPermission.SET_WARP_ACCESS.getDenialMessage()));
+        }
+    }
+
+    // Prevent use of /sethome in claims they don't have the required perms
+    @EventHandler
+    public void onSetHome(PlayerCommandPreprocessEvent e) {
+        String message = e.getMessage().toLowerCase();
+
+        if (!message.startsWith("/sethome") && !message.startsWith("/esethome") &&
+                !message.startsWith("/createhome") && !message.startsWith("/ecreatehome")) return;
+
+        Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.SET_HOME_ACCESS)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.SET_HOME_ACCESS.getDenialMessage()));
         }
     }
 

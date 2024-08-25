@@ -73,6 +73,7 @@ public class Claim {
     public Claim parent = null; // Only not null if it's a subclaim
     public ArrayList<Claim> children = new ArrayList<>(); // Subclaims of this claim. Note that subclaims never have subclaims
     public HashMap<UUID, ClaimRole> members = new HashMap<>(); // A map of all the members and their role in the claim NOT including the owner
+    public HashMap<UUID, Long> spentICoins = new HashMap<>(); // A map of all the members and how many iCoins they spent on the claim
     public HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions = new HashMap<>(); // A map of the claim roles and the set values for the permissions (only includes ones that have been explicitly set)
     public HashMap<ClaimSetting, ClaimSettingValue> settings = new HashMap<>(); // A map of the claim settings and their values
     public List<ClaimPermission> unlockedPermissions = new ArrayList<>(); // A list of the permissions they have purchased toggleability for
@@ -86,7 +87,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, Long id) {
+    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, HashMap<UUID, Long> spentICoins, Long id) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -98,6 +99,7 @@ public class Claim {
         this.ownerRanks = ownerRanks;
         this.created = created;
         this.builtOn = builtOn;
+        this.spentICoins = spentICoins;
     }
 
     //produces a copy of a claim.
@@ -116,6 +118,7 @@ public class Claim {
         this.ownerRanks = claim.ownerRanks;
         this.created = claim.created;
         this.builtOn = claim.builtOn;
+        this.spentICoins = claim.spentICoins;
     }
 
     //removes any lava above sea level in a claim
@@ -224,7 +227,7 @@ public class Claim {
         ClaimCorner newLesser = new ClaimCorner(location.getWorld(), (x - howNear), y, (z - howNear));
         ClaimCorner newGreater = new ClaimCorner(location.getWorld(), (x + howNear), y, (z + howNear));
 
-        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), 0, false, null);
+        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), 0, false, new HashMap<>(), null);
         return claim.contains(location, true);
     }
 
@@ -752,5 +755,10 @@ public class Claim {
                 if (save) GriefPrevention.plugin.dataStore.saveClaim(this);
             }
         }
+    }
+
+    public void logSpentICoins(Player player, long amount, boolean save) {
+        spentICoins.put(player.getUniqueId(), spentICoins.getOrDefault(player.getUniqueId(), 0L) + amount);
+        if (save) GriefPrevention.plugin.dataStore.saveClaim(this);
     }
 }

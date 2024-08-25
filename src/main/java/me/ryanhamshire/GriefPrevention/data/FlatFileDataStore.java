@@ -286,6 +286,7 @@ public class FlatFileDataStore extends DataStore {
         start = System.currentTimeMillis();
 
         HashMap<UUID, ClaimRole> members = new HashMap<>();
+        HashMap<UUID, Long> spentICoins = new HashMap<>();
 
         // Support for the old data
         ConfigurationSection section = yaml.getConfigurationSection("Members");
@@ -300,10 +301,18 @@ public class FlatFileDataStore extends DataStore {
         else {
             for (String entry : yaml.getStringList("Builders")) {
                 try {
-                    members.put(UUID.fromString(entry), ClaimRole.GUEST);
+                    members.put(UUID.fromString(entry), ClaimRole.MEMBER);
                 } catch (IllegalArgumentException ex) {
 
                 }
+            }
+        }
+
+        ConfigurationSection iCoinsSection = yaml.getConfigurationSection("SpentICoins");
+
+        if (iCoinsSection != null) {
+            for (String uuidKey : iCoinsSection.getKeys(false)) {
+                spentICoins.put(UUID.fromString(uuidKey), yaml.getLong("SpentICoins." + uuidKey));
             }
         }
 
@@ -317,7 +326,7 @@ public class FlatFileDataStore extends DataStore {
         List<String> ownerRanks = yaml.getStringList("OwnerRanks");
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, spentICoins, claimID);
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 
@@ -350,6 +359,10 @@ public class FlatFileDataStore extends DataStore {
 
         for (UUID member : claim.members.keySet()) {
             yaml.set("Members." + member.toString(), claim.members.get(member).toString());
+        }
+
+        for (UUID member : claim.spentICoins.keySet()) {
+            yaml.set("SpentICoins." + member.toString(), claim.spentICoins.get(member));
         }
 
         Long parentID = -1L;

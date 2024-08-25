@@ -31,13 +31,13 @@ commands:
     usage: /demoteclaimmember [member]
     permission: griefprevention.claims
   trust:
-    description: Grants a player full access to your claim(s).
-    usage: /Trust <player>  Grants a player permission to build.  See also /UnTrust, /ContainerTrust, /AccessTrust, and /PermissionTrust.
+    description: Adds a player to your claim (or all of your claims if you use "all" after)
+    usage: /trust <player> (all)
     aliases: tr
     permission: griefprevention.claims
   untrust:
-    description: Revokes a player's access to your claim(s).
-    usage: /UnTrust <player>
+    description: Removes a player from your claim (or all of your claims if you use "all" after)
+    usage: /untrust <player> (all)
     aliases: ut
     permission: griefprevention.claims
   nameclaim:

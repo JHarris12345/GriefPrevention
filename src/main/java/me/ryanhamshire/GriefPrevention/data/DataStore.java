@@ -869,7 +869,7 @@ public abstract class DataStore {
             }
             smally = sanitizeClaimDepth(parent, smally);
         }
-        
+
         //creative mode claims always go to bedrock
         if (GriefPrevention.plugin.config_claims_worldModes.get(world) == ClaimsMode.Creative) {
             smally = world.getMinHeight();
@@ -886,6 +886,7 @@ public abstract class DataStore {
                 new ArrayList<>(),
                 System.currentTimeMillis(),
                 false,
+                new HashMap<>(),
                 id);
 
         newClaim.parent = parent;
@@ -1050,6 +1051,17 @@ public abstract class DataStore {
         //delete them one by one
         for (Claim claim : claimsToDelete) {
             claim.removeSurfaceFluids(null);
+
+            // Refund the iCoins
+            for (UUID uuid : claim.spentICoins.keySet()) {
+                OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
+                String name = Utils.getOfflinePlayerNameFast(p);
+                long iCoins = claim.spentICoins.get(uuid);
+
+                if (p.getPlayer() != null) p.getPlayer().sendMessage(Utils.colour("&eA claim that you spent " + iCoins + " iCoins on was deleted so you are being refunded the iCoins..."));
+                Utils.sendConsoleCommand("ipoints add " + name + " iCoins " + iCoins);
+                ClaimModificationLog.logToFile(iCoins + " iCoins were refunded to " + name, true);
+            }
 
             this.deleteClaim(claim, releasePets);
 
