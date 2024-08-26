@@ -59,7 +59,6 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.CONTAINER_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to open", "&7containers in your claim")));
 
                 customFile.set("Permissions.HURT_ANIMALS.Name", "&bHurt Animals");
-                customFile.set("Permissions.HURT_ANIMALS.iCoins", 50);
                 customFile.set("Permissions.HURT_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to hurt", "&7animals in your claim")));
 
                 customFile.set("Permissions.BREED_ANIMALS.Name", "&bBreed Animals");
