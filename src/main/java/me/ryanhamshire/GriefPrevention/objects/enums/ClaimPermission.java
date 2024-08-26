@@ -9,7 +9,7 @@ public enum ClaimPermission {
     PLACE_BLOCKS("&cYou don't have permission to build on this claim", false, true, true, true),
     BREAK_BLOCKS("&cYou don't have permission to build on this claim", false, true, true, true),
     INTERACT("&cYou don't have permission to interact with this claim", false, true, true, true),
-    CONTAINER_ACCESS("&cYou don't have permission to access containers on this claim", false, false, true, true),
+    CONTAINER_ACCESS("&cYou don't have permission to use or access containers on this claim", false, false, true, true),
     VILLAGER_TRADE("&cYou don't have permission to trade with villagers on this claim", false, true, true, true),
     HURT_ANIMALS("&cYou don't have permission to hurt animals on this claim", false, true, true, true),
     READ_LECTERNS("&cYou don't have permission to read lecterns on this claim", false, true, true, true),

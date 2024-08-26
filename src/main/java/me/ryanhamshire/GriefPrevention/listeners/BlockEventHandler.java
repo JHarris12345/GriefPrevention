@@ -232,6 +232,15 @@ public class BlockEventHandler implements Listener {
                 return;
             }
 
+            // If the block is a container and they don't have container access (we don't want them to be able to place it and then not break or access it)
+            if (placeEvent.getBlock().getState() instanceof Container) {
+                if (!claim.hasClaimPermission(placeEvent.getPlayer().getUniqueId(), ClaimPermission.CONTAINER_ACCESS)) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.CONTAINER_ACCESS.getDenialMessage());
+                    placeEvent.setCancelled(true);
+                    return;
+                }
+            }
+
             // Mark the claim as having been built on
             if (!claim.builtOn && claim.created > 0) {
                 claim.builtOn = true;
