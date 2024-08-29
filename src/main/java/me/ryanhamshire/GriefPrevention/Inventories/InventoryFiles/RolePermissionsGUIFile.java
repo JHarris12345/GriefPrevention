@@ -44,15 +44,15 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.VILLAGER_TRADE.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to trade with", "&7villagers in your claim")));
 
                 customFile.set("Permissions.MODIFY_ITEM_FRAMES.Name", "&bItem Frame Interaction");
-                customFile.set("Permissions.MODIFY_ITEM_FRAMES.iCoins", 50);
+                customFile.set("Permissions.MODIFY_ITEM_FRAMES.iCoins", 25);
                 customFile.set("Permissions.MODIFY_ITEM_FRAMES.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with", "&7item frames in your claim")));
 
                 customFile.set("Permissions.MODIFY_ARMOR_STANDS.Name", "&bArmor Stand Modification");
-                customFile.set("Permissions.MODIFY_ARMOR_STANDS.iCoins", 50);
+                customFile.set("Permissions.MODIFY_ARMOR_STANDS.iCoins", 25;
                 customFile.set("Permissions.MODIFY_ARMOR_STANDS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to modify", "&7armor stands in your claim")));
 
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Name", "&bArmor Stand Editing");
-                customFile.set("Permissions.ARMOR_STAND_EDITING.iCoins", 50);
+                customFile.set("Permissions.ARMOR_STAND_EDITING.iCoins", 25);
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with armor", "&7stands using &f/aa&7 in your claim")));
 
                 customFile.set("Permissions.CONTAINER_ACCESS.Name", "&bContainer Access");
@@ -62,46 +62,46 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.HURT_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to hurt", "&7animals in your claim")));
 
                 customFile.set("Permissions.BREED_ANIMALS.Name", "&bBreed Animals");
-                customFile.set("Permissions.BREED_ANIMALS.iCoins", 50);
+                customFile.set("Permissions.BREED_ANIMALS.iCoins", 25);
                 customFile.set("Permissions.BREED_ANIMALS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to breed", "&7animals in your claim")));
 
                 customFile.set("Permissions.READ_LECTERNS.Name", "&bRead Lecterns");
                 customFile.set("Permissions.READ_LECTERNS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to read", "&7lecterns in your claim")));
 
                 customFile.set("Permissions.TRUST_UNTRUST.Name", "&bTrust Management");
-                customFile.set("Permissions.TRUST_UNTRUST.iCoins", 50);
+                customFile.set("Permissions.TRUST_UNTRUST.iCoins", 25);
                 customFile.set("Permissions.TRUST_UNTRUST.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to trust and", "&7untrust members from your claim")));
 
                 customFile.set("Permissions.PROMOTE_DEMOTE.Name", "&bManage Roles");
-                customFile.set("Permissions.PROMOTE_DEMOTE.iCoins", 50);
+                customFile.set("Permissions.PROMOTE_DEMOTE.iCoins", 25);
                 customFile.set("Permissions.PROMOTE_DEMOTE.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to promote and", "&7demote members in your claim")));
 
                 customFile.set("Permissions.MANAGE_PERMISSIONS.Name", "&bPermission Management");
-                customFile.set("Permissions.MANAGE_PERMISSIONS.iCoins", 50);
+                customFile.set("Permissions.MANAGE_PERMISSIONS.iCoins", 25);
                 customFile.set("Permissions.MANAGE_PERMISSIONS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to modify", "&7permissions for your claim")));
 
                 customFile.set("Permissions.MANAGE_SETTINGS.Name", "&bSettings Management");
-                customFile.set("Permissions.MANAGE_SETTINGS.iCoins", 50);
+                customFile.set("Permissions.MANAGE_SETTINGS.iCoins", 25);
                 customFile.set("Permissions.MANAGE_SETTINGS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to change", "&7your claim's settings")));
 
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.Name", "&bChorus Fruit Teleport");
-                customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.iCoins", 50);
+                customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.iCoins", 25);
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to teleport via", "&7chorus fruits in your claim")));
 
                 customFile.set("Permissions.THRU_ACCESS.Name", "&b/thru Access");
-                customFile.set("Permissions.THRU_ACCESS.iCoins", 50);
+                customFile.set("Permissions.THRU_ACCESS.iCoins", 25);
                 customFile.set("Permissions.THRU_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to use", "&7/thru in your claim")));
 
                 customFile.set("Permissions.SET_WARP_ACCESS.Name", "&bSet Warp Access");
-                customFile.set("Permissions.SET_WARP_ACCESS.iCoins", 50);
+                customFile.set("Permissions.SET_WARP_ACCESS.iCoins", 25);
                 customFile.set("Permissions.SET_WARP_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to set", "&7warps in your claim")));
 
                 customFile.set("Permissions.SET_HOME_ACCESS.Name", "&bSet Home Access");
-                customFile.set("Permissions.SET_HOME_ACCESS.iCoins", 50);
+                customFile.set("Permissions.SET_HOME_ACCESS.iCoins", 25);
                 customFile.set("Permissions.SET_HOME_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to set", "&7homes in your claim")));
 
                 customFile.set("Permissions.MODIFY.Name", "&bClaim Modification");
-                customFile.set("Permissions.MODIFY.iCoins", 50);
+                customFile.set("Permissions.MODIFY.iCoins", 25);
                 customFile.set("Permissions.MODIFY.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to expand and", "&7/ or resize your claim")));
 
                 customFile.save(file);
