@@ -48,7 +48,7 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.MODIFY_ITEM_FRAMES.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to interact with", "&7item frames in your claim")));
 
                 customFile.set("Permissions.MODIFY_ARMOR_STANDS.Name", "&bArmor Stand Modification");
-                customFile.set("Permissions.MODIFY_ARMOR_STANDS.iCoins", 25;
+                customFile.set("Permissions.MODIFY_ARMOR_STANDS.iCoins", 25);
                 customFile.set("Permissions.MODIFY_ARMOR_STANDS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to modify", "&7armor stands in your claim")));
 
                 customFile.set("Permissions.ARMOR_STAND_EDITING.Name", "&bArmor Stand Editing");

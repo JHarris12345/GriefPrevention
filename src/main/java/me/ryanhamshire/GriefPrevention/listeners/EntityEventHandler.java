@@ -436,6 +436,15 @@ public class EntityEventHandler implements Listener {
         }
     }
 
+    // Prevent item frame breaking from obstructions
+    @EventHandler
+    public void onItemFrame(HangingBreakEvent e) {
+        if (e.getCause() != RemoveCause.OBSTRUCTION) return;
+        if (!(e.getEntity() instanceof ItemFrame)) return;
+
+        e.setCancelled(true);
+    }
+
     @EventHandler
     public void onEntityPickUpItem(@NotNull EntityPickupItemEvent event) {
         // Hostiles are allowed to equip death drops to preserve the challenge of item retrieval.
