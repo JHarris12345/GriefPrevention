@@ -35,6 +35,7 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.CustomizableMessage;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
@@ -393,6 +394,7 @@ public abstract class DataStore {
 
         //transfer
         claim.ownerID = event.getNewOwner();
+        claim.members.remove(event.getNewOwner());
         this.saveClaim(claim);
 
         //adjust blocks and other records
