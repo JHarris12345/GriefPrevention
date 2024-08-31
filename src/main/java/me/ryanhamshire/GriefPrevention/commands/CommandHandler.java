@@ -663,13 +663,18 @@ public class CommandHandler {
             return true;
         }
 
-        // untrust <player> (all)
+        // untrust <player/uuid> (all)
         else if (cmd.getName().equalsIgnoreCase("untrust") && player != null) {
             if (args.length != 1 && args.length != 2) return false;
             if (args.length == 2 && !args[1].equalsIgnoreCase("all")) return false;
 
             boolean all = args.length == 2;
-            OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
+            UUID uuid = null;
+            try {
+                uuid = UUID.fromString(args[0]);
+            } catch (IllegalArgumentException ignored) {}
+
+            OfflinePlayer otherPlayer = (uuid == null) ? plugin.resolvePlayerByName(args[0]) : Bukkit.getOfflinePlayer(uuid);
 
             if (otherPlayer.getUniqueId().equals(player.getUniqueId()) && !plugin.dataStore.isBypassing(player.getUniqueId())) {
                 player.sendMessage(Utils.colour("&cYou can't untrust yourself"));
