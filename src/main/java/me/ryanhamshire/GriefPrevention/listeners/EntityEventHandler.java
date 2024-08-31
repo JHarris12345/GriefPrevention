@@ -306,7 +306,7 @@ public class EntityEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntitySpawn(CreatureSpawnEvent event) {
         Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(event.getLocation(), true, null);
-        if (claim != null && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.REINFORCEMENTS) {
+        if (claim != null && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
             // If the entity is a monster
             if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
                     || event.getEntity() instanceof Ghast || event.getEntity() instanceof Slime) {
