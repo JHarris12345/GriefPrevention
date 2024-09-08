@@ -725,17 +725,23 @@ public class Claim {
     }
 
     public boolean isSettingUnlocked(ClaimSetting claimSetting) {
-        //if (claimSetting.getUnlockCost() == 0) return true;
-        OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
-        String permission = claimSetting.getUnlockPermission();
+        try {
+            //if (claimSetting.getUnlockCost() == 0) return true;
+            OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
+            String permission = claimSetting.getUnlockPermission();
 
-        // They're online
-        if (owner.getPlayer() != null) {
-            return owner.getPlayer().hasPermission(permission);
+            // They're online
+            if (owner.getPlayer() != null) {
+                return owner.getPlayer().hasPermission(permission);
+            }
+
+            // They're offline - Use the stored ranks they have
+            return (this.ownerRanks.contains(permission));
+        } catch (Exception ex) {
+            GriefPrevention.plugin.getLogger().info("Issue with claim " + id);
+            ex.printStackTrace();
+            return false;
         }
-
-        // They're offline - Use the stored ranks they have
-        return (this.ownerRanks.contains(permission));
 
         // DEPRECATED - They're permission unlocks now
         // If it's a subclaim then we always take the value of the main claim
