@@ -458,6 +458,9 @@ public class GriefPrevention extends JavaPlugin {
         start = System.currentTimeMillis();
 
         AddLogEntry("Startup FINISHED. Loaded " + dataStore.claimMap.size() + " claims in " + (System.currentTimeMillis() - bootStart) + "ms");
+
+        // Ensure WildTools gets reloaded
+        Utils.sendConsoleCommand("tools reload");
     }
 
     @Override
