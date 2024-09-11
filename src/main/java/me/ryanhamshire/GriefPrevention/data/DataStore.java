@@ -1164,6 +1164,14 @@ public abstract class DataStore {
         newClaim.lesserBoundaryCorner = new ClaimCorner(world, newx1, newy1, newz1);
         newClaim.greaterBoundaryCorner = new ClaimCorner(world, newx2, newy2, newz2);
 
+        // Ensure the claim is still inside the world border
+        if (Utils.isOutsideBorder(newClaim.lesserBoundaryCorner.x, newClaim.lesserBoundaryCorner.z,newClaim.lesserBoundaryCorner.world) ||
+                Utils.isOutsideBorder(newClaim.greaterBoundaryCorner.x, newClaim.greaterBoundaryCorner.z,newClaim.greaterBoundaryCorner.world)) {
+
+            player.sendMessage(Utils.colour("&cYour claim cannot expand outside the world border"));
+            return;
+        }
+
         //call event here to check if it has been cancelled
         ClaimResizeEvent event = new ClaimModifiedEvent(oldClaim, newClaim, player); // Swap to ClaimResizeEvent when ClaimModifiedEvent is removed
         Bukkit.getPluginManager().callEvent(event);

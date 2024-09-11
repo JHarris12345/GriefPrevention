@@ -182,4 +182,21 @@ public class Utils {
             }
         }
     }
+
+    public static boolean isOutsideBorder(double x, double z, World world) {
+        double borderCenterX = world.getWorldBorder().getCenter().getX();
+        double borderCenterZ = world.getWorldBorder().getCenter().getZ();
+        double borderRadius = world.getWorldBorder().getSize() / 2;
+
+        double maxX = borderCenterX + borderRadius;
+        double minX = borderCenterX - borderRadius;
+
+        double maxZ = borderCenterZ + borderRadius;
+        double minZ = borderCenterZ - borderRadius;
+
+        if (x > maxX || x < minX) return true;
+        if (z > maxZ || z < minZ) return true;
+
+        return false;
+    }
 }
