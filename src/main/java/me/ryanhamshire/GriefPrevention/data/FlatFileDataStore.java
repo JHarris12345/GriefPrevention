@@ -326,7 +326,7 @@ public class FlatFileDataStore extends DataStore {
         List<String> ownerRanks = yaml.getStringList("OwnerRanks");
 
         //instantiate
-        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, spentICoins, claimID);
+        claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, spentICoins, claimID, new ArrayList<>());
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
 

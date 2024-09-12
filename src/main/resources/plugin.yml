@@ -35,6 +35,16 @@ commands:
     usage: /trust <player> (all)
     aliases: tr
     permission: griefprevention.claims
+  membertrust:
+    description: Adds a player to your claim as the MEMBER role (or all of your claims if you use "all" after)
+    usage: /membertrust <player> (all)
+    aliases: tr
+    permission: griefprevention.claims
+  managertrust:
+    description: Adds a player to your claim as the MANAGER role (or all of your claims if you use "all" after)
+    usage: /managertrust <player> (all)
+    aliases: tr
+    permission: griefprevention.claims
   untrust:
     description: Removes a player from your claim (or all of your claims if you use "all" after)
     usage: /untrust <player> (all)

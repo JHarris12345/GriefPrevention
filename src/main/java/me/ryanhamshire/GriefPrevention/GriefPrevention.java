@@ -1800,4 +1800,16 @@ public class GriefPrevention extends JavaPlugin {
     public String getRankFromPermission(String permission) {
         return StringUtils.capitalise(permission.split("\\.")[1].toLowerCase());
     }
+
+    public List<Claim> getAllClaims(boolean excludeSubClaims) {
+        if (!excludeSubClaims) return new ArrayList<>(dataStore.claimMap.values());
+
+        List<Claim> claims = new ArrayList<>();
+        for (Claim claim : dataStore.claimMap.values()) {
+            if (claim.parent != null) continue;
+            claims.add(claim);
+        }
+
+        return claims;
+    }
  }

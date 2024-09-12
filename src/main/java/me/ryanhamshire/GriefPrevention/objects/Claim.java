@@ -87,7 +87,7 @@ public class Claim {
     public boolean inDataStore = false;
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, HashMap<UUID, Long> spentICoins, Long id) {
+    public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, HashMap<UUID, Long> spentICoins, Long id, ArrayList<Claim> children) {
         this.modifiedDate = Calendar.getInstance().getTime();
         this.name = name;
         this.id = id;
@@ -100,6 +100,7 @@ public class Claim {
         this.created = created;
         this.builtOn = builtOn;
         this.spentICoins = spentICoins;
+        this.children = children;
 
         // If the permissions are an empty hashmap, we need to create the role maps inside it so they aren't null
         if (permissions.isEmpty()) {
@@ -234,7 +235,7 @@ public class Claim {
         ClaimCorner newLesser = new ClaimCorner(location.getWorld(), (x - howNear), y, (z - howNear));
         ClaimCorner newGreater = new ClaimCorner(location.getWorld(), (x + howNear), y, (z + howNear));
 
-        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), 0, false, new HashMap<>(), null);
+        Claim claim = new Claim(null, newLesser, newGreater, null, new HashMap<>(), new HashMap<>(), new ArrayList<>(), 0, false, new HashMap<>(), null, new ArrayList<>());
         return claim.contains(location, true);
     }
 
@@ -343,13 +344,13 @@ public class Claim {
         return this.ownerID;
     }
 
-    public boolean contains(ClaimCorner claimCorner, boolean excludeSubdivisions) {
-        return contains(claimCorner.location(), excludeSubdivisions);
+    public boolean contains(ClaimCorner claimCorner, boolean checkSubdivisions) {
+        return contains(claimCorner.location(), checkSubdivisions);
     }
 
     //whether or not a location is in a claim
-    //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE (unless the claim itself IS the sub division)
-    public boolean contains(Location location, boolean excludeSubdivisions) {
+    //checkSubdivisions = false means that locations inside subdivisions of the claim will return TRUE. If it's true, it will return false (unless the checking claim IS the sub division)
+    public boolean contains(Location location, boolean checkSubdivisions) {
         //not in the same world implies false
         if (!Objects.equals(location.getWorld(), lesserBoundaryCorner.world)) return false;
 
@@ -370,8 +371,8 @@ public class Claim {
         if (location.getBlockX() >= smallX && location.getBlockX() <= bigX &&
                 location.getBlockZ() >= smallZ && location.getBlockZ() <= bigZ) {
 
-            // The location is inside the claim. If we aren't excluding subdivisions (or the claim has no sub claims), we can just return true now
-            if (!excludeSubdivisions || this.children.isEmpty()) return true;
+            // The location is inside the claim. If we aren't checking subdivisions (or the claim has no sub claims), we can just return true now
+            if (!checkSubdivisions || this.children.isEmpty()) return true;
 
             // We ARE excluding subdivisions so now we need to see if this location is in the
             // claim's subdivision and, if it is, return false

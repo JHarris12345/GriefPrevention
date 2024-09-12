@@ -148,7 +148,7 @@ public class CommandHandler {
                     lc.getBlockY() - GriefPrevention.plugin.config_claims_claimsExtendIntoGroundDistance - 1,
                     gc.getWorld().getHighestBlockYAt(gc) - GriefPrevention.plugin.config_claims_claimsExtendIntoGroundDistance - 1,
                     lc.getBlockZ(), gc.getBlockZ(),
-                    player.getUniqueId(), null, null, player);
+                    player.getUniqueId(), null, null, player, new ArrayList<>());
             if (!result.succeeded || result.claim == null) {
                 if (result.claim != null) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapShort);
@@ -444,71 +444,17 @@ public class CommandHandler {
 
         // trust <player> (all)
         else if (cmd.getName().equalsIgnoreCase("trust") && player != null) {
-            if (args.length != 1 && args.length != 2) return false;
-            if (args.length == 2 && !args[1].equalsIgnoreCase("all")) return false;
+            return trustMethod(player, args, ClaimRole.GUEST);
+        }
 
-            boolean all = args.length == 2;
-            OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
+        // membertrust <player> (all)
+        else if (cmd.getName().equalsIgnoreCase("membertrust") && player != null) {
+            return trustMethod(player, args, ClaimRole.MEMBER);
+        }
 
-            if (!all) {
-                // determine which claim the player is standing in
-                Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
-
-                if (claim == null) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
-                    return true;
-                }
-
-                if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
-                    return true;
-                }
-
-                ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
-
-                if (targetRole != ClaimRole.PUBLIC) {
-                    GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is already part of this claim");
-                    return true;
-                }
-
-                claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
-
-                player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim. Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName()));
-                if (otherPlayer.isOnline()) {
-                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
-                }
-
-                // Log it
-                MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
-
-                // save changes
-                plugin.dataStore.saveClaim(claim);
-                return true;
-
-            } else {
-                PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
-                Vector<Claim> claims = playerData.getClaims(true);
-
-                for (Claim claim : claims) {
-                    ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
-                    if (targetRole != ClaimRole.PUBLIC) continue;
-
-                    claim.members.put(otherPlayer.getUniqueId(), ClaimRole.GUEST);
-
-                    // Log it
-                    MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id, true);
-
-                    // save changes
-                    plugin.dataStore.saveClaim(claim);
-                }
-
-                player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to &lall&a of your claims. Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName() + " all"));
-                if (otherPlayer.isOnline()) {
-                    otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to all of their claims"));
-                }
-            }
-
-            return true;
+        // managertrust <player> (all)
+        else if (cmd.getName().equalsIgnoreCase("managertrust") && player != null) {
+            return trustMethod(player, args, ClaimRole.MANAGER);
         }
 
         // transferclaim <player>
@@ -1747,5 +1693,73 @@ public class CommandHandler {
         }
 
         return null;
+    }
+
+    private boolean trustMethod(Player player, String[] args, ClaimRole defaultTrustRole) {
+        if (args.length != 1 && args.length != 2) return false;
+        if (args.length == 2 && !args[1].equalsIgnoreCase("all")) return false;
+
+        boolean all = args.length == 2;
+        OfflinePlayer otherPlayer = Bukkit.getOfflinePlayer(args[0]);
+
+        if (!all) {
+            // determine which claim the player is standing in
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, false, null);
+
+            if (claim == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "You are not standing in a claim");
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.TRUST_UNTRUST)) {
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.TRUST_UNTRUST.getDenialMessage());
+                return true;
+            }
+
+            ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+
+            if (targetRole != ClaimRole.PUBLIC) {
+                GriefPrevention.sendMessage(player, TextMode.Err, "" + otherPlayer.getName() + " is already part of this claim");
+                return true;
+            }
+
+            claim.members.put(otherPlayer.getUniqueId(), defaultTrustRole);
+
+            player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to this claim as a " + defaultTrustRole.name() + ". Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName()));
+            if (otherPlayer.isOnline()) {
+                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to their claim"));
+            }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id + " as a " + defaultTrustRole.name(), true);
+
+            // save changes
+            plugin.dataStore.saveClaim(claim);
+            return true;
+
+        } else {
+            PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
+            Vector<Claim> claims = playerData.getClaims(true);
+
+            for (Claim claim : claims) {
+                ClaimRole targetRole = claim.getPlayerRole(otherPlayer.getUniqueId());
+                if (targetRole != ClaimRole.PUBLIC) continue;
+
+                claim.members.put(otherPlayer.getUniqueId(), defaultTrustRole);
+
+                // Log it
+                MemberModificationLogs.logToFile(player.getName() + " trusted " + otherPlayer.getName() + " on claim " + claim.id + " as a " + defaultTrustRole.name(), true);
+
+                // save changes
+                plugin.dataStore.saveClaim(claim);
+            }
+
+            player.sendMessage(Utils.colour("&aYou added " + otherPlayer.getName() + " to &lall&a of your claims as a " + defaultTrustRole.name() + ". Edit their permissions with &o/claimmenu &aor remove them again using &o/untrust " + otherPlayer.getName() + " all"));
+            if (otherPlayer.isOnline()) {
+                otherPlayer.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " added you to all of their claims"));
+            }
+        }
+
+        return true;
     }
 }

@@ -1494,7 +1494,7 @@ public class PlayerEventHandler implements Listener {
                                     playerData.lastShovelLocation.getBlockZ(), clickedBlock.getZ(),
                                     null,  //owner is not used for subdivisions
                                     playerData.claimSubdividing,
-                                    null, player);
+                                    null, player, new ArrayList<>());
 
                             //if it didn't succeed, tell the player why
                             if (!result.succeeded || result.claim == null) {
@@ -1623,7 +1623,8 @@ public class PlayerEventHandler implements Listener {
                         lastShovelLocation.getBlockZ(), clickedBlock.getZ(),
                         playerID,
                         null, null,
-                        player);
+                        player,
+                        new ArrayList<>());
 
                 //if it didn't succeed, tell the player why
                 if (!result.succeeded || result.claim == null) {

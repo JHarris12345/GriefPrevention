@@ -809,8 +809,8 @@ public abstract class DataStore {
     /*
      * Creates a claim and flags it as being new....throwing a create claim event;
      */
-    synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer) {
-        return createClaim(world, x1, x2, y1, y2, z1, z2, ownerID, parent, id, creatingPlayer, false);
+    synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, ArrayList<Claim> children) {
+        return createClaim(world, x1, x2, y1, y2, z1, z2, ownerID, parent, id, creatingPlayer, false, children);
     }
 
     //creates a claim.
@@ -824,7 +824,7 @@ public abstract class DataStore {
     //does NOT check a player has permission to create a claim, or enough claim blocks.
     //does NOT check minimum claim size constraints
     //does NOT visualize the new claim for any players
-    synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, boolean dryRun) {
+    synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, boolean dryRun, ArrayList<Claim> children) {
         CreateClaimResult result = new CreateClaimResult();
 
         int smallx, bigx, smally, bigy, smallz, bigz;
@@ -889,9 +889,23 @@ public abstract class DataStore {
                 System.currentTimeMillis(),
                 false,
                 new HashMap<>(),
-                id);
+                id,
+                children);
 
         newClaim.parent = parent;
+
+        // Ensure the sub claims are still within the parent claim (if it's a parent with sub claims)
+        if (newClaim.parent == null && !newClaim.children.isEmpty()) {
+            for (Claim child : newClaim.children) {
+                if (!newClaim.contains(child.lesserBoundaryCorner, false) || !newClaim.contains(child.greaterBoundaryCorner, false)) {
+                    //result = fail, return conflicting claim
+                    result.succeeded = false;
+                    result.claim = child;
+
+                    return result;
+                }
+            }
+        }
 
         //ensure this new claim won't overlap any existing claims
         ArrayList<Claim> claimsToCheck;
@@ -899,7 +913,7 @@ public abstract class DataStore {
             claimsToCheck = newClaim.parent.children;
         }
         else {
-            claimsToCheck = new ArrayList<>(this.claimMap.values());
+            claimsToCheck = (ArrayList<Claim>) GriefPrevention.plugin.getAllClaims(true);
         }
 
         for (Claim otherClaim : claimsToCheck) {
@@ -1078,7 +1092,7 @@ public abstract class DataStore {
     //see CreateClaim() for details on return value
     synchronized public CreateClaimResult resizeClaim(Claim claim, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2, Player resizingPlayer) {
         //try to create this new claim, ignoring the original when checking for overlap
-        CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().world, newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
+        CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().world, newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true, claim.children);
 
         //if succeeded
         if (result.succeeded) {
@@ -1191,6 +1205,8 @@ public abstract class DataStore {
                 oldClaim.removeSurfaceFluids(newClaim);
             }
         }
+
+        // Ensure that all the sub claims are still inside the new claim if it's a main claim
 
         //ask the datastore to try and resize the claim, this checks for conflicts with other claims
         CreateClaimResult result = GriefPrevention.plugin.dataStore.resizeClaim(
