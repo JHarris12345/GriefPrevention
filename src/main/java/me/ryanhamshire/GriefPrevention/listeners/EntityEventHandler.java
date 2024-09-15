@@ -524,11 +524,8 @@ public class EntityEventHandler implements Listener {
     @EventHandler
     public void onWindCharge(EntityExplodeEvent e) {
         if (e.getEntityType() != EntityType.WIND_CHARGE) return;
-        System.out.println(1);
         if (!(e.getEntity() instanceof Projectile projectile)) return;
-        System.out.println(2);
         if (!(projectile.getShooter() instanceof Player player)) return;
-        System.out.println(3);
 
         Claim claim = dataStore.getClaimAt(e.getLocation(), true, null);
         if (claim == null) return;
