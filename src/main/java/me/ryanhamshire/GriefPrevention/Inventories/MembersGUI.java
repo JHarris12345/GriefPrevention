@@ -43,14 +43,14 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
 
     private void addContents(Claim claim) {
         super.addContents(inv, true, GUIBackgroundType.FILLED);
-
-        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        List<String> lore = new ArrayList<>();
         HashMap<UUID, ClaimRole> members = claim.getClaimMembers(true);
 
         int slot = 0;
         for (UUID memberUUID : members.keySet()) {
+            ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) item.getItemMeta();
+            List<String> lore = new ArrayList<>();
+
             OfflinePlayer player = Bukkit.getOfflinePlayer(memberUUID);
             ClaimRole claimRole = claim.getPlayerRole(player.getUniqueId());
             String role = claimRole.name().substring(0, 1).toUpperCase() + claimRole.name().substring(1).toLowerCase();
