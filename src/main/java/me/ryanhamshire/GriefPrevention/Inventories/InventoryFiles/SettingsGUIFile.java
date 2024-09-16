@@ -79,6 +79,21 @@ public class SettingsGUIFile {
                 customFile.set("Settings.GRASS_SPREAD.Item", "GRASS_BLOCK");
                 customFile.set("Settings.GRASS_SPREAD.Lore", new ArrayList<>(Arrays.asList("&7Grass will not spread with", "&7this set to disabled")));
 
+                customFile.set("Settings.MYCELIUM_SPREAD.Name", "&bMycelium Spread");
+                customFile.set("Settings.MYCELIUM_SPREAD.Permission", "group.legend");
+                customFile.set("Settings.MYCELIUM_SPREAD.Item", "MYCELIUM");
+                customFile.set("Settings.MYCELIUM_SPREAD.Lore", new ArrayList<>(Arrays.asList("&7Mycelium will not spread with", "&7this set to disabled")));
+
+                customFile.set("Settings.SCULK_SPREAD.Name", "&bSculk Spread");
+                customFile.set("Settings.SCULK_SPREAD.Permission", "group.infinite");
+                customFile.set("Settings.SCULK_SPREAD.Item", "SCULK");
+                customFile.set("Settings.SCULK_SPREAD.Lore", new ArrayList<>(Arrays.asList("&7Sculk will not spread with", "&7this set to disabled")));
+
+                customFile.set("Settings.CONCRETE_FORMING.Name", "&bConcrete Formation");
+                customFile.set("Settings.CONCRETE_FORMING.Permission", "group.empyrean");
+                customFile.set("Settings.CONCRETE_FORMING.Item", "CYAN_CONCRETE_POWDER");
+                customFile.set("Settings.CONCRETE_FORMING.Lore", new ArrayList<>(Arrays.asList("&7Concrete powder will not turn into", "&7concrete with this set to disabled")));
+
                 customFile.set("Settings.VINE_GROWTH.Name", "&bVine Growth");
                 customFile.set("Settings.VINE_GROWTH.Permission", "group.empyrean");
                 customFile.set("Settings.VINE_GROWTH.Item", "VINE");

@@ -1065,6 +1065,26 @@ public class BlockEventHandler implements Listener {
 
             e.setCancelled(true);
         }
+
+        // Mycelium spread
+        if (e.getNewState().getType() == Material.MYCELIUM) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.MYCELIUM_SPREAD)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Sculk spread
+        if (e.getNewState().getType() == Material.SCULK || e.getNewState().getType() == Material.SCULK_VEIN) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.MYCELIUM_SPREAD)) return;
+
+            e.setCancelled(true);
+        }
     }
 
 
@@ -1100,6 +1120,16 @@ public class BlockEventHandler implements Listener {
 
             if (claim == null) return;
             if (claim.isSettingEnabled(ClaimSetting.COPPER_WEATHERING)) return;
+
+            e.setCancelled(true);
+        }
+
+        // Concrete form
+        if (e.getBlock().getType().toString().contains("CONCRETE_POWDER")) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.CONCRETE_FORMING)) return;
 
             e.setCancelled(true);
         }

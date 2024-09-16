@@ -12,6 +12,8 @@ public enum ClaimSetting {
     ICE_FORM(ClaimSettingValue.TRUE),
     LEAF_DECAY(ClaimSettingValue.TRUE),
     GRASS_SPREAD(ClaimSettingValue.TRUE),
+    MYCELIUM_SPREAD(ClaimSettingValue.TRUE),
+    SCULK_SPREAD(ClaimSettingValue.TRUE),
     CROP_GROWTH(ClaimSettingValue.TRUE),
     COPPER_WEATHERING(ClaimSettingValue.TRUE),
     NATURAL_MONSTER_SPAWNS(ClaimSettingValue.TRUE),
@@ -20,6 +22,7 @@ public enum ClaimSetting {
     NATURAL_ANIMAL_SPAWNS(ClaimSettingValue.TRUE),
     VINE_GROWTH(ClaimSettingValue.TRUE),
     CORAL_DRY(ClaimSettingValue.TRUE),
+    CONCRETE_FORMING(ClaimSettingValue.TRUE),
     ;
 
     private final ClaimSettingValue settingDefaultValue;
