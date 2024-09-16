@@ -1757,6 +1757,21 @@ public class PlayerEventHandler implements Listener {
         }
     }
 
+    // Prevent use of /jump in claims they don't have the required perms
+    @EventHandler
+    public void onJump(PlayerCommandPreprocessEvent e) {
+        if (!e.getMessage().equalsIgnoreCase("/j") && !e.getMessage().equalsIgnoreCase("/jump") &&
+                !e.getMessage().equalsIgnoreCase("/jumpto")) return;
+
+        Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.JUMP_ACCESS)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.JUMP_ACCESS.getDenialMessage()));
+        }
+    }
+
     // Prevent use of /setwarp in claims they don't have the required perms
     @EventHandler
     public void onSetWarp(PlayerCommandPreprocessEvent e) {
