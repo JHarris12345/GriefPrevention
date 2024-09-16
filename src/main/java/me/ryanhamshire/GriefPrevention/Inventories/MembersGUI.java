@@ -58,7 +58,6 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
             if (player.getName() == null) continue;
             meta.setDisplayName(Utils.colour(MembersGUIFile.get().getString("Head.Name").replaceAll("%name%", player.getName())));
 
-            lore.clear();
             for (String loreLine : MembersGUIFile.get().getStringList("Head.Lore")) {
                 lore.add(Utils.colour(loreLine.replaceAll("%role%", role)));
             }
