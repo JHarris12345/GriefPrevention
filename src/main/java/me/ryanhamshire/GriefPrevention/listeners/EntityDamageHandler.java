@@ -42,6 +42,7 @@ import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -144,10 +145,13 @@ public class EntityDamageHandler implements Listener {
         // JHarris - Ignore NPCs
         if (event.getEntity().hasMetadata("NPC")) return;
 
-        //monsters are never protected
+        // monsters are never protected
         if (isHostile(event.getEntity())) return;
 
-        //horse protections can be disabled
+        // Entities spawned as a result of the death of another entity are not protected
+        if (event.getEntity().getEntitySpawnReason() == CreatureSpawnEvent.SpawnReason.REINFORCEMENTS) return;
+
+        // horse protections can be disabled
         if (event.getEntity() instanceof Horse && !instance.config_claims_protectHorses) return;
         if (event.getEntity() instanceof Donkey && !instance.config_claims_protectDonkeys) return;
         if (event.getEntity() instanceof Mule && !instance.config_claims_protectDonkeys) return;
