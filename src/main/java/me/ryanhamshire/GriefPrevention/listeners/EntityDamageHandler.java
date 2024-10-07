@@ -14,12 +14,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.AnimalTamer;
 import org.bukkit.entity.Animals;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Donkey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.EvokerFangs;
 import org.bukkit.entity.Explosive;
+import org.bukkit.entity.Hanging;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.LightningStrike;
@@ -693,4 +695,12 @@ public class EntityDamageHandler implements Listener {
         }
     }
 
+    // Prevent explosions breaking entities in claims
+    @EventHandler(ignoreCancelled = true)
+    public void onExplosion(EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof Hanging) && !(e.getEntity() instanceof ArmorStand) && !(e.getEntity() instanceof ItemFrame)) return;
+        if (e.getCause() != EntityDamageEvent.DamageCause.BLOCK_EXPLOSION && e.getCause() != EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) return;
+
+        e.setCancelled(true);
+    }
 }

@@ -62,6 +62,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
@@ -410,6 +411,12 @@ public class EntityEventHandler implements Listener {
     @EventHandler
     public void onItemFrame(HangingBreakByEntityEvent e) {
         if (!(e.getEntity() instanceof ItemFrame)) return;
+
+        // Always protect from explosions
+        if (e.getCause() == RemoveCause.EXPLOSION) {
+            e.setCancelled(true);
+            return;
+        }
 
         Player player = null;
         if (e.getRemover() instanceof Player) {
