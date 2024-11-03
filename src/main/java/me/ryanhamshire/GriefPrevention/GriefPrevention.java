@@ -298,6 +298,8 @@ public class GriefPrevention extends JavaPlugin {
     public DecimalFormat df = new DecimalFormat("#,###.##");
     private CommandHandler commandHandler;
 
+    public long iCoinSpend = 0; // The total amount of iCoins spent on claims
+
     public HashMap<UUID, Integer> adminViewers = new HashMap<>(); // A map of admin players and whose claim (ID) menu they are currently viewing
 
     //how far away to search from a tree trunk for its branch blocks
@@ -390,6 +392,7 @@ public class GriefPrevention extends JavaPlugin {
                 e.printStackTrace();
             }
 
+            plugin.getLogger().info("Loaded the claims. Total iCoin spend on all claims is " + df.format(iCoinSpend));
             plugin.getLogger().info("Startup stage 3 complete in " + (System.currentTimeMillis() - start) + "ms");
             start = System.currentTimeMillis();
         }

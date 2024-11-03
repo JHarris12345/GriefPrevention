@@ -68,6 +68,7 @@ import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockIgniteEvent.IgniteCause;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
@@ -1170,6 +1171,33 @@ public class BlockEventHandler implements Listener {
             if (claim.isSettingEnabled(ClaimSetting.CORAL_DRY)) return;
 
             e.setCancelled(true);
+        }
+    }
+
+
+
+    // When concrete powder is placed in water, it places as concrete. We need to reverse that (as I can't find any event to cancel it)
+    // NOTE: We cannot use the e.getBlockReplacedState() because if you break and place the block VERY quick, then it replaces AIR and not WATER
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void onConcreteForm(BlockPlaceEvent e) {
+        Block placed = e.getBlock();
+        String material = placed.getType().toString();
+
+        if (!material.contains("CONCRETE")) return;
+
+        Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+        if (claim == null) return;
+        if (claim.isSettingEnabled(ClaimSetting.CONCRETE_FORMING)) return;
+
+        // Check if any adjacent block is water
+        for (BlockFace face : BlockFace.values()) {
+            Block adjacentBlock = placed.getRelative(face);
+
+            if (adjacentBlock.getType() == Material.WATER) {
+                placed.setType(Material.valueOf(material + "_POWDER"));
+                return;
+            }
         }
     }
 }

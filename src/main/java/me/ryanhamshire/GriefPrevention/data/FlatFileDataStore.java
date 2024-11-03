@@ -297,7 +297,7 @@ public class FlatFileDataStore extends DataStore {
             }
         }
 
-        // Old data - all members should be the lowest role (GUEST)
+        // Old data - all members should be the MEMBER role
         else {
             for (String entry : yaml.getStringList("Builders")) {
                 try {
@@ -309,10 +309,12 @@ public class FlatFileDataStore extends DataStore {
         }
 
         ConfigurationSection iCoinsSection = yaml.getConfigurationSection("SpentICoins");
-
         if (iCoinsSection != null) {
             for (String uuidKey : iCoinsSection.getKeys(false)) {
-                spentICoins.put(UUID.fromString(uuidKey), yaml.getLong("SpentICoins." + uuidKey));
+                long iCoins = yaml.getLong("SpentICoins." + uuidKey);
+                spentICoins.put(UUID.fromString(uuidKey), iCoins);
+
+                GriefPrevention.getInstance().iCoinSpend += iCoins;
             }
         }
 
