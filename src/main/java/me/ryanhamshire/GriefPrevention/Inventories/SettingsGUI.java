@@ -45,8 +45,8 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
         this.player = player;
         this.waterfall = waterfall;
 
-        this.addContents(claim);
         claim.setOwnerRanks(true);
+        this.addContents(claim);
     }
 
     private void addContents(Claim claim) {
