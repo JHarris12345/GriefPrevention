@@ -1442,7 +1442,7 @@ public class CommandHandler {
 
                 claim.logSpentICoins(player, permission.getUnlockCost(), false); // Must be done BEFORE claim.unlockClaimPermission so it's saved
                 claim.unlockClaimPermission(permission);
-                player.sendMessage(Utils.colour("&aYou just unlocked the " + permission + " permission for this claim"));
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + permission + " permission for all of your claims"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());
 
                 long id = (claim.parent == null) ? claim.id : claim.parent.id;

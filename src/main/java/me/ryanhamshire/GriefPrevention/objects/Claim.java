@@ -631,8 +631,21 @@ public class Claim {
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
         if (claimPermission.getUnlockCost() == 0) return true;
 
+        // THIS WAS IF THE UNLOCKS WERE PER CLAIM AND NOT FOR EVERY CLAIM
         // If it's a subclaim then we always take the value of the main claim
-        return (parent == null) ? unlockedPermissions.contains(claimPermission) : parent.unlockedPermissions.contains(claimPermission);
+        //return (parent == null) ? unlockedPermissions.contains(claimPermission) : parent.unlockedPermissions.contains(claimPermission);
+
+        // THIS IS FOR IF UNLOCKS ARE FOR EVERY CLAIM
+        // If the owner of the claim has unlockked this permission on ANY of their claims, it's unlocked
+        // First check this claim as it saves time if it's unlocked for this specific claim
+        if (unlockedPermissions.contains(claimPermission)) return true;
+
+        // Now check all their claims
+        for (Claim claim : GriefPrevention.getInstance().dataStore.getPlayerClaims(ownerID, false)) {
+            if (claim.unlockedPermissions.contains(claimPermission)) return true;
+        }
+
+        return false;
     }
 
     public boolean isSettingEnabled(ClaimSetting setting) {

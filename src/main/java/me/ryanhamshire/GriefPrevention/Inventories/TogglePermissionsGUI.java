@@ -82,13 +82,13 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
 
                 if (!Utils.isPlayerBedrock(player.getUniqueId())) {
                     lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability to toggle"));
-                    lore.add(Utils.colour("&cthis permission for this claim and all its"));
-                    lore.add(Utils.colour("&croles for &l" + unlockCost + " iCoins"));
+                    lore.add(Utils.colour("&cthis permission for &l" + unlockCost + " iCoins&c. This will"));
+                    lore.add(Utils.colour("&cunlock it for &lALL&c of your claims"));
 
                 } else {
                     lore.add(Utils.colour("&cUnlock the ability to toggle this permission for"));
-                    lore.add(Utils.colour("&cthis claim and all its roles for &l" + unlockCost + " iCoins"));
-                    lore.add(Utils.colour("&cusing the command:"));
+                    lore.add(Utils.colour("&c&lALL &cof your claims for &l" + unlockCost + " iCoins using"));
+                    lore.add(Utils.colour("&the command:"));
                     lore.add(Utils.colour("&c&o/unlockclaimpermission " + claimPermission.name()));
                 }
             }
@@ -169,7 +169,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
 
                 claim.logSpentICoins(player, permission.getUnlockCost(), false); // Must be done BEFORE claim.unlockClaimPermission so it's saved
                 claim.unlockClaimPermission(permission);
-                player.sendMessage(Utils.colour("&aYou just unlocked the " + permissionName + " permission for this claim"));
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + permissionName + " permission for all of your claims"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + permission.getUnlockCost());
                 refreshContents(claim);
 

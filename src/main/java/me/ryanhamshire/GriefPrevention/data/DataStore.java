@@ -1684,4 +1684,17 @@ public abstract class DataStore {
             }
         }
     }
+
+    public List<Claim> getPlayerClaims(UUID uuid, boolean includeSubClaims) {
+        List<Claim> claims = new ArrayList<>();
+
+        for (Claim claim : claimMap.values()) {
+            if (!uuid.equals(claim.ownerID)) continue;
+            if (claim.parent != null && !includeSubClaims) continue;
+
+            claims.add(claim);
+        }
+
+        return claims;
+    }
 }
