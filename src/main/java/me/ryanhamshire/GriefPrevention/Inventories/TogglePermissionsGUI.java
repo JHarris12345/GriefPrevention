@@ -87,8 +87,7 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
 
                 } else {
                     lore.add(Utils.colour("&cUnlock the ability to toggle this permission for"));
-                    lore.add(Utils.colour("&c&lALL &cof your claims for &l" + unlockCost + " iCoins using"));
-                    lore.add(Utils.colour("&the command:"));
+                    lore.add(Utils.colour("&c&lALL &cof your claims for &l" + unlockCost + " iCoins&c using:"));
                     lore.add(Utils.colour("&c&o/unlockclaimpermission " + claimPermission.name()));
                 }
             }
