@@ -1678,10 +1678,11 @@ public abstract class DataStore {
     //deletes all the land claims in a specified world
     public void deleteClaimsInWorld(World world, boolean deleteAdminClaims) {
         for (Claim claim : claimMap.values()) {
-            if (claim.getLesserBoundaryCorner().world.equals(world)) {
-                if (!deleteAdminClaims && claim.isAdminClaim()) continue;
-                this.deleteClaim(claim, false, false);
-            }
+            World claimWorld = claim.getLesserBoundaryCorner().world;
+            if (claimWorld == null || !claimWorld.equals(world)) continue;
+
+            if (!deleteAdminClaims && claim.isAdminClaim()) continue;
+            this.deleteClaim(claim, false, false);
         }
     }
 
