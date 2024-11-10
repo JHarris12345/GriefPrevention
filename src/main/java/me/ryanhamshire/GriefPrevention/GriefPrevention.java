@@ -1769,7 +1769,7 @@ public class GriefPrevention extends JavaPlugin {
                 }
 
                 // Get all the nearby claims
-                Set<Claim> claims = plugin.dataStore.getNearbyClaims(player.getLocation());
+                Set<Claim> claims = plugin.dataStore.getNearbyClaims(player.getLocation(), 25);
 
                 int playerX = player.getLocation().getBlockX();
                 int playerY = player.getLocation().getBlockY();

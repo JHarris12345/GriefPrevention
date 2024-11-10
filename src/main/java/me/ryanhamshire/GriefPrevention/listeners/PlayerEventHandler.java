@@ -1148,7 +1148,7 @@ public class PlayerEventHandler implements Listener {
                 //if holding shift (sneaking), show all claims in area
                 if (player.isSneaking() && player.hasPermission("griefprevention.visualizenearbyclaims")) {
                     //find nearby claims
-                    Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation());
+                    Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation(), 50);
 
                     // alert plugins of a claim inspection, return if cancelled
                     ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, null, claims, true);

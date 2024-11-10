@@ -1651,16 +1651,18 @@ public abstract class DataStore {
     }
 
     //gets all the claims "near" a location
-    public Set<Claim> getNearbyClaims(Location location) {
+    public Set<Claim> getNearbyClaims(Location location, int distance) {
         Set<Claim> claims = new HashSet<>();
 
-        Chunk lesserChunk = location.getWorld().getChunkAt(location.subtract(150, 0, 150));
-        Chunk greaterChunk = location.getWorld().getChunkAt(location.add(300, 0, 300));
+        int lesserChunkX = (location.getBlockX() - distance) >> 4;
+        int lesserChunkZ = (location.getBlockZ() - distance) >> 4;
 
-        for (int chunk_x = lesserChunk.getX(); chunk_x <= greaterChunk.getX(); chunk_x++) {
-            for (int chunk_z = lesserChunk.getZ(); chunk_z <= greaterChunk.getZ(); chunk_z++) {
-                Chunk chunk = location.getWorld().getChunkAt(chunk_x, chunk_z);
-                Long chunkID = getChunkHash(chunk.getBlock(0, 0, 0).getLocation());
+        int greaterChunkX = (location.getBlockX() + distance) >> 4;
+        int greaterChunkZ = (location.getBlockZ() + distance) >> 4;
+
+        for (int chunk_x = lesserChunkX; chunk_x <= greaterChunkX; chunk_x++) {
+            for (int chunk_z = lesserChunkZ; chunk_z <= greaterChunkZ; chunk_z++) {
+                Long chunkID = getChunkHash(chunk_x, chunk_z);
                 ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
                 if (claimsInChunk != null) {
                     for (Claim claim : claimsInChunk) {
