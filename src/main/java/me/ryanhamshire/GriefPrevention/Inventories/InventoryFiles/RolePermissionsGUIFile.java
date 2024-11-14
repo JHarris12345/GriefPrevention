@@ -88,6 +88,10 @@ public class RolePermissionsGUIFile {
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.iCoins", 25);
                 customFile.set("Permissions.CHORUS_FRUIT_TELEPORT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to teleport via", "&7chorus fruits in your claim")));
 
+                customFile.set("Permissions.ENDER_PEARL_TELEPORT.Name", "&bEnder Pearl Teleport");
+                customFile.set("Permissions.ENDER_PEARL_TELEPORT.iCoins", 25);
+                customFile.set("Permissions.ENDER_PEARL_TELEPORT.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to teleport via", "&7ender pearls in your claim")));
+
                 customFile.set("Permissions.THRU_ACCESS.Name", "&b/thru Access");
                 customFile.set("Permissions.THRU_ACCESS.iCoins", 25);
                 customFile.set("Permissions.THRU_ACCESS.Lore", new ArrayList<>(Arrays.asList("&7Toggle the ability to use", "&7/thru in your claim")));

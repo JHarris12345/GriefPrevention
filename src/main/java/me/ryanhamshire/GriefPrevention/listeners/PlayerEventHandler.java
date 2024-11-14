@@ -429,7 +429,7 @@ public class PlayerEventHandler implements Listener {
 
     // Chorus fruit teleport permission
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
+    public void onFruitTeleport(PlayerTeleportEvent event) {
         if (event.getCause() != TeleportCause.CHORUS_FRUIT) return;
 
         Player player = event.getPlayer();
@@ -441,6 +441,23 @@ public class PlayerEventHandler implements Listener {
         if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.CHORUS_FRUIT_TELEPORT)) {
             event.setCancelled(true);
             GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.CHORUS_FRUIT_TELEPORT.getDenialMessage());
+        }
+    }
+
+    // Ender pearl teleport permission
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPearlTeleport(PlayerTeleportEvent event) {
+        if (event.getCause() != TeleportCause.ENDER_PEARL) return;
+
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+        Claim claim = this.dataStore.getClaimAt(event.getTo(), false, playerData.lastClaim);
+
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.ENDER_PEARL_TELEPORT)) {
+            event.setCancelled(true);
+            GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.ENDER_PEARL_TELEPORT.getDenialMessage());
         }
     }
 

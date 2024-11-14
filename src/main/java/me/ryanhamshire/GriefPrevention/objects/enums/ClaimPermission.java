@@ -18,6 +18,7 @@ public enum ClaimPermission {
     ARMOR_STAND_EDITING("&cYou don't have permission to edit armor stands on this claim", false, false, true, true),
     BREED_ANIMALS("&cYou don't have permission to breed animals on this claim", false, true, true, true),
     CHORUS_FRUIT_TELEPORT("&cYou don't have permission to teleport via chorus fruits on this claim", true, true, true, true),
+    ENDER_PEARL_TELEPORT("&cYou don't have permission to teleport via ender pearls on this claim", true, true, true, true),
     THRU_ACCESS("&cYou don't have permission to use /thru on this claim", true, true, true, true),
     JUMP_ACCESS("&cYou don't have permission to use /jump on this claim", true, true, true, true),
     SET_WARP_ACCESS("&cYou don't have permission to set warps on this claim", false, true, true, true),
