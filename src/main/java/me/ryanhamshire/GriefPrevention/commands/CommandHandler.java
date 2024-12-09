@@ -1677,7 +1677,9 @@ public class CommandHandler {
                     if (claim != null) {
                         for (UUID uuid : claim.getClaimMembers(false).keySet()) {
                             OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
-                            completions.add(Utils.getOfflinePlayerNameFast(p));
+                            String name = Utils.getOfflinePlayerNameFast(p);
+
+                            if (name != null) completions.add(name);
                         }
 
                         return Utils.tabComplete(args[0], completions);
