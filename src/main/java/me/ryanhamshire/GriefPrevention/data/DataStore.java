@@ -743,7 +743,7 @@ public abstract class DataStore {
         return null;
     }
 
-    //finds a claim by ID
+    // finds a claim by ID
     public synchronized Claim getClaim(long id) {
         /*for (Claim claim : this.claims) {
             if (claim.inDataStore) {

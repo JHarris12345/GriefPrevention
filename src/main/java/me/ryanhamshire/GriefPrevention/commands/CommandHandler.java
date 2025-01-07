@@ -1000,6 +1000,36 @@ public class CommandHandler {
             }
         }
 
+        // claimtp <id>
+        else if (cmd.getName().equalsIgnoreCase("claimtp")) {
+            if (args.length != 1) return false;
+
+            long id;
+            try {
+                id = Long.parseLong(args[0]);
+            } catch (NumberFormatException ex) {
+                sender.sendMessage(Utils.colour("&c'" + args[0] + "' is an invalid claim ID"));
+                return true;
+            }
+
+            Claim claim = plugin.dataStore.getClaim(id);
+            if (claim == null) {
+                sender.sendMessage(Utils.colour("&cThere is no claim with the ID '" + id + "'"));
+                return true;
+            }
+
+            if (!claim.ownerID.equals(player.getUniqueId()) && !player.hasPermission("griefprevention.claimslistother")) {
+                sender.sendMessage(Utils.colour("&cYou don't have permission to teleport to claims you don't own"));
+                return true;
+            }
+
+            Location location = new Location(claim.lesserBoundaryCorner.world, claim.lesserBoundaryCorner.x, 100, claim.lesserBoundaryCorner.z);
+
+            player.teleport(location.toHighestLocation().add(0, 3, 0));
+            player.sendMessage(Utils.colour("&aYou teleported to claim ID " + id));
+            return true;
+        }
+
         // claimslist or claimslist <player>
         else if (cmd.getName().equalsIgnoreCase("claimslist")) {
             // at most one parameter
@@ -1048,12 +1078,10 @@ public class CommandHandler {
 
                     String claimName = (claim.name != null) ? claim.name + " - " : "";
                     String coords = claim.getLesserBoundaryCorner().world.getName() + ": " + claim.getLesserBoundaryCorner().x + " " + claim.getLesserBoundaryCorner().z;
-                    String world = claim.getLesserBoundaryCorner().world.getName();
                     String area = plugin.df.format(claim.getArea()) + " blocks";
 
                     TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ") &8(id: " + claim.id + ")"));
-                    line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tppos " +
-                            claim.getLesserBoundaryCorner().x + " 100 " + claim.getLesserBoundaryCorner().z + " " + world));
+                    line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claimtp " + claim.id));
 
                     player.spigot().sendMessage(line);
                     // GriefPrevention.sendMessage(player, TextMode.Instr, );

@@ -54,6 +54,10 @@ commands:
     description: Name the claim you're standing in
     usage: /nameclaim <name>
     permission: griefprevention.claims
+  claimtp:
+    description: Teleport to a claim
+    usage: /claimtp <claim ID>
+    permission: griefprevention.claims
   subdivideclaims:
     description: Switches the shovel tool to subdivision mode, used to subdivide your claims.
     usage: /SubdivideClaims
