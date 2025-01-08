@@ -35,6 +35,7 @@ import me.ryanhamshire.GriefPrevention.objects.CreateClaimResult;
 import me.ryanhamshire.GriefPrevention.objects.CustomizableMessage;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
@@ -877,14 +878,27 @@ public abstract class DataStore {
             smally = world.getMinHeight();
         }
 
+        // To clone the permissions map, we must do it this way instead of just new HashMap<>(parent.permissions)
+        // because that won't clone the internal map so it will hold reference to the old permissions still
+        HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions = new HashMap<>();
+        if (parent != null) {
+            for (Map.Entry<ClaimRole, HashMap<ClaimPermission, Boolean>> entry : parent.permissions.entrySet()) {
+                // Create a new HashMap for each inner map (deep copy)
+                HashMap<ClaimPermission, Boolean> clonedInnerMap = new HashMap<>(entry.getValue());
+
+                // Put the cloned inner map into the new map with the same key
+                permissions.put(entry.getKey(), clonedInnerMap);
+            }
+        }
+
         //create a new claim instance (but don't save it, yet)
         Claim newClaim = new Claim(
                 null,
                 new ClaimCorner(world, smallx, smally, smallz),
                 new ClaimCorner(world, bigx, bigy, bigz),
                 ownerID,
-                new HashMap<>(),
-                new HashMap<>(),
+                (parent == null) ? new HashMap<>() : new HashMap<>(parent.members),
+                (parent == null) ? new HashMap<>() : permissions,
                 new ArrayList<>(),
                 System.currentTimeMillis(),
                 false,
