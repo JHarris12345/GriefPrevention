@@ -1823,6 +1823,26 @@ public class PlayerEventHandler implements Listener {
         }
     }
 
+    // Prevent use of general commands that require trust
+    @EventHandler
+    public void onCommand(PlayerCommandPreprocessEvent e) {
+        String command = e.getMessage().toLowerCase().split(" ")[0];
+
+        List<String> blacklisted = GriefPrevention.plugin.config_claims_commandsRequiringAccessTrust;
+        List<String> whitelisted = GriefPrevention.plugin.config_claims_commandsRequiringAccessTrustWhitelist;
+
+        if (!blacklisted.contains(command)) return;
+        if (whitelisted.contains(command)) return;
+
+        Claim claim = dataStore.getClaimAt(e.getPlayer().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.SET_HOME_ACCESS)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.PLACE_BLOCKS.getDenialMessage()));
+        }
+    }
+
     // Setting the claim time and weather when moving into a claim
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onMove(PlayerMoveEvent e) {
