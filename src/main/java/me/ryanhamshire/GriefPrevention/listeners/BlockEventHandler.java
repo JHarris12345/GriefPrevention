@@ -150,9 +150,10 @@ public class BlockEventHandler implements Listener {
         }
 
         // Mark the claim as having been built on
-        if (!claim.builtOn && claim.created > 0) {
-            claim.builtOn = true;
-            dataStore.saveClaim(claim);
+        Claim checkClaim = (claim.parent == null) ? claim : claim.parent;
+        if (!checkClaim.builtOn && checkClaim.created > 0) {
+            checkClaim.builtOn = true;
+            dataStore.saveClaim(checkClaim);
         }
 
         playerData.lastClaim = claim;
@@ -243,9 +244,10 @@ public class BlockEventHandler implements Listener {
             }
 
             // Mark the claim as having been built on
-            if (!claim.builtOn && claim.created > 0) {
-                claim.builtOn = true;
-                dataStore.saveClaim(claim);
+            Claim checkClaim = (claim.parent == null) ? claim : claim.parent;
+            if (!checkClaim.builtOn && checkClaim.created > 0) {
+                checkClaim.builtOn = true;
+                dataStore.saveClaim(checkClaim);
             }
 
             playerData.lastClaim = claim;
