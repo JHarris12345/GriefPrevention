@@ -30,6 +30,10 @@ commands:
     description: Demotes a member on the claim
     usage: /demoteclaimmember [member]
     permission: griefprevention.claims
+  promoteclaimmember:
+    description: Promote a member on the claim
+    usage: /promoteclaimmember [member]
+    permission: griefprevention.claims
   trust:
     description: Adds a player to your claim (or all of your claims if you use "all" after)
     usage: /trust <player> (all)

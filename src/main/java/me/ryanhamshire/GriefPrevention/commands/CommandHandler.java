@@ -1506,6 +1506,11 @@ public class CommandHandler {
                 return true;
             }
 
+            if (!claim.members.containsKey(target.getUniqueId())) {
+                player.sendMessage(Utils.colour("&c" + target.getName() + " is not a member of this claim"));
+                return true;
+            }
+
             ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
             ClaimRole playerRole = claim.getPlayerRole(player.getUniqueId());
 
@@ -1542,6 +1547,69 @@ public class CommandHandler {
             MemberModificationLogs.logToFile(player.getName() + " demoted " + target.getName() + " to " + nextRoleDown + " on claim " + claim.id, true);
             return true;
         }
+
+        else if (cmd.getName().equalsIgnoreCase("promoteclaimmember") && player != null) {
+            if (args.length != 1) return false;
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+
+            if (claim == null) {
+                player.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PROMOTE_DEMOTE)) {
+                player.sendMessage(Utils.colour(ClaimPermission.PROMOTE_DEMOTE.getDenialMessage()));
+                return true;
+            }
+
+            OfflinePlayer target = plugin.resolvePlayerByName(args[0]);
+            if (target == null) {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            if (!claim.members.containsKey(target.getUniqueId())) {
+                player.sendMessage(Utils.colour("&c" + target.getName() + " is not a member of this claim"));
+                return true;
+            }
+
+            ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
+            ClaimRole playerRole = claim.getPlayerRole(player.getUniqueId());
+
+            if (target.getName().equalsIgnoreCase(player.getName())) {
+                player.sendMessage(Utils.colour("&cYou can't change your own role"));
+                return true;
+            }
+
+            if (!ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
+                player.sendMessage(Utils.colour("&cYou can't change the role of someone with the same role as you or higher"));
+                return true;
+            }
+
+            if (targetRole == ClaimRole.OWNER) {
+                player.sendMessage("&cYou can't demote the owner of the claim");
+                return true;
+            }
+
+            if (targetRole == ClaimRole.MANAGER) {
+                player.sendMessage(Utils.colour("&cYou can't promote someone higher than manager"));
+                return true;
+            }
+
+            ClaimRole nextRoleUp = ClaimRole.getHigherRole(targetRole);
+
+            claim.setClaimRole(target.getUniqueId(), nextRoleUp);
+            player.sendMessage(Utils.colour("&aYou promoted " + target.getName() + " to the " + nextRoleUp + " role on this claim"));
+
+            if (target.isOnline()) {
+                target.getPlayer().sendMessage(Utils.colour("&a" + player.getName() + " promoted you to the " + nextRoleUp + " role on their claim"));
+            }
+
+            // Log it
+            MemberModificationLogs.logToFile(player.getName() + " promoted " + target.getName() + " to " + nextRoleUp + " on claim " + claim.id, true);
+            return true;
+        }
+
 
         // ignoreplayer
         /*else if (cmd.getName().equalsIgnoreCase("ignoreplayer") && player != null)
