@@ -1084,7 +1084,7 @@ public class BlockEventHandler implements Listener {
             Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
 
             if (claim == null) return;
-            if (claim.isSettingEnabled(ClaimSetting.MYCELIUM_SPREAD)) return;
+            if (claim.isSettingEnabled(ClaimSetting.SCULK_SPREAD)) return;
 
             e.setCancelled(true);
         }
