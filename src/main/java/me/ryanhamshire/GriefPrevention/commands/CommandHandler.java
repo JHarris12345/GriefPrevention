@@ -1573,21 +1573,24 @@ public class CommandHandler {
                 return true;
             }
 
+            PlayerData data = GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId());
+            boolean bypassing = (data != null && data.ignoreClaims);
+
             ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
             ClaimRole playerRole = claim.getPlayerRole(player.getUniqueId());
 
-            if (target.getName().equalsIgnoreCase(player.getName())) {
+            if (!bypassing && target.getName().equalsIgnoreCase(player.getName())) {
                 player.sendMessage(Utils.colour("&cYou can't change your own role"));
                 return true;
             }
 
-            if (!ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
+            if (!bypassing && !ClaimRole.isRole1HigherThanRole2(playerRole, targetRole)) {
                 player.sendMessage(Utils.colour("&cYou can't change the role of someone with the same role as you or higher"));
                 return true;
             }
 
             if (targetRole == ClaimRole.OWNER) {
-                player.sendMessage("&cYou can't demote the owner of the claim");
+                player.sendMessage("&cYou can't promote the owner of the claim");
                 return true;
             }
 
