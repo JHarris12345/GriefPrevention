@@ -612,7 +612,13 @@ public class Claim {
         // Now load if they have purchased any permissions
         List<String> unlockedPermissions = claimConfig.getStringList("UnlockedPermissions");
         for (String uPerm : unlockedPermissions) {
-            this.unlockedPermissions.add(ClaimPermission.valueOf(uPerm));
+            ClaimPermission permission = ClaimPermission.valueOf(uPerm);
+
+            this.unlockedPermissions.add(permission);
+
+            List<ClaimPermission> playerUnlocks = DataStore.unlockedPermissions.getOrDefault(ownerID, new ArrayList<>());
+            if (!playerUnlocks.contains(permission)) playerUnlocks.add(permission);
+            DataStore.unlockedPermissions.put(ownerID, playerUnlocks);
         }
 
         this.permissions = permissions;
@@ -625,27 +631,34 @@ public class Claim {
             claim.unlockedPermissions.add(claimPermission);
         }
 
+        List<ClaimPermission> playerUnlocks = DataStore.unlockedPermissions.getOrDefault(ownerID, new ArrayList<>());
+        if (!playerUnlocks.contains(claimPermission)) playerUnlocks.add(claimPermission);
+        DataStore.unlockedPermissions.put(ownerID, playerUnlocks);
+
         GriefPrevention.plugin.dataStore.saveClaim(claim);
     }
 
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
-        if (claimPermission.getUnlockCost() == 0) return true;
+        if (this.ownerID == null) return false; // Admin claim
 
-        // THIS WAS IF THE UNLOCKS WERE PER CLAIM AND NOT FOR EVERY CLAIM
-        // If it's a subclaim then we always take the value of the main claim
-        //return (parent == null) ? unlockedPermissions.contains(claimPermission) : parent.unlockedPermissions.contains(claimPermission);
+        OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
+        String permission = claimPermission.getUnlockPermission();
 
-        // THIS IS FOR IF UNLOCKS ARE FOR EVERY CLAIM
-        // If the owner of the claim has unlockked this permission on ANY of their claims, it's unlocked
-        // First check this claim as it saves time if it's unlocked for this specific claim
-        if (unlockedPermissions.contains(claimPermission)) return true;
+        if (permission != null) {
+            // They're online
+            Player onlinePlayer = owner.getPlayer();
+            if (onlinePlayer != null) {
+                if (onlinePlayer.hasPermission(permission)) return true;
+            }
 
-        // Now check all their claims
-        for (Claim claim : GriefPrevention.getInstance().dataStore.getPlayerClaims(ownerID, false)) {
-            if (claim.unlockedPermissions.contains(claimPermission)) return true;
+            // They're offline - Use the stored ranks they have
+            else {
+                if (ownerRanks.contains(permission)) return true;
+            }
         }
 
-        return false;
+        // If it's not unlocked by rank, check if it's unlocked by iCoins across any of their claims
+        return DataStore.unlockedPermissions.getOrDefault(ownerID, new ArrayList<>()).contains(claimPermission);
     }
 
     public boolean isSettingEnabled(ClaimSetting setting) {
@@ -718,24 +731,35 @@ public class Claim {
             settings.put(setting, setValue);
         }
 
-        // DEPRECATED - Settings are unlocked via ranks now and not bought unlocks
         // Now load if they have purchased any settings
-        /*List<String> unlockedSettings = claimConfig.getStringList("UnlockedSettings");
+        List<String> unlockedSettings = claimConfig.getStringList("UnlockedSettings");
         for (String uSetting : unlockedSettings) {
-            this.unlockedSettings.add(ClaimSetting.valueOf(uSetting));
-        }*/
+            ClaimSetting setting = ClaimSetting.valueOf(uSetting);
+
+            this.unlockedSettings.add(setting);
+
+            List<ClaimSetting> playerUnlocks = DataStore.unlockedSettings.getOrDefault(ownerID, new ArrayList<>());
+            if (!playerUnlocks.contains(setting)) playerUnlocks.add(setting);
+            DataStore.unlockedSettings.put(ownerID, playerUnlocks);
+        }
 
         this.settings = settings;
     }
 
-    public void unlockClaimSetting(ClaimSetting claimSetting) {
+    public void unlockClaimSetting(ClaimSetting claimSetting, boolean saveToFile) {
         Claim claim = (parent == null) ? this : parent;
 
         if (!claim.unlockedSettings.contains(claimSetting)) {
             claim.unlockedSettings.add(claimSetting);
         }
 
-        GriefPrevention.plugin.dataStore.saveClaim(claim);
+        List<ClaimSetting> playerUnlocks = DataStore.unlockedSettings.getOrDefault(ownerID, new ArrayList<>());
+        if (!playerUnlocks.contains(claimSetting)) playerUnlocks.add(claimSetting);
+        DataStore.unlockedSettings.put(ownerID, playerUnlocks);
+
+        if (saveToFile) {
+            GriefPrevention.plugin.dataStore.saveClaim(claim);
+        }
     }
 
     public boolean isSettingUnlocked(ClaimSetting claimSetting) {
@@ -745,17 +769,21 @@ public class Claim {
         OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
         String permission = claimSetting.getUnlockPermission();
 
-        // They're online
-        if (owner.getPlayer() != null) {
-            return owner.getPlayer().hasPermission(permission);
+        if (permission != null) {
+            // They're online
+            Player onlinePlayer = owner.getPlayer();
+            if (onlinePlayer != null) {
+                if (onlinePlayer.hasPermission(permission)) return true;
+            }
+
+            // They're offline - Use the stored ranks they have
+            else {
+                if (ownerRanks.contains(permission)) return true;
+            }
         }
 
-        // They're offline - Use the stored ranks they have
-        return (this.ownerRanks.contains(permission));
-
-        // DEPRECATED - They're permission unlocks now
-        // If it's a subclaim then we always take the value of the main claim
-        //return (parent == null) ? unlockedSettings.contains(claimSetting) : parent.unlockedSettings.contains(claimSetting);
+        // If it's not unlocked by rank, check if it's unlocked by iCoins across any of their claims
+        return DataStore.unlockedSettings.getOrDefault(ownerID, new ArrayList<>()).contains(claimSetting);
     }
 
     public void setOwnerRanks(boolean save) {

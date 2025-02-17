@@ -132,6 +132,10 @@ commands:
     usage: /Claim [optional radius]
     aliases: [ createclaim, makeclaim, newclaim ]
     permission: griefprevention.claims
+  claimboot:
+    description: Sends a player on your claim to spawn
+    usage: /ClaimBoot [player]
+    permission: griefprevention.claims
   buyclaimblocks:
     description: Purchases additional claim blocks with server money.  Doesn't work on servers without a Vault-compatible economy plugin.
     usage: /BuyClaimBlocks <numberOfBlocks>

@@ -302,9 +302,7 @@ public class FlatFileDataStore extends DataStore {
             for (String entry : yaml.getStringList("Builders")) {
                 try {
                     members.put(UUID.fromString(entry), ClaimRole.MEMBER);
-                } catch (IllegalArgumentException ex) {
-
-                }
+                } catch (IllegalArgumentException ignored) {}
             }
         }
 
@@ -327,7 +325,7 @@ public class FlatFileDataStore extends DataStore {
         boolean builtOn = yaml.getBoolean("BuiltOn");
         List<String> ownerRanks = yaml.getStringList("OwnerRanks");
 
-        //instantiate
+        // instantiate
         claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, spentICoins, claimID, new ArrayList<>());
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
@@ -397,13 +395,12 @@ public class FlatFileDataStore extends DataStore {
             yaml.set("Settings." + setting.name(), value.name());
         }
 
-        // DEPRECATED - Settings are unlocked with ranks now
         // Unlocked settings
-        /*List<String> unlockedSettings = new ArrayList<>();
+        List<String> unlockedSettings = new ArrayList<>();
         for (ClaimSetting setting : claim.unlockedSettings) {
             unlockedSettings.add(setting.name());
         }
-        yaml.set("UnlockedSettings", unlockedSettings);*/
+        yaml.set("UnlockedSettings", unlockedSettings);
 
         // Owner ranks
         yaml.set("OwnerRanks", claim.ownerRanks);

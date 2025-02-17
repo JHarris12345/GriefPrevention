@@ -37,6 +37,7 @@ import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
@@ -87,6 +88,10 @@ public abstract class DataStore {
 
     //in-memory cache for group (permission-based) data
     protected ConcurrentHashMap<String, Integer> permissionToBonusBlocksMap = new ConcurrentHashMap<>();
+
+    // All the claim settings and permissions a player has unlocked (only used if iCoin unlocks are global for all their claims
+    public static HashMap<UUID, List<ClaimSetting>> unlockedSettings = new HashMap<>();
+    public static HashMap<UUID, List<ClaimPermission>> unlockedPermissions = new HashMap<>();
 
     //in-memory cache for claim data
     //public ArrayList<Claim> claims = new ArrayList<>(); // Don't do this anymore. Instead we use the claimMap below

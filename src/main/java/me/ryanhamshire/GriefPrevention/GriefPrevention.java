@@ -41,6 +41,7 @@ import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
 import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
 import me.ryanhamshire.GriefPrevention.objects.TextMode;
+import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
@@ -1792,8 +1793,18 @@ public class GriefPrevention extends JavaPlugin {
         List<String> ranks = new ArrayList<>();
 
         for (ClaimSetting setting : ClaimSetting.values()) {
+            if (setting.getUnlockPermission() == null) continue;
+
             if (!ranks.contains(setting.getUnlockPermission())) {
                 ranks.add(setting.getUnlockPermission());
+            }
+        }
+
+        for (ClaimPermission permission : ClaimPermission.values()) {
+            if (permission.getUnlockPermission() == null) continue;
+
+            if (!ranks.contains(permission.getUnlockPermission())) {
+                ranks.add(permission.getUnlockPermission());
             }
         }
 
@@ -1801,6 +1812,7 @@ public class GriefPrevention extends JavaPlugin {
     }
 
     public String getRankFromPermission(String permission) {
+        if (permission == null) return "NULL";
         return StringUtils.capitalise(permission.split("\\.")[1].toLowerCase());
     }
 

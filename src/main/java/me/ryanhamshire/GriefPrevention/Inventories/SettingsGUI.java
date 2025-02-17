@@ -95,8 +95,21 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
             if (!claim.isSettingUnlocked(claimSetting)) {
                 lore.add("");
                 lore.add(Utils.colour("&4&lToggling LOCKED"));
-                lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimSetting.getUnlockPermission())));
-                lore.add(Utils.colour("&crank to unlock toggling this setting"));
+
+                if (!Utils.isPlayerBedrock(player.getUniqueId())) {
+                    lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimSetting.getUnlockPermission())));
+                    lore.add(Utils.colour("&crank to &lunlock &ctoggling this setting &lOR"));
+                    lore.add(Utils.colour("&cYou can &lright-click&c to unlock this for"));
+                    lore.add(Utils.colour("&call of your claims for &l" + claimSetting.getUnlockCost() + " &ciCoins"));
+
+                } else {
+                    lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimSetting.getUnlockPermission())));
+                    lore.add(Utils.colour("&crank to &lunlock &ctoggling this setting &lOR"));
+                    lore.add(Utils.colour("&cYou can unlock it for all your claims for"));
+                    lore.add(Utils.colour("&c&l" + claimSetting.getUnlockCost() + " &ciCoins using the following command..."));
+                    lore.add(Utils.colour(""));
+                    lore.add(Utils.colour("&c&o/unlockclaimsetting " + claimSetting.name()));
+                }
             }
 
             ItemStack item = Utils.createItemStack(material, base64Value, owningPlayerName, displayName, lore, amount);
@@ -160,7 +173,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                 return;
             }
 
-        } /*else {
+        } else {
             if (!claim.isSettingUnlocked(setting)) {
                 int iCoinsBalance = Integer.parseInt(PlaceholderAPI.setPlaceholders(player, "%icore_insanitypoints_iCoins%"));
                 if (iCoinsBalance < setting.getUnlockCost()) {
@@ -168,8 +181,8 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                     return;
                 }
 
-                claim.unlockClaimSetting(setting);
-                player.sendMessage(Utils.colour("&aYou just unlocked the " + settingName + " setting for this claim"));
+                claim.unlockClaimSetting(setting, true);
+                player.sendMessage(Utils.colour("&aYou just unlocked the " + settingName + " setting for all of your claims"));
                 Utils.sendConsoleCommand("ipoints remove " + player.getName() + " iCoins " + setting.getUnlockCost());
                 refreshContents(claim);
 
@@ -178,7 +191,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                         " for claim " + id, true);
                 return;
             }
-        }*/
+        }
 
         // Handling for all the true / false settings and then handling for the weather and time settings
         if (setting != ClaimSetting.FORCED_TIME && setting != ClaimSetting.FORCED_WEATHER) {

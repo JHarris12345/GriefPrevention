@@ -81,13 +81,17 @@ public class TogglePermissionsGUI extends GUI implements InventoryHolder, ClaimM
                 lore.add(Utils.colour("&4&lToggling LOCKED"));
 
                 if (!Utils.isPlayerBedrock(player.getUniqueId())) {
-                    lore.add(Utils.colour("&c&oRight-Click &cto unlock the ability to toggle"));
-                    lore.add(Utils.colour("&cthis permission for &l" + unlockCost + " iCoins&c. This will"));
-                    lore.add(Utils.colour("&cunlock it for &lALL&c of your claims"));
+                    lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimPermission.getUnlockPermission())));
+                    lore.add(Utils.colour("&crank to unlock &ctoggling this permission &lOR"));
+                    lore.add(Utils.colour("&cYou can &lright-click&c to unlock this for"));
+                    lore.add(Utils.colour("&call of your claims for &l" + claimPermission.getUnlockCost() + " &ciCoins"));
 
                 } else {
-                    lore.add(Utils.colour("&cUnlock the ability to toggle this permission for"));
-                    lore.add(Utils.colour("&c&lALL &cof your claims for &l" + unlockCost + " iCoins&c using:"));
+                    lore.add(Utils.colour("&cThe claim owner requires the " + plugin.getRankFromPermission(claimPermission.getUnlockPermission())));
+                    lore.add(Utils.colour("&crank to unlock &ctoggling this permission &lOR"));
+                    lore.add(Utils.colour("&cYou can unlock it for all your claims for"));
+                    lore.add(Utils.colour("&c&l" + claimPermission.getUnlockCost() + " &ciCoins using the following command..."));
+                    lore.add(Utils.colour(""));
                     lore.add(Utils.colour("&c&o/unlockclaimpermission " + claimPermission.name()));
                 }
             }

@@ -10,7 +10,6 @@ import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.logs.ClaimModificationLog;
 import me.ryanhamshire.GriefPrevention.logs.MemberModificationLogs;
 import me.ryanhamshire.GriefPrevention.logs.PermissionChangeLogs;
-import me.ryanhamshire.GriefPrevention.logs.SettingsChangeLogs;
 import me.ryanhamshire.GriefPrevention.managers.EconomyManager;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.ClaimCorner;
@@ -30,7 +29,6 @@ import me.ryanhamshire.GriefPrevention.utils.Utils;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.Economy;
-import org.apache.commons.codec.binary.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
@@ -521,6 +519,51 @@ public class CommandHandler {
             // confirm
             sender.sendMessage(Utils.colour("&6Transferred all of " + fromPlayer.getName() + "'s claims to " + toPlayer.getName()));
             GriefPrevention.AddLogEntry("Transferred all of " + fromPlayer.getName() + "'s claims to " + toPlayer.getName());
+            return true;
+        }
+
+        // claimboot (player)
+        else if (cmd.getName().equals("claimboot")) {
+            if (args.length != 1) return false;
+
+            Player target = Bukkit.getPlayer(args[0]);
+            if (target == null) {
+                sender.sendMessage(Utils.colour("&c'" + args[0] + "' is not online"));
+                return true;
+            }
+
+            Claim senderClaim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+            Claim targetClaim = plugin.dataStore.getClaimAt(target.getLocation(), true, null);
+
+            if (senderClaim == null) {
+                sender.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!senderClaim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BOOT_PLAYERS)) {
+                player.sendMessage(Utils.colour(ClaimPermission.BOOT_PLAYERS.getDenialMessage()));
+                return true;
+            }
+
+            if (targetClaim == null || !targetClaim.id.equals(senderClaim.id)) {
+                sender.sendMessage(Utils.colour("&c'" + args[0] + "' is not standing in the same claim as you"));
+                return true;
+            }
+
+            if (senderClaim.members.containsKey(target.getUniqueId())) {
+                sender.sendMessage(Utils.colour("&cYou can't boot members of the claim to spawn. Consider removing them from your claim first using &o/untrust " + target.getName()));
+                return true;
+            }
+
+            if (target.hasPermission("group.trialmod")) {
+                sender.sendMessage(Utils.colour("&cYou can't boot this member from your claim"));
+                return true;
+            }
+
+            Utils.sendConsoleCommand("spawn " + target.getName());
+
+            player.sendMessage(Utils.colour("&aYou sent " + target.getName() + " to spawn"));
+            target.sendMessage(Utils.colour("&cYou were sent from the claim you were on to spawn. If the claim members do not want you there, please do not go back as this would result in punishment"));
             return true;
         }
 
