@@ -532,6 +532,11 @@ public class CommandHandler {
                 return true;
             }
 
+            if (target.getUniqueId().equals(player.getUniqueId())) {
+                sender.sendMessage(Utils.colour("&cYou can't boot yourself"));
+                return true;
+            }
+
             Claim senderClaim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
             Claim targetClaim = plugin.dataStore.getClaimAt(target.getLocation(), true, null);
 
