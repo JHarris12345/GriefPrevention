@@ -640,6 +640,7 @@ public class Claim {
 
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
         if (this.ownerID == null) return false; // Admin claim
+        if (claimPermission.getUnlockPermission() == null && claimPermission.getUnlockCost() == 0) return true;
 
         OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
         String permission = claimPermission.getUnlockPermission();
@@ -765,6 +766,7 @@ public class Claim {
     public boolean isSettingUnlocked(ClaimSetting claimSetting) {
         //if (claimSetting.getUnlockCost() == 0) return true;
         if (this.ownerID == null) return false; // Admin claim
+        if (claimSetting.getUnlockPermission() == null && claimSetting.getUnlockCost() == 0) return true;
 
         OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
         String permission = claimSetting.getUnlockPermission();
