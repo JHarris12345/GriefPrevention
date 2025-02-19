@@ -569,7 +569,6 @@ public class CommandHandler {
             Utils.sendConsoleCommand("spawn " + target.getName());
 
             // Prevent the use of /back (run later so the teleport has time to happen)
-            Player finalPlayer = player;
             new BukkitRunnable() {
                 @Override
                 public void run() {
