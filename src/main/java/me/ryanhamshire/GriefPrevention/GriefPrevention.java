@@ -60,6 +60,7 @@ import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
 import me.ryanhamshire.GriefPrevention.utils.Placeholders;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
+import net.ess3.api.IEssentials;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -116,7 +117,7 @@ public class GriefPrevention extends JavaPlugin {
     public long unBuiltExpirationHours = 168;
 
     // Essentials
-    //public IEssentials essentials;
+    public IEssentials essentials;
 
     //for logging to the console and log file
     private static Logger log;
@@ -346,10 +347,10 @@ public class GriefPrevention extends JavaPlugin {
         new Placeholders(this).register();
 
         // Set up hooks
-        /*if (plugin.essentials == null) {
+        if (plugin.essentials == null) {
             Plugin p = plugin.getServer().getPluginManager().getPlugin("Essentials");
             if (p instanceof IEssentials) plugin.essentials = (IEssentials) p;
-        }*/
+        }
 
         // Set up files
         setupFiles();

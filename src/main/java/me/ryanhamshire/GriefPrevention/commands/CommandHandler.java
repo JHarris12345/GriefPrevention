@@ -1,5 +1,6 @@
 package me.ryanhamshire.GriefPrevention.commands;
 
+import com.earth2me.essentials.User;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -566,6 +567,16 @@ public class CommandHandler {
             }
 
             Utils.sendConsoleCommand("spawn " + target.getName());
+
+            // Prevent the use of /back (run later so the teleport has time to happen)
+            Player finalPlayer = player;
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    User user = plugin.essentials.getUser(target);
+                    user.setLastLocation(target.getLocation());
+                }
+            }.runTaskLater(plugin, 10);
 
             player.sendMessage(Utils.colour("&aYou sent " + target.getName() + " to spawn"));
             target.sendMessage(Utils.colour("&cYou were sent from the claim you were on to spawn. If the claim members do not want you there, please do not go back as this would result in punishment"));
