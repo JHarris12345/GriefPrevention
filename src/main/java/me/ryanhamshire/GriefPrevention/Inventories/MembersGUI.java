@@ -47,6 +47,8 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
 
         int slot = 0;
         for (UUID memberUUID : members.keySet()) {
+            if (slot >= inv.getSize()) break;
+
             ItemStack item = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
             List<String> lore = new ArrayList<>();
