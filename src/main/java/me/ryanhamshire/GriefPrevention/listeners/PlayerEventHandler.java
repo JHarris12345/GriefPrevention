@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention.listeners;
 
+import com.earth2me.essentials.User;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
