@@ -514,6 +514,9 @@ public class CommandHandler {
 
             PlayerData fromData = plugin.dataStore.getPlayerData(fromPlayer.getUniqueId());
             for (Claim claim : new Vector<>(fromData.getClaims(true))) {
+                World world = claim.lesserBoundaryCorner.world;
+                if (world == null) continue;
+
                 plugin.dataStore.changeClaimOwner(claim, toPlayer.getUniqueId());
             }
 
@@ -1130,19 +1133,24 @@ public class CommandHandler {
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
                 for (int i = 0; i < playerData.getClaims(true).size(); i++) {
                     Claim claim = playerData.getClaims(true).get(i);
+
+                    try {
                     /*TextComponent line = Component.text(Utils.colour("&e" + getfriendlyLocationString(claim.getLesserBoundaryCorner()) + plugin.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea()))));
                     line = line.clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "tppos " +
                             claim.getLesserBoundaryCorner().getBlockX() + " 100 " + claim.getLesserBoundaryCorner().getBlockZ()));*/
 
-                    String claimName = (claim.name != null) ? claim.name + " - " : "";
-                    String coords = claim.getLesserBoundaryCorner().world.getName() + ": " + claim.getLesserBoundaryCorner().x + " " + claim.getLesserBoundaryCorner().z;
-                    String area = plugin.df.format(claim.getArea()) + " blocks";
+                        String claimName = (claim.name != null) ? claim.name + " - " : "";
+                        String coords = claim.getLesserBoundaryCorner().world.getName() + ": " + claim.getLesserBoundaryCorner().x + " " + claim.getLesserBoundaryCorner().z;
+                        String area = plugin.df.format(claim.getArea()) + " blocks";
 
-                    TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ") &8(id: " + claim.id + ")"));
-                    line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claimtp " + claim.id));
+                        TextComponent line = new TextComponent(Utils.colour("&b" + (i+1) + ") " + claimName + "&f" + coords + " &7(" + area + ") &8(id: " + claim.id + ")"));
+                        line.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claimtp " + claim.id));
 
-                    player.spigot().sendMessage(line);
-                    // GriefPrevention.sendMessage(player, TextMode.Instr, );
+                        player.spigot().sendMessage(line);
+                        // GriefPrevention.sendMessage(player, TextMode.Instr, );
+                    } catch (Exception ex) {
+                        plugin.getLogger().info("Error finding claim " + claim.id);
+                    }
                 }
 
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.EndBlockMath, String.valueOf(playerData.getRemainingClaimBlocks()));
