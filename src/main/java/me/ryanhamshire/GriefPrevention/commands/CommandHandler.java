@@ -1129,7 +1129,11 @@ public class CommandHandler {
                     String.valueOf(playerData.getAccruedClaimBlocks()),
                     String.valueOf((playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))),
                     String.valueOf((playerData.getAccruedClaimBlocks() + playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))));
-            if (claims.size() > 0) {
+
+            if (!claims.isEmpty()) {
+                int claimsPerPage = 2;
+                int pagesNeeded = 0;
+
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
                 for (int i = 0; i < playerData.getClaims(true).size(); i++) {
                     Claim claim = playerData.getClaims(true).get(i);

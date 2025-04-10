@@ -1049,6 +1049,16 @@ public class BlockEventHandler implements Listener {
     // Prevent block spreading if the setting is disabled
     @EventHandler
     public void onSpread(BlockSpreadEvent e) {
+        // Bamboo growth
+        if (e.getNewState().getType() == Material.BAMBOO) {
+            Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.CROP_GROWTH)) return;
+
+            e.setCancelled(true);
+        }
+
         // Vine Growth
         if (e.getBlock().getType() == Material.AIR && (e.getNewState().getType() == Material.VINE || e.getNewState().getType() == Material.CAVE_VINES)) {
             Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
