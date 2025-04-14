@@ -85,6 +85,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.checkerframework.checker.units.qual.C;
 import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1818,13 +1819,8 @@ public class GriefPrevention extends JavaPlugin {
     }
 
     public List<Claim> getAllClaims(boolean excludeSubClaims) {
-        if (!excludeSubClaims) return new ArrayList<>(dataStore.claimMap.values());
-
-        List<Claim> claims = new ArrayList<>();
-        for (Claim claim : dataStore.claimMap.values()) {
-            if (claim.parent != null) continue;
-            claims.add(claim);
-        }
+        List<Claim> claims = new ArrayList<>(dataStore.claimMap.values());
+        if (excludeSubClaims) claims.removeIf(claim -> claim.parent != null);
 
         return claims;
     }
