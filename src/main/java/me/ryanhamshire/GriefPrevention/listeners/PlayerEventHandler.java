@@ -1923,4 +1923,34 @@ public class PlayerEventHandler implements Listener {
             }
         }
     }
+
+    // Prevent teleporting armor stands into claims they can't build on
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onArmorStandTP(PlayerCommandPreprocessEvent e) {
+        String message = e.getMessage();
+        if (!message.toLowerCase().startsWith("/aa tp")) return;
+
+        double x;
+        double y;
+        double z;
+
+        try {
+            String[] split = message.split(" ");
+
+            x = Double.parseDouble(split[2]);
+            y = Double.parseDouble(split[3]);
+            z = Double.parseDouble(split[4]);
+
+        } catch (NumberFormatException ignored) {
+            return;
+        }
+
+        Location location = new Location(e.getPlayer().getWorld(), x, y, z);
+        Claim claim = dataStore.getClaimAt(location, true, null);
+
+        if (claim != null && !claim.hasClaimPermission(e.getPlayer().getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
+            e.setCancelled(true);
+            e.getPlayer().sendMessage(Utils.colour(ClaimPermission.PLACE_BLOCKS.getDenialMessage()));
+        }
+    }
 }
