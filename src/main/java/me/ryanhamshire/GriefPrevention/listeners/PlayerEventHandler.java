@@ -236,8 +236,8 @@ public class PlayerEventHandler implements Listener {
         GriefPrevention.plugin.cacheUUIDNamePair(player.getUniqueId(), player.getName());
         GriefPrevention.plugin.uuidNameCache.put(player.getUniqueId(), player.getName());
 
-        //create a thread to load ignore information
-        new IgnoreLoaderThread(playerID, playerData.ignoredPlayers).start();
+        //create a thread to load ignore information - JH notes - What the fuck is this? Doesn't even do anything with the data it seems
+        //new IgnoreLoaderThread(playerID, playerData.ignoredPlayers).start();
 
         //is he stuck in a portal frame?
         if (player.hasMetadata("GP_PORTALRESCUE")) {
