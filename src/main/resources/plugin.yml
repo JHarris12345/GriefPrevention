@@ -140,12 +140,12 @@ commands:
     description: Purchases additional claim blocks with server money.  Doesn't work on servers without a Vault-compatible economy plugin.
     usage: /BuyClaimBlocks <numberOfBlocks>
     aliases: buyclaim
-    permission: griefprevention.buysellclaimblocks
+    permission: griefprevention.buyclaimblocks
   sellclaimblocks:
     description: Sells your claim blocks for server money.  Doesn't work on servers without a Vault-compatible economy plugin.
     usage: /SellClaimBlocks <numberOfBlocks>
     aliases: sellclaim
-    permission: griefprevention.buysellclaimblocks
+    permission: griefprevention.sellclaimblocks
   trapped:
     description: Ejects you to nearby unclaimed land.  Has a substantial cooldown period.
     usage: /Trapped

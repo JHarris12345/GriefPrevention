@@ -767,7 +767,7 @@ public class CommandHandler {
                 return true;
             }
 
-            if (!player.hasPermission("griefprevention.buysellclaimblocks")) {
+            if (!player.hasPermission("griefprevention.buyclaimblocks")) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionForCommand);
                 return true;
             }
@@ -843,7 +843,7 @@ public class CommandHandler {
                 return true;
             }
 
-            if (!player.hasPermission("griefprevention.buysellclaimblocks")) {
+            if (!player.hasPermission("griefprevention.sellclaimblocks")) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionForCommand);
                 return true;
             }
