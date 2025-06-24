@@ -53,12 +53,12 @@ public class FindUnusedClaimsTask implements Runnable {
             return;
         }
 
-        GriefPrevention.plugin.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.plugin, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
+        GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
     }
 
     public void refreshUUIDs() {
         // Fetch owner UUIDs from list of claims
-        claimOwnerUUIDs = GriefPrevention.plugin.dataStore.claimMap.values().stream().map(claim -> claim.ownerID)
+        claimOwnerUUIDs = GriefPrevention.instance.dataStore.claimMap.values().stream().map(claim -> claim.ownerID)
                 .distinct().filter(Objects::nonNull).collect(Collectors.toList());
 
         if (!claimOwnerUUIDs.isEmpty()) {

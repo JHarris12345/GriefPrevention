@@ -93,8 +93,8 @@ public abstract class BoundaryVisualization {
      * @param playerData the {@link PlayerData} of the visualization target
      */
     protected void scheduleRevert(@NotNull Player player, @NotNull PlayerData playerData) {
-        GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(
-                GriefPrevention.plugin,
+        GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(
+                GriefPrevention.instance,
                 () -> {
                     // Only revert if this is the active visualization.
                     if (playerData.getVisibleBoundaries() == this) playerData.setVisibleBoundaries(null);
@@ -243,7 +243,7 @@ public abstract class BoundaryVisualization {
         Bukkit.getPluginManager().callEvent(event);
 
         Player player = event.getPlayer();
-        PlayerData playerData = GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId());
+        PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
         BoundaryVisualization currentVisualization = playerData.getVisibleBoundaries();
 
         Collection<Boundary> boundaries = event.getBoundaries();
@@ -264,8 +264,8 @@ public abstract class BoundaryVisualization {
 
         // If they are online and in the same world as the visualization, display the visualization next tick.
         if (visualization.canVisualize(player)) {
-            GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(
-                    GriefPrevention.plugin,
+            GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(
+                    GriefPrevention.instance,
                     new DelayedVisualizationTask(visualization, playerData, event),
                     1L);
         }
@@ -285,7 +285,7 @@ public abstract class BoundaryVisualization {
             catch (Exception exception) {
                 if (event.getProvider() == BoundaryVisualizationEvent.DEFAULT_PROVIDER) {
                     // If the provider is our own, log normally.
-                    GriefPrevention.plugin.getLogger().log(Level.WARNING, "Exception visualizing claim", exception);
+                    GriefPrevention.instance.getLogger().log(Level.WARNING, "Exception visualizing claim", exception);
                     return;
                 }
 
@@ -297,7 +297,7 @@ public abstract class BoundaryVisualization {
                                 exception.getClass().getName(),
                                 exception.getCause()),
                         CustomLogEntryTypes.Exception);
-                GriefPrevention.plugin.getLogger().log(
+                GriefPrevention.instance.getLogger().log(
                         Level.WARNING,
                         "Exception visualizing claim using external provider",
                         exception);

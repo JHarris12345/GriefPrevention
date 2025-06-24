@@ -28,7 +28,6 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
-import net.luckperms.api.model.user.UserManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -42,7 +41,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -140,7 +138,7 @@ public class Claim {
         if (this.getArea() > 10000) return;
 
         //only in creative mode worlds
-        if (!GriefPrevention.plugin.creativeRulesApply(this.lesserBoundaryCorner)) return;
+        if (!GriefPrevention.instance.creativeRulesApply(this.lesserBoundaryCorner)) return;
 
         Location lesser = DataStore.locationFromClaimCorner(this.getLesserBoundaryCorner());
         Location greater = DataStore.locationFromClaimCorner(this.getGreaterBoundaryCorner());
@@ -151,7 +149,7 @@ public class Claim {
 
         //respect sea level in normal worlds
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
-            seaLevel = GriefPrevention.plugin.getSeaLevel(lesser.getWorld());
+            seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
         for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
             for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
@@ -192,7 +190,7 @@ public class Claim {
 
         //respect sea level in normal worlds
         if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
-            seaLevel = GriefPrevention.plugin.getSeaLevel(lesser.getWorld());
+            seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
         for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++) {
             for (int z = lesser.getBlockZ(); z <= greater.getBlockZ(); z++) {
@@ -259,7 +257,7 @@ public class Claim {
     public boolean hasClaimPermission(UUID uuid, ClaimPermission claimPermission) {
         if (uuid.equals(this.getOwnerID())) return true;
 
-        PlayerData data = GriefPrevention.plugin.dataStore.getPlayerData(uuid);
+        PlayerData data = GriefPrevention.instance.dataStore.getPlayerData(uuid);
         if (data != null && data.ignoreClaims) return true;
 
         ClaimRole playerRole = getPlayerRole(uuid);
@@ -284,7 +282,7 @@ public class Claim {
         HashMap<ClaimPermission, Boolean> permissions = this.permissions.get(role);
         permissions.put(permission, true);
 
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public void removePermissionFromRole(ClaimPermission permission, ClaimRole role) {
@@ -293,7 +291,7 @@ public class Claim {
         HashMap<ClaimPermission, Boolean> permissions = this.permissions.get(role);
         permissions.put(permission, false);
 
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     //returns a copy of the location representing lower x, y, z limits
@@ -314,25 +312,25 @@ public class Claim {
         }
 
         if (this.ownerID == null) {
-            return GriefPrevention.plugin.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
+            return GriefPrevention.instance.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
         }
 
         // Dunno what all this fuckery does
         //return GriefPrevention.lookupPlayerName(this.ownerID);
 
-        String name = GriefPrevention.plugin.uuidNameCache.getOrDefault(this.ownerID, null);
+        String name = GriefPrevention.instance.uuidNameCache.getOrDefault(this.ownerID, null);
         if (name != null) return name;
 
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(this.ownerID);
         if (offlinePlayer.isOnline()) {
             name = offlinePlayer.getPlayer().getName();
-            GriefPrevention.plugin.uuidNameCache.put(this.ownerID, name);
+            GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
 
             return offlinePlayer.getPlayer().getName();
         }
 
         name = offlinePlayer.getName();
-        GriefPrevention.plugin.uuidNameCache.put(this.ownerID, name);
+        GriefPrevention.instance.uuidNameCache.put(this.ownerID, name);
 
         return name;
     }
@@ -402,7 +400,7 @@ public class Claim {
         if (this.parent != null) return this.parent.allowMoreEntities(remove);
 
         //this rule only applies to creative mode worlds
-        if (!GriefPrevention.plugin.creativeRulesApply(this.getLesserBoundaryCorner())) return null;
+        if (!GriefPrevention.instance.creativeRulesApply(this.getLesserBoundaryCorner())) return null;
 
         //admin claims aren't restricted
         if (this.isAdminClaim()) return null;
@@ -412,7 +410,7 @@ public class Claim {
 
         //determine maximum allowable entity count, based on claim size
         int maxEntities = this.getArea() / 50;
-        if (maxEntities == 0) return GriefPrevention.plugin.dataStore.getMessage(Messages.ClaimTooSmallForEntities);
+        if (maxEntities == 0) return GriefPrevention.instance.dataStore.getMessage(Messages.ClaimTooSmallForEntities);
 
         //count current entities (ignoring players)
         int totalEntities = 0;
@@ -428,7 +426,7 @@ public class Claim {
         }
 
         if (totalEntities >= maxEntities)
-            return GriefPrevention.plugin.dataStore.getMessage(Messages.TooManyEntitiesInClaim);
+            return GriefPrevention.instance.dataStore.getMessage(Messages.TooManyEntitiesInClaim);
 
         return null;
     }
@@ -439,7 +437,7 @@ public class Claim {
         //determine maximum allowable entity count, based on claim size
         int maxActives = this.getArea() / 100;
         if (maxActives == 0)
-            return GriefPrevention.plugin.dataStore.getMessage(Messages.ClaimTooSmallForActiveBlocks);
+            return GriefPrevention.instance.dataStore.getMessage(Messages.ClaimTooSmallForActiveBlocks);
 
         //count current actives
         int totalActives = 0;
@@ -456,7 +454,7 @@ public class Claim {
         }
 
         if (totalActives >= maxActives)
-            return GriefPrevention.plugin.dataStore.getMessage(Messages.TooManyActiveBlocksInClaim);
+            return GriefPrevention.instance.dataStore.getMessage(Messages.TooManyActiveBlocksInClaim);
 
         return null;
     }
@@ -493,12 +491,12 @@ public class Claim {
         //scan the claim for player placed blocks
         double score = 0;
 
-        boolean creativeMode = GriefPrevention.plugin.creativeRulesApply(lesserBoundaryCorner);
+        boolean creativeMode = GriefPrevention.instance.creativeRulesApply(lesserBoundaryCorner);
 
         for (int x = this.lesserBoundaryCorner.x; x <= this.greaterBoundaryCorner.x; x++) {
             for (int z = this.lesserBoundaryCorner.z; z <= this.greaterBoundaryCorner.z; z++) {
                 int y = this.lesserBoundaryCorner.y;
-                for (; y < GriefPrevention.plugin.getSeaLevel(this.lesserBoundaryCorner.world) - 5; y++) {
+                for (; y < GriefPrevention.instance.getSeaLevel(this.lesserBoundaryCorner.world) - 5; y++) {
                     Block block = this.lesserBoundaryCorner.world.getBlockAt(x, y, z);
                     if (playerBlocks.contains(block.getType())) {
                         if (block.getType() == Material.CHEST && !creativeMode) {
@@ -586,7 +584,7 @@ public class Claim {
 
     public void setClaimRole(UUID uuid, ClaimRole claimRole) {
         this.members.put(uuid, claimRole);
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public void loadPermissions(YamlConfiguration claimConfig) {
@@ -635,7 +633,7 @@ public class Claim {
         if (!playerUnlocks.contains(claimPermission)) playerUnlocks.add(claimPermission);
         DataStore.unlockedPermissions.put(ownerID, playerUnlocks);
 
-        GriefPrevention.plugin.dataStore.saveClaim(claim);
+        GriefPrevention.instance.dataStore.saveClaim(claim);
     }
 
     public boolean isPermissionUnlocked(ClaimPermission claimPermission) {
@@ -675,22 +673,22 @@ public class Claim {
 
     public void enableSetting(ClaimSetting setting) {
         settings.put(setting, ClaimSettingValue.TRUE);
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public void disableSetting(ClaimSetting setting) {
         settings.put(setting, ClaimSettingValue.FALSE);
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public void setForcedTimeSetting(ClaimSettingValue value) {
         settings.put(ClaimSetting.FORCED_TIME, value);
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public void setForcedWeatherSetting(ClaimSettingValue value) {
         settings.put(ClaimSetting.FORCED_WEATHER, value);
-        GriefPrevention.plugin.dataStore.saveClaim(this);
+        GriefPrevention.instance.dataStore.saveClaim(this);
     }
 
     public ClaimSettingValue getForcedTimeSetting() {
@@ -759,7 +757,7 @@ public class Claim {
         DataStore.unlockedSettings.put(ownerID, playerUnlocks);
 
         if (saveToFile) {
-            GriefPrevention.plugin.dataStore.saveClaim(claim);
+            GriefPrevention.instance.dataStore.saveClaim(claim);
         }
     }
 
@@ -790,7 +788,7 @@ public class Claim {
 
     public void setOwnerRanks(boolean save) {
         OfflinePlayer owner = Bukkit.getOfflinePlayer(this.ownerID);
-        List<String> allRankPermissions = GriefPrevention.plugin.getAllRequiredOwnerRanks();
+        List<String> allRankPermissions = GriefPrevention.instance.getAllRequiredOwnerRanks();
 
         List<String> newRanks = new ArrayList<>();
 
@@ -805,13 +803,13 @@ public class Claim {
 
             if (!newRanks.toString().equals(this.ownerRanks.toString())) {
                 this.ownerRanks = newRanks;
-                if (save) GriefPrevention.plugin.dataStore.saveClaim(this);
+                if (save) GriefPrevention.instance.dataStore.saveClaim(this);
             }
         }
     }
 
     public void logSpentICoins(Player player, long amount, boolean save) {
         spentICoins.put(player.getUniqueId(), spentICoins.getOrDefault(player.getUniqueId(), 0L) + amount);
-        if (save) GriefPrevention.plugin.dataStore.saveClaim(this);
+        if (save) GriefPrevention.instance.dataStore.saveClaim(this);
     }
 }

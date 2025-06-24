@@ -22,7 +22,7 @@ public class BoundaryVisualizationEvent extends PlayerEvent {
 
     public static final VisualizationProvider DEFAULT_PROVIDER = (world, visualizeFrom, height) ->
     {
-        if (GriefPrevention.plugin.config_visualizationAntiCheatCompat) {
+        if (GriefPrevention.instance.config_visualizationAntiCheatCompat) {
             return new AntiCheatCompatVisualization(world, visualizeFrom, height);
         }
         return new FakeBlockVisualization(world, visualizeFrom, height);

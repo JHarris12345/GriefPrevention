@@ -149,7 +149,7 @@ public class PlayerData {
 
         long elapsed = now - this.lastPvpTimestamp;
 
-        if (elapsed > GriefPrevention.plugin.config_pvp_combatTimeoutSeconds * 1000) //X seconds
+        if (elapsed > GriefPrevention.instance.config_pvp_combatTimeoutSeconds * 1000) //X seconds
         {
             this.lastPvpTimestamp = 0;
             return false;
@@ -160,7 +160,7 @@ public class PlayerData {
 
     //the number of claim blocks a player has available for claiming land
     public int getRemainingClaimBlocks() {
-        int remainingBlocks = this.getAccruedClaimBlocks() + this.getBonusClaimBlocks() + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID);
+        int remainingBlocks = this.getAccruedClaimBlocks() + this.getBonusClaimBlocks() + GriefPrevention.instance.dataStore.getGroupBonusBlocks(this.playerID);
         for (int i = 0; i < this.getClaims(true).size(); i++) {
             Claim claim = this.getClaims(true).get(i);
             remainingBlocks -= claim.getArea();
@@ -209,20 +209,20 @@ public class PlayerData {
 
     private void loadDataFromSecondaryStorage() {
         //reach out to secondary storage to get any data there
-        PlayerData storageData = GriefPrevention.plugin.dataStore.getPlayerDataFromStorage(this.playerID);
+        PlayerData storageData = GriefPrevention.instance.dataStore.getPlayerDataFromStorage(this.playerID);
 
         if (this.accruedClaimBlocks == null) {
             if (storageData.accruedClaimBlocks != null) {
                 this.accruedClaimBlocks = storageData.accruedClaimBlocks;
 
                 //ensure at least minimum accrued are accrued (in case of settings changes to increase initial amount)
-                if (GriefPrevention.plugin.config_advanced_fixNegativeClaimblockAmounts && (this.accruedClaimBlocks < GriefPrevention.plugin.config_claims_initialBlocks)) {
-                    this.accruedClaimBlocks = GriefPrevention.plugin.config_claims_initialBlocks;
+                if (GriefPrevention.instance.config_advanced_fixNegativeClaimblockAmounts && (this.accruedClaimBlocks < GriefPrevention.instance.config_claims_initialBlocks)) {
+                    this.accruedClaimBlocks = GriefPrevention.instance.config_claims_initialBlocks;
                 }
 
             }
             else {
-                this.accruedClaimBlocks = GriefPrevention.plugin.config_claims_initialBlocks;
+                this.accruedClaimBlocks = GriefPrevention.instance.config_claims_initialBlocks;
             }
         }
 
@@ -241,7 +241,7 @@ public class PlayerData {
             this.claims = new Vector<>();
 
             //find all the claims belonging to this player and note them for future reference
-            DataStore dataStore = GriefPrevention.plugin.dataStore;
+            DataStore dataStore = GriefPrevention.instance.dataStore;
             int totalClaimsArea = 0;
             for (Claim claim : dataStore.claimMap.values()) {
                 if (!claim.inDataStore) {
@@ -260,9 +260,9 @@ public class PlayerData {
             this.loadDataFromSecondaryStorage();
 
             //if total claimed area is more than total blocks available
-            int totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID);
-            if (GriefPrevention.plugin.config_advanced_fixNegativeClaimblockAmounts && totalBlocks < totalClaimsArea) {
-                OfflinePlayer player = GriefPrevention.plugin.getServer().getOfflinePlayer(this.playerID);
+            int totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.instance.dataStore.getGroupBonusBlocks(this.playerID);
+            if (GriefPrevention.instance.config_advanced_fixNegativeClaimblockAmounts && totalBlocks < totalClaimsArea) {
+                OfflinePlayer player = GriefPrevention.instance.getServer().getOfflinePlayer(this.playerID);
                 GriefPrevention.AddLogEntry(player.getName() + " has more claimed land than blocks available.  Adding blocks to fix.", CustomLogEntryTypes.Debug, true);
                 GriefPrevention.AddLogEntry(player.getName() + " Accrued blocks: " + this.getAccruedClaimBlocks() + " Bonus blocks: " + this.getBonusClaimBlocks(), CustomLogEntryTypes.Debug, true);
                 GriefPrevention.AddLogEntry("Total blocks: " + totalBlocks + " Total claimed area: " + totalClaimsArea, CustomLogEntryTypes.Debug, true);
@@ -282,7 +282,7 @@ public class PlayerData {
                 GriefPrevention.AddLogEntry("New accrued blocks: " + this.accruedClaimBlocks, CustomLogEntryTypes.Debug, true);
 
                 //Recalculate total blocks (accrued + bonus + permission group bonus)
-                totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID);
+                totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.instance.dataStore.getGroupBonusBlocks(this.playerID);
                 GriefPrevention.AddLogEntry("New total blocks: " + totalBlocks, CustomLogEntryTypes.Debug, true);
 
                 //if that didn't fix it, then make up the difference with bonus blocks
@@ -291,9 +291,9 @@ public class PlayerData {
                     this.bonusClaimBlocks += bonusBlocksToAdd;
                     GriefPrevention.AddLogEntry("Accrued blocks weren't enough. Adding " + bonusBlocksToAdd + " bonus blocks.", CustomLogEntryTypes.Debug, true);
                 }
-                GriefPrevention.AddLogEntry(player.getName() + " Accrued blocks: " + this.getAccruedClaimBlocks() + " Bonus blocks: " + this.getBonusClaimBlocks() + " Group Bonus Blocks: " + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID), CustomLogEntryTypes.Debug, true);
+                GriefPrevention.AddLogEntry(player.getName() + " Accrued blocks: " + this.getAccruedClaimBlocks() + " Bonus blocks: " + this.getBonusClaimBlocks() + " Group Bonus Blocks: " + GriefPrevention.instance.dataStore.getGroupBonusBlocks(this.playerID), CustomLogEntryTypes.Debug, true);
                 //Recalculate total blocks (accrued + bonus + permission group bonus)
-                totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.plugin.dataStore.getGroupBonusBlocks(this.playerID);
+                totalBlocks = this.accruedClaimBlocks + this.getBonusClaimBlocks() + GriefPrevention.instance.dataStore.getGroupBonusBlocks(this.playerID);
                 GriefPrevention.AddLogEntry("Total blocks: " + totalBlocks + " Total claimed area: " + totalClaimsArea, CustomLogEntryTypes.Debug, true);
                 GriefPrevention.AddLogEntry("Remaining claim blocks to use: " + this.getRemainingClaimBlocks() + " (should be 0)", CustomLogEntryTypes.Debug, true);
             }
@@ -311,7 +311,7 @@ public class PlayerData {
     //Limit can be changed by addons
     public int getAccruedClaimBlocksLimit() {
         if (this.AccruedClaimBlocksLimit < 0)
-            return GriefPrevention.plugin.config_claims_maxAccruedBlocks_default;
+            return GriefPrevention.instance.config_claims_maxAccruedBlocks_default;
         return this.AccruedClaimBlocksLimit;
     }
 

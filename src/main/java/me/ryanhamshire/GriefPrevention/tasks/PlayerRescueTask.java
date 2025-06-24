@@ -50,7 +50,7 @@ public class PlayerRescueTask implements Runnable {
         if (!player.isOnline()) return;
 
         //he no longer has a pending /trapped slash command, so he can try to use it again now
-        PlayerData playerData = GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId());
+        PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
         playerData.pendingTrapped = false;
 
         //if the player moved three or more blocks from where he used /trapped, admonish him and don't save him
@@ -61,7 +61,7 @@ public class PlayerRescueTask implements Runnable {
 
         //otherwise find a place to teleport him
         if (this.destination == null) {
-            this.destination = GriefPrevention.plugin.ejectPlayer(this.player);
+            this.destination = GriefPrevention.instance.ejectPlayer(this.player);
         }
         else {
             player.teleport(this.destination);

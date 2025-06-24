@@ -184,7 +184,7 @@ public class RestoreNatureProcessingTask implements Runnable {
 
         //schedule main thread task to apply the result to the world
         RestoreNatureExecutionTask task = new RestoreNatureExecutionTask(this.snapshots, this.miny, this.lesserBoundaryCorner, this.greaterBoundaryCorner, this.player);
-        GriefPrevention.plugin.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.plugin, task);
+        GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task);
     }
 
 

@@ -18,7 +18,6 @@
 
 package me.ryanhamshire.GriefPrevention.listeners;
 
-import com.earth2me.essentials.User;
 import com.griefprevention.visualization.BoundaryVisualization;
 import com.griefprevention.visualization.VisualizationType;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
@@ -39,7 +38,6 @@ import me.ryanhamshire.GriefPrevention.tasks.BroadcastMessageTask;
 import me.ryanhamshire.GriefPrevention.tasks.EquipShovelProcessingTask;
 import me.ryanhamshire.GriefPrevention.tasks.WelcomeTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
-import me.ryanhamshire.GriefPrevention.utils.IgnoreLoaderThread;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
 import org.bukkit.Bukkit;
@@ -65,7 +63,6 @@ import org.bukkit.entity.Donkey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fish;
-import org.bukkit.entity.Hanging;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Mule;
@@ -233,8 +230,8 @@ public class PlayerEventHandler implements Listener {
         }
 
         //in case player has changed his name, on successful login, update UUID > Name mapping
-        GriefPrevention.plugin.cacheUUIDNamePair(player.getUniqueId(), player.getName());
-        GriefPrevention.plugin.uuidNameCache.put(player.getUniqueId(), player.getName());
+        GriefPrevention.instance.cacheUUIDNamePair(player.getUniqueId(), player.getName());
+        GriefPrevention.instance.uuidNameCache.put(player.getUniqueId(), player.getName());
 
         //create a thread to load ignore information - JH notes - What the fuck is this? Doesn't even do anything with the data it seems
         //new IgnoreLoaderThread(playerID, playerData.ignoredPlayers).start();
@@ -767,11 +764,11 @@ public class PlayerEventHandler implements Listener {
     }
 
     private boolean doesAllowLavaProximityInWorld(World world) {
-        if (GriefPrevention.plugin.pvpRulesApply(world)) {
-            return GriefPrevention.plugin.config_pvp_allowLavaNearPlayers;
+        if (GriefPrevention.instance.pvpRulesApply(world)) {
+            return GriefPrevention.instance.config_pvp_allowLavaNearPlayers;
         }
         else {
-            return GriefPrevention.plugin.config_pvp_allowLavaNearPlayers_NonPvp;
+            return GriefPrevention.instance.config_pvp_allowLavaNearPlayers_NonPvp;
         }
     }
 
@@ -1059,7 +1056,7 @@ public class PlayerEventHandler implements Listener {
 
             // Require build permission for items that may have an effect on the world when used.
             if (clickedBlock != null && (materialInHand == Material.BONE_MEAL
-                    || (spawn_eggs.contains(materialInHand) && GriefPrevention.plugin.config_claims_preventGlobalMonsterEggs)
+                    || (spawn_eggs.contains(materialInHand) && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs)
                     || materialInHand == Material.END_CRYSTAL
                     || materialInHand == Material.FLINT_AND_STEEL
                     || materialInHand == Material.INK_SAC
@@ -1829,8 +1826,8 @@ public class PlayerEventHandler implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent e) {
         String command = e.getMessage().toLowerCase().split(" ")[0];
 
-        List<String> blacklisted = GriefPrevention.plugin.config_claims_commandsRequiringAccessTrust;
-        List<String> whitelisted = GriefPrevention.plugin.config_claims_commandsRequiringAccessTrustWhitelist;
+        List<String> blacklisted = GriefPrevention.instance.config_claims_commandsRequiringAccessTrust;
+        List<String> whitelisted = GriefPrevention.instance.config_claims_commandsRequiringAccessTrustWhitelist;
 
         if (!blacklisted.contains(command)) return;
         if (whitelisted.contains(command)) return;

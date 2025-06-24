@@ -29,7 +29,6 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSettingValue;
 import me.ryanhamshire.GriefPrevention.objects.enums.CustomLogEntryTypes;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -51,7 +50,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -223,7 +221,7 @@ public class FlatFileDataStore extends DataStore {
 
             if (parent != null) {
                 if (!parent.contains(child.lesserBoundaryCorner, true) || !parent.contains(child.greaterBoundaryCorner, true)) {
-                    GriefPrevention.plugin.getLogger().info("Claim " + child.id + " is a sub claim that is not full within its parent claim");
+                    GriefPrevention.instance.getLogger().info("Claim " + child.id + " is a sub claim that is not full within its parent claim");
                     continue;
                 }
 
@@ -232,11 +230,11 @@ public class FlatFileDataStore extends DataStore {
                 this.addClaim(child, false);
 
             } else {
-                GriefPrevention.plugin.getLogger().info("Claim " + child.id + " is a sub claim but the parent is null");
+                GriefPrevention.instance.getLogger().info("Claim " + child.id + " is a sub claim but the parent is null");
             }
         }
 
-        GriefPrevention.plugin.getLogger().info("Loaded the claim data in " + (System.currentTimeMillis() - claimDataStart) + "ms");
+        GriefPrevention.instance.getLogger().info("Loaded the claim data in " + (System.currentTimeMillis() - claimDataStart) + "ms");
     }
 
     Claim loadClaim(File file, ArrayList<Long> out_parentID, long claimID) throws IOException, InvalidConfigurationException, Exception {

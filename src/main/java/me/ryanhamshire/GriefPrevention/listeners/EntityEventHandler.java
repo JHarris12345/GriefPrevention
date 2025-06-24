@@ -20,7 +20,6 @@ package me.ryanhamshire.GriefPrevention.listeners;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
-import me.ryanhamshire.GriefPrevention.events.ProtectDeathDropsEvent;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.PendingItemProtection;
 import me.ryanhamshire.GriefPrevention.objects.PlayerData;
@@ -30,54 +29,43 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.utils.legacies.EntityTypeUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
-import org.bukkit.entity.Painting;
 import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Slime;
-import org.bukkit.entity.Snowball;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalExitEvent;
 import org.bukkit.event.entity.ExpBottleEvent;
-import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.projectiles.BlockProjectileSource;
@@ -105,7 +93,7 @@ public class EntityEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityFormBlock(EntityBlockFormEvent event) {
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
         if (!(event.getEntity() instanceof Player)) return;
 
         Player player = (Player) event.getEntity();
@@ -120,7 +108,7 @@ public class EntityEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityChangeBLock(EntityChangeBlockEvent event) {
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
         if (claim == null) return;
@@ -200,7 +188,7 @@ public class EntityEventHandler implements Listener {
 
     static boolean isBlockSourceInClaim(@Nullable ProjectileSource projectileSource, @Nullable Claim claim) {
         return projectileSource instanceof BlockProjectileSource &&
-                GriefPrevention.plugin.dataStore.getClaimAt(((BlockProjectileSource) projectileSource).getBlock().getLocation(), false, claim) == claim;
+                GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) projectileSource).getBlock().getLocation(), false, claim) == claim;
     }
 
     //Used by "sand cannon" fix to ignore fallingblocks that fell through End Portals
@@ -226,7 +214,7 @@ public class EntityEventHandler implements Listener {
     //don't allow zombies to break down doors
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onZombieBreakDoor(EntityBreakDoorEvent event) {
-        if (!GriefPrevention.plugin.config_zombiesBreakDoors) event.setCancelled(true);
+        if (!GriefPrevention.instance.config_zombiesBreakDoors) event.setCancelled(true);
     }
 
     //don't allow entities to trample crops
@@ -234,7 +222,7 @@ public class EntityEventHandler implements Listener {
     public void onEntityInteract(EntityInteractEvent event) {
         Material material = event.getBlock().getType();
         if (material == Material.FARMLAND) {
-            if (!GriefPrevention.plugin.config_creaturesTrampleCrops) {
+            if (!GriefPrevention.instance.config_creaturesTrampleCrops) {
                 event.setCancelled(true);
             }
             else {
@@ -250,12 +238,12 @@ public class EntityEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onItemSpawn(ItemSpawnEvent event) {
         //if in a creative world, cancel the event (don't drop items on the ground)
-        if (GriefPrevention.plugin.creativeRulesApply(event.getLocation())) {
+        if (GriefPrevention.instance.creativeRulesApply(event.getLocation())) {
             event.setCancelled(true);
         }
 
         //if item is on watch list, apply protection
-        ArrayList<PendingItemProtection> watchList = GriefPrevention.plugin.pendingItemWatchList;
+        ArrayList<PendingItemProtection> watchList = GriefPrevention.instance.pendingItemWatchList;
         Item newItem = event.getEntity();
         Long now = null;
         for (int i = 0; i < watchList.size(); i++) {
@@ -286,7 +274,7 @@ public class EntityEventHandler implements Listener {
             }
 
             //otherwise, mark item with protection information
-            newItem.setMetadata("GP_ITEMOWNER", new FixedMetadataValue(GriefPrevention.plugin, pendingProtection.owner));
+            newItem.setMetadata("GP_ITEMOWNER", new FixedMetadataValue(GriefPrevention.instance, pendingProtection.owner));
 
             //and remove pending protection data
             watchList.remove(i);
@@ -298,7 +286,7 @@ public class EntityEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onExpBottle(ExpBottleEvent event) {
         //if in a creative world, cancel the event (don't drop exp on the ground)
-        if (GriefPrevention.plugin.creativeRulesApply(event.getEntity().getLocation())) {
+        if (GriefPrevention.instance.creativeRulesApply(event.getEntity().getLocation())) {
             event.setExperience(0);
         }
     }
@@ -306,7 +294,7 @@ public class EntityEventHandler implements Listener {
     //when a creature spawns...
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntitySpawn(CreatureSpawnEvent event) {
-        Claim claim = GriefPrevention.plugin.dataStore.getClaimAt(event.getLocation(), true, null);
+        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getLocation(), true, null);
         if (claim != null && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
             // If the entity is a monster
             if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
@@ -328,7 +316,7 @@ public class EntityEventHandler implements Listener {
         }
 
         //these rules apply only to creative worlds
-        if (!GriefPrevention.plugin.creativeRulesApply(event.getLocation())) return;
+        if (!GriefPrevention.instance.creativeRulesApply(event.getLocation())) return;
 
         //chicken eggs and breeding could potentially make a mess in the wilderness, once griefers get involved
         SpawnReason reason = event.getSpawnReason();
@@ -348,7 +336,7 @@ public class EntityEventHandler implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onHangingBreak(HangingBreakEvent event) {
         //don't track in worlds where claims are not enabled
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(event.getEntity().getWorld())) return;
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
 
         // Ignore item frames as we have a separate event for them
         if (event.getEntity() instanceof ItemFrame) return;
@@ -395,7 +383,7 @@ public class EntityEventHandler implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPaintingPlace(HangingPlaceEvent event) {
         //don't track in worlds where claims are not enabled
-        if (!GriefPrevention.plugin.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         Claim claim = this.dataStore.getClaimAt(event.getEntity().getLocation(), false, null);
         if (claim == null) return;

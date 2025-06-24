@@ -74,7 +74,7 @@ public class CommandHandler {
 
         // claim
         if (cmd.getName().equalsIgnoreCase("claim") && player != null) {
-            if (!GriefPrevention.plugin.claimsEnabledForWorld(player.getWorld())) {
+            if (!GriefPrevention.instance.claimsEnabledForWorld(player.getWorld())) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClaimsDisabledWorld);
                 return true;
             }
@@ -82,31 +82,31 @@ public class CommandHandler {
             PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
 
             // if he's at the claim count per player limit already and doesn't have permission to bypass, display an error message
-            if (GriefPrevention.plugin.config_claims_maxClaimsPerPlayer > 0 &&
+            if (GriefPrevention.instance.config_claims_maxClaimsPerPlayer > 0 &&
                     !player.hasPermission("griefprevention.overrideclaimcountlimit") &&
-                    playerData.getClaims(true).size() >= GriefPrevention.plugin.config_claims_maxClaimsPerPlayer) {
+                    playerData.getClaims(true).size() >= GriefPrevention.instance.config_claims_maxClaimsPerPlayer) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClaimCreationFailedOverClaimCountLimit);
                 return true;
             }
 
             // default is chest claim radius, unless -1
-            int radius = GriefPrevention.plugin.config_claims_automaticClaimsForNewPlayersRadius;
-            if (radius < 0) radius = (int) Math.ceil(Math.sqrt(GriefPrevention.plugin.config_claims_minArea) / 2);
+            int radius = GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadius;
+            if (radius < 0) radius = (int) Math.ceil(Math.sqrt(GriefPrevention.instance.config_claims_minArea) / 2);
 
             // if player has any claims, respect claim minimum size setting
             if (playerData.getClaims(true).size() > 0) {
                 // if player has exactly one land claim, this requires the claim modification tool to be in hand (or creative mode player)
-                if (playerData.getClaims(true).size() == 1 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
+                if (playerData.getClaims(true).size() == 1 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.MustHoldModificationToolForThat);
                     return true;
                 }
 
-                radius = (int) Math.ceil(Math.sqrt(GriefPrevention.plugin.config_claims_minArea) / 2);
+                radius = (int) Math.ceil(Math.sqrt(GriefPrevention.instance.config_claims_minArea) / 2);
             }
 
             // allow for specifying the radius
             if (args.length > 0) {
-                if (playerData.getClaims(true).size() < 2 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
+                if (playerData.getClaims(true).size() < 2 && player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.RadiusRequiresGoldenShovel);
                     return true;
                 }
@@ -138,14 +138,14 @@ public class CommandHandler {
             int remaining = playerData.getRemainingClaimBlocks();
             if (remaining < area) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.CreateClaimInsufficientBlocks, String.valueOf(area - remaining));
-                GriefPrevention.plugin.dataStore.tryAdvertiseAdminAlternatives(player);
+                GriefPrevention.instance.dataStore.tryAdvertiseAdminAlternatives(player);
                 return true;
             }
 
             CreateClaimResult result = plugin.dataStore.createClaim(lc.getWorld(),
                     lc.getBlockX(), gc.getBlockX(),
-                    lc.getBlockY() - GriefPrevention.plugin.config_claims_claimsExtendIntoGroundDistance - 1,
-                    gc.getWorld().getHighestBlockYAt(gc) - GriefPrevention.plugin.config_claims_claimsExtendIntoGroundDistance - 1,
+                    lc.getBlockY() - GriefPrevention.instance.config_claims_claimsExtendIntoGroundDistance - 1,
+                    gc.getWorld().getHighestBlockYAt(gc) - GriefPrevention.instance.config_claims_claimsExtendIntoGroundDistance - 1,
                     lc.getBlockZ(), gc.getBlockZ(),
                     player.getUniqueId(), null, null, player, new ArrayList<>());
             if (!result.succeeded || result.claim == null) {
@@ -162,10 +162,10 @@ public class CommandHandler {
                 GriefPrevention.sendMessage(player, TextMode.Success, Messages.CreateClaimSuccess);
 
                 // link to a video demo of land claiming, based on world type
-                if (GriefPrevention.plugin.creativeRulesApply(player.getLocation())) {
+                if (GriefPrevention.instance.creativeRulesApply(player.getLocation())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
                 }
-                else if (GriefPrevention.plugin.claimsEnabledForWorld(player.getWorld())) {
+                else if (GriefPrevention.instance.claimsEnabledForWorld(player.getWorld())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
                 }
                 BoundaryVisualization.visualizeClaim(player, result.claim, VisualizationType.CLAIM);
@@ -213,10 +213,10 @@ public class CommandHandler {
         if (cmd.getName().equalsIgnoreCase("extendclaim") && player != null) {
             if (args.length < 1) {
                 // link to a video demo of land claiming, based on world type
-                if (GriefPrevention.plugin.creativeRulesApply(player.getLocation())) {
+                if (GriefPrevention.instance.creativeRulesApply(player.getLocation())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
                 }
-                else if (GriefPrevention.plugin.claimsEnabledForWorld(player.getLocation().getWorld())) {
+                else if (GriefPrevention.instance.claimsEnabledForWorld(player.getLocation().getWorld())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
                 }
                 return false;
@@ -228,17 +228,17 @@ public class CommandHandler {
             }
             catch (NumberFormatException e) {
                 // link to a video demo of land claiming, based on world type
-                if (GriefPrevention.plugin.creativeRulesApply(player.getLocation())) {
+                if (GriefPrevention.instance.creativeRulesApply(player.getLocation())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.CreativeBasicsVideo2, DataStore.CREATIVE_VIDEO_URL);
                 }
-                else if (GriefPrevention.plugin.claimsEnabledForWorld(player.getLocation().getWorld())) {
+                else if (GriefPrevention.instance.claimsEnabledForWorld(player.getLocation().getWorld())) {
                     GriefPrevention.sendMessage(player, TextMode.Instr, Messages.SurvivalBasicsVideo2, DataStore.SURVIVAL_VIDEO_URL);
                 }
                 return false;
             }
 
             // requires claim modification tool in hand
-            if (player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.plugin.config_claims_modificationTool) {
+            if (player.getGameMode() != GameMode.CREATIVE && player.getItemInHand().getType() != GriefPrevention.instance.config_claims_modificationTool) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.MustHoldModificationToolForThat);
                 return true;
             }
@@ -595,7 +595,7 @@ public class CommandHandler {
                     return true;
                 }
 
-                if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC && !GriefPrevention.plugin.dataStore.isBypassing(player.getUniqueId())) {
+                if (claim.getPlayerRole(player.getUniqueId()) == ClaimRole.PUBLIC && !GriefPrevention.instance.dataStore.isBypassing(player.getUniqueId())) {
                     player.sendMessage(Utils.colour("&cYou aren't a member of this claim"));
                     return true;
                 }
@@ -773,7 +773,7 @@ public class CommandHandler {
             }
 
             // if purchase disabled, send error message
-            if (GriefPrevention.plugin.config_economy_claimBlocksPurchaseCost == 0) {
+            if (GriefPrevention.instance.config_economy_claimBlocksPurchaseCost == 0) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlySellBlocks);
                 return true;
             }
@@ -782,7 +782,7 @@ public class CommandHandler {
 
             // if no parameter, just tell player cost per block and balance
             if (args.length != 1) {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.plugin.config_economy_claimBlocksPurchaseCost), String.valueOf(economy.getBalance(player)));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(economy.getBalance(player)));
                 return false;
             }
             else {
@@ -803,7 +803,7 @@ public class CommandHandler {
 
                 // if the player can't afford his purchase, send error message
                 double balance = economy.getBalance(player);
-                double totalCost = blockCount * GriefPrevention.plugin.config_economy_claimBlocksPurchaseCost;
+                double totalCost = blockCount * GriefPrevention.instance.config_economy_claimBlocksPurchaseCost;
                 if (totalCost > balance) {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.InsufficientFunds, economy.format(totalCost), economy.format(balance));
                 }
@@ -813,7 +813,7 @@ public class CommandHandler {
                     int newBonusClaimBlocks = playerData.getBonusClaimBlocks() + blockCount;
 
                     // if the player is going to reach max bonus limit, send error message
-                    int bonusBlocksLimit = GriefPrevention.plugin.config_economy_claimBlocksMaxBonus;
+                    int bonusBlocksLimit = GriefPrevention.instance.config_economy_claimBlocksMaxBonus;
                     if (bonusBlocksLimit != 0 && newBonusClaimBlocks > bonusBlocksLimit) {
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.MaxBonusReached, String.valueOf(blockCount), String.valueOf(bonusBlocksLimit));
                         return true;
@@ -849,7 +849,7 @@ public class CommandHandler {
             }
 
             // if disabled, error message
-            if (GriefPrevention.plugin.config_economy_claimBlocksSellValue == 0) {
+            if (GriefPrevention.instance.config_economy_claimBlocksSellValue == 0) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlyPurchaseBlocks);
                 return true;
             }
@@ -860,7 +860,7 @@ public class CommandHandler {
 
             // if no amount provided, just tell player value per block sold, and how many he can sell
             if (args.length != 1) {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockSaleValue, String.valueOf(GriefPrevention.plugin.config_economy_claimBlocksSellValue), String.valueOf(availableBlocks));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockSaleValue, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksSellValue), String.valueOf(availableBlocks));
                 return false;
             }
 
@@ -885,7 +885,7 @@ public class CommandHandler {
             // otherwise carry out the transaction
             else {
                 // compute value and deposit it
-                double totalValue = blockCount * GriefPrevention.plugin.config_economy_claimBlocksSellValue;
+                double totalValue = blockCount * GriefPrevention.instance.config_economy_claimBlocksSellValue;
                 economyWrapper.getEconomy().depositPlayer(player, totalValue);
 
                 // subtract blocks
@@ -950,8 +950,8 @@ public class CommandHandler {
                         plugin.dataStore.deleteClaim(claim, true, true);
 
                         // if in a creative mode world, /restorenature the claim
-                        if (GriefPrevention.plugin.creativeRulesApply(claim.getLesserBoundaryCorner()) || GriefPrevention.plugin.config_claims_survivalAutoNatureRestoration) {
-                            GriefPrevention.plugin.restoreClaim(claim, 0);
+                        if (GriefPrevention.instance.creativeRulesApply(claim.getLesserBoundaryCorner()) || GriefPrevention.instance.config_claims_survivalAutoNatureRestoration) {
+                            GriefPrevention.instance.restoreClaim(claim, 0);
                         }
 
                         GriefPrevention.sendMessage(player, TextMode.Success, Messages.DeleteSuccess);
@@ -1376,7 +1376,7 @@ public class CommandHandler {
             }
 
             // if the player is in an administrative claim and AllowTrappedInAdminClaims is false, he should contact an admin
-            if (!GriefPrevention.plugin.config_claims_allowTrappedInAdminClaims && claim.isAdminClaim() && event.getDestination() == null) {
+            if (!GriefPrevention.instance.config_claims_allowTrappedInAdminClaims && claim.isAdminClaim() && event.getDestination() == null) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.TrappedWontWorkHere);
                 return true;
             }
@@ -1643,7 +1643,7 @@ public class CommandHandler {
                 return true;
             }
 
-            PlayerData data = GriefPrevention.plugin.dataStore.getPlayerData(player.getUniqueId());
+            PlayerData data = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
             boolean bypassing = (data != null && data.ignoreClaims);
 
             ClaimRole targetRole = claim.getPlayerRole(target.getUniqueId());
