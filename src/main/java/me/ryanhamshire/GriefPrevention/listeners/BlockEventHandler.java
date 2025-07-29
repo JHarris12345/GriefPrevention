@@ -1025,7 +1025,7 @@ public class BlockEventHandler implements Listener {
 
 
 
-    // Prevent crops growingif their settings are false
+    // Prevent crops growing if their settings are false
     @EventHandler
     public void onGrow(BlockGrowEvent e) {
         if (!(e.getBlock().getBlockData() instanceof Ageable)) return;
