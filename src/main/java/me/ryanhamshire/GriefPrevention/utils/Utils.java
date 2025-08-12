@@ -7,6 +7,11 @@ import me.ryanhamshire.GriefPrevention.objects.Claim;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimRole;
 import me.ryanhamshire.GriefPrevention.utils.legacies.ItemFlagUtils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.ParticleUtils;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -15,6 +20,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -198,5 +204,65 @@ public class Utils {
         if (z > maxZ || z < minZ) return true;
 
         return false;
+    }
+
+    // Returns true if page buttons were sent and false if not
+    public static boolean sendPageButtons(CommandSender sender, int pagesNeeded, int pageNumber, String nextPageCommandWithSlash, String backPageCommandWithSlash, boolean addSpace) {
+        boolean sentButtons = false;
+        if (pagesNeeded > 1 && addSpace) sender.sendMessage("");
+
+        boolean java = (sender instanceof Player player && !isPlayerBedrock(player.getUniqueId()));
+
+        if (pagesNeeded > 1 && pageNumber == 1) {
+            if (java) {
+                sender.sendMessage(Utils.createClickableText("&7Next Page [»]", "Click me", nextPageCommandWithSlash));
+            }
+            sentButtons = true;
+        }
+
+        if (pageNumber > 1 && pageNumber < pagesNeeded) {
+            if (java) {
+                sender.sendMessage(Utils.createClickableText("&7[«] Previous Page", "Click me", backPageCommandWithSlash),
+                        new TextComponent("         "),
+                        Utils.createClickableText("&7Next Page [»]", "Click me", nextPageCommandWithSlash));
+            }
+            sentButtons = true;
+        }
+
+        if (pageNumber == pagesNeeded && pagesNeeded != 1) {
+            if (java) {
+                sender.sendMessage(Utils.createClickableText("&7[«] Previous Page", "Click me", backPageCommandWithSlash));
+            }
+            sentButtons = true;
+        }
+
+        // For bedrock players we send the page command but replace the page number with (page)
+        if (sentButtons && !java) {
+            StringBuilder commandNoPageNumber = new StringBuilder();
+            String[] words = nextPageCommandWithSlash.split(" ");
+
+            for (int i=0; i<words.length; i++) {
+                if (i != words.length-1) {
+                    commandNoPageNumber.append(words[i]);
+                } else {
+                    commandNoPageNumber.append("(page)");
+                }
+            }
+
+            sender.sendMessage(Utils.colour("&7" + commandNoPageNumber));
+        }
+
+        return sentButtons;
+    }
+
+    // Set commandWithSlash to null for just hover text
+    public static BaseComponent createClickableText(String text, String hoverText, String commandWithSlash) {
+        TextComponent textComponent = new TextComponent();
+
+        textComponent.setText(Utils.colour(text));
+        textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(Utils.colour(hoverText))));
+        if (commandWithSlash != null) textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, commandWithSlash));
+
+        return textComponent;
     }
 }

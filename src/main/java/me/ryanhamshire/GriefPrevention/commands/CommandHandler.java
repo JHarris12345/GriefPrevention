@@ -1091,26 +1091,19 @@ public class CommandHandler {
             return true;
         }
 
-        // claimslist or claimslist <player>
+        // claimslist (player) (PAGE.[page])
         else if (cmd.getName().equalsIgnoreCase("claimslist")) {
-            // at most one parameter
-            if (args.length > 1) return false;
+            if (args.length > 2) return false;
+            if (args.length == 2 && !args[1].startsWith("PAGE.")) return false;
 
             // player whose claims will be listed
             OfflinePlayer otherPlayer;
 
             // if another player isn't specified, assume current player
-            if (args.length < 1) {
-                if (player != null)
+            if (args.length == 0 || args.length == 1 && args[0].startsWith("PAGE.")) {
+                if (player != null) {
                     otherPlayer = player;
-                else
-                    return false;
-            }
-
-            // otherwise if no permission to delve into another player's claims data
-            else if (player != null && !player.hasPermission("griefprevention.claimslistother")) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClaimsListNoPermission);
-                return true;
+                } else return false;
             }
 
             // otherwise try to find the specified player
@@ -1122,6 +1115,12 @@ public class CommandHandler {
                 }
             }
 
+            // if the player doesn't have permission to view other player claims
+            if ( player != null && player != otherPlayer && !player.hasPermission("griefprevention.claimslistother")) {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ClaimsListNoPermission);
+                return true;
+            }
+
             // load the target player's data
             PlayerData playerData = plugin.dataStore.getPlayerData(otherPlayer.getUniqueId());
             Vector<Claim> claims = playerData.getClaims(false);
@@ -1130,13 +1129,24 @@ public class CommandHandler {
                     String.valueOf((playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))),
                     String.valueOf((playerData.getAccruedClaimBlocks() + playerData.getBonusClaimBlocks() + plugin.dataStore.getGroupBonusBlocks(otherPlayer.getUniqueId()))));
 
+            int page = (args.length == 1 && args[0].startsWith("PAGE.")) ? Integer.parseInt(args[0].split("\\.")[1]) :
+                    (args.length == 2 && args[1].startsWith("PAGE.")) ? Integer.parseInt(args[1].split("\\.")[1]) : 1;
+
             if (!claims.isEmpty()) {
-                int claimsPerPage = 2;
-                int pagesNeeded = 0;
+                int claimsPerPage = 15;
+                int pagesNeeded = (int) Math.ceil((double) claims.size() / claimsPerPage);
+
+                // Start index = (page number * itemsPerPage) - itemsPerPage
+                // End index = start index + (itemsPerPage - 1)
+
+                int startIndex = (page * claimsPerPage) - claimsPerPage;
+                int endIndex = startIndex + (claimsPerPage - 1);
+
+                if (endIndex >= claims.size()) endIndex = claims.size() - 1;
 
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
-                for (int i = 0; i < playerData.getClaims(true).size(); i++) {
-                    Claim claim = playerData.getClaims(true).get(i);
+                for (int i=startIndex; i<=endIndex; i++) {
+                    Claim claim = claims.get(i);
 
                     try {
                     /*TextComponent line = Component.text(Utils.colour("&e" + getfriendlyLocationString(claim.getLesserBoundaryCorner()) + plugin.dataStore.getMessage(Messages.ContinueBlockMath, String.valueOf(claim.getArea()))));
@@ -1156,6 +1166,9 @@ public class CommandHandler {
                         plugin.getLogger().info("Error finding claim " + claim.id);
                     }
                 }
+
+                Utils.sendPageButtons(sender, pagesNeeded, page,
+                        "/claimlist " + ((player != otherPlayer) ? otherPlayer.getName() + " " : "") + "PAGE." + (page + 1), "/claimlist " + ((player != otherPlayer) ? otherPlayer.getName() + " " : "") + "PAGE." + (page - 1), true);
 
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.EndBlockMath, String.valueOf(playerData.getRemainingClaimBlocks()));
             }
