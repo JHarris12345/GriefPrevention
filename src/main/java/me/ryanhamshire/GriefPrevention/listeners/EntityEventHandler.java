@@ -295,6 +295,7 @@ public class EntityEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntitySpawn(CreatureSpawnEvent event) {
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getLocation(), true, null);
+        if (event.getEntityType() == EntityType.MOOSHROOM) GriefPrevention.instance.getLogger().info("Mushroom cow spawned with reason " + event.getSpawnReason() + " at " + event.getEntity().getLocation());
         if (claim != null && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
             // If the entity is a monster
             if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
