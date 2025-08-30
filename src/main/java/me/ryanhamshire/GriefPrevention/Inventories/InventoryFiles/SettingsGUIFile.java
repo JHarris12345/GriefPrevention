@@ -119,6 +119,11 @@ public class SettingsGUIFile {
                 customFile.set("Settings.CORAL_DRY.Item", "TUBE_CORAL");
                 customFile.set("Settings.CORAL_DRY.Lore", new ArrayList<>(Arrays.asList("&7Coral will not dry up without water", "&7with this set to disabled")));
 
+                customFile.set("Settings.MOB_AGEING.Name", "&bMob Ageing");
+                customFile.set("Settings.MOB_AGEING.Permission", "group.empyrean");
+                customFile.set("Settings.MOB_AGEING.Item", "ZOMBIE_HEAD");
+                customFile.set("Settings.MOB_AGEING.Lore", new ArrayList<>(Arrays.asList("&7Mobs will not age with", "&7this set to disabled")));
+
                 customFile.set("Settings.CROP_GROWTH.Name", "&bCrop Growth");
                 customFile.set("Settings.CROP_GROWTH.Permission", "group.infinite");
                 customFile.set("Settings.CROP_GROWTH.Item", "WHEAT");

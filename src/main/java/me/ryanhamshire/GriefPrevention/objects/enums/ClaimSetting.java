@@ -23,6 +23,7 @@ public enum ClaimSetting {
     VINE_GROWTH(ClaimSettingValue.TRUE),
     CORAL_DRY(ClaimSettingValue.TRUE),
     CONCRETE_FORMING(ClaimSettingValue.TRUE),
+    MOB_AGEING(ClaimSettingValue.TRUE),
     ;
 
     private final ClaimSettingValue settingDefaultValue;
