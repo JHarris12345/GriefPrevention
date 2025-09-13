@@ -300,6 +300,12 @@ public class EntityEventHandler implements Listener {
             // If the entity is a monster
             if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
                     || event.getEntity() instanceof Ghast || event.getEntity() instanceof Slime) {
+
+                // We still want to allow pyrofishing crabs (silverfish) to be spawned and since any natural
+                // silverfish spawns with the spawn reason SILVERFISH_BLOCK, then any spawned with the NATURAL
+                // reason are not actually from natural spawns (and likely from pyro)
+                if (event.getEntityType() == EntityType.SILVERFISH && event.getEntity().customName() != null) return;
+
                 if (!claim.isSettingEnabled(ClaimSetting.NATURAL_MONSTER_SPAWNS)) {
                     event.setCancelled(true);
                     return;
