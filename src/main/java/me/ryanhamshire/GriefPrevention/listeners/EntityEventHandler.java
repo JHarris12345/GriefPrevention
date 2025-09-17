@@ -297,9 +297,11 @@ public class EntityEventHandler implements Listener {
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getLocation(), true, null);
         if (event.getEntityType() == EntityType.MOOSHROOM) GriefPrevention.instance.getLogger().info("Mushroom cow spawned with reason " + event.getSpawnReason() + " at " + event.getEntity().getLocation());
         if (claim != null && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
+            if (event.getEntityType() == EntityType.MOOSHROOM) System.out.println(1);
             // If the entity is a monster
             if (event.getEntity() instanceof Monster || event.getEntity() instanceof Phantom
                     || event.getEntity() instanceof Ghast || event.getEntity() instanceof Slime) {
+                if (event.getEntityType() == EntityType.MOOSHROOM) System.out.println(2);
 
                 // We still want to allow pyrofishing crabs (silverfish) to be spawned and since any natural
                 // silverfish spawns with the spawn reason SILVERFISH_BLOCK, then any spawned with the NATURAL
@@ -315,6 +317,7 @@ public class EntityEventHandler implements Listener {
             // If the entity is not a monster
             if (event.getEntity() instanceof Mob && !(event.getEntity() instanceof Monster)
                     && !(event.getEntity() instanceof Phantom) && !(event.getEntity() instanceof Ghast) && !(event.getEntity() instanceof Slime)) {
+                if (event.getEntityType() == EntityType.MOOSHROOM) System.out.println(3);
                 if (!claim.isSettingEnabled(ClaimSetting.NATURAL_ANIMAL_SPAWNS)) {
                     event.setCancelled(true);
                     return;
