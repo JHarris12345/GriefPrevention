@@ -693,7 +693,9 @@ public class Claim {
 
     public ClaimSettingValue getForcedTimeSetting() {
         // Just make sure the owner still has permission for the setting
-        if (!isSettingUnlocked(ClaimSetting.FORCED_TIME)) return ClaimSettingValue.NONE;
+        if (!isSettingUnlocked(ClaimSetting.FORCED_TIME)) {
+            return ClaimSettingValue.NONE;
+        }
 
         if (parent == null) {
             return settings.getOrDefault(ClaimSetting.FORCED_TIME, ClaimSetting.FORCED_TIME.getDefaultValue());
@@ -707,7 +709,7 @@ public class Claim {
 
     public ClaimSettingValue getForcedWeatherSetting() {
         // Just make sure the owner still has permission for the setting
-        if (!isSettingUnlocked(ClaimSetting.FORCED_TIME)) return ClaimSettingValue.NONE;
+        if (!isSettingUnlocked(ClaimSetting.FORCED_WEATHER)) return ClaimSettingValue.NONE;
 
         if (parent == null) {
             return settings.getOrDefault(ClaimSetting.FORCED_WEATHER, ClaimSetting.FORCED_WEATHER.getDefaultValue());
