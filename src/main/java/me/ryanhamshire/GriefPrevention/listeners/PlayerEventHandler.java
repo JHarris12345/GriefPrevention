@@ -613,6 +613,18 @@ public class PlayerEventHandler implements Listener {
             return;
         }
 
+        // Riding happy ghasts
+        if (entity.getType() == EntityType.HAPPY_GHAST) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+                if (event.getHand() == EquipmentSlot.HAND) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+                }
+                event.setCancelled(true);
+            }
+
+            return;
+        }
+
         // If the entity is something that does an action when right clicked OR they try to breed the entity
         if (entity instanceof Fish || entity.getType() == EntityType.ALLAY) {
             if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
