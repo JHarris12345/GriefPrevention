@@ -498,7 +498,7 @@ public class PlayerEventHandler implements Listener {
         Claim claim = dataStore.getClaimAt(event.getRightClicked().getLocation(), true, null);
         if (claim == null) return;
 
-        //allow horse protection to be overridden to allow management from other plugins
+        // allow horse protection to be overridden to allow management from other plugins
         if (!instance.config_claims_protectHorses && entity instanceof AbstractHorse) return;
         if (!instance.config_claims_protectDonkeys && entity instanceof Donkey) return;
         if (!instance.config_claims_protectDonkeys && entity instanceof Mule) return;
@@ -594,6 +594,18 @@ public class PlayerEventHandler implements Listener {
             if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.VILLAGER_TRADE)) {
                 if (event.getHand() == EquipmentSlot.HAND) {
                     GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.VILLAGER_TRADE.getDenialMessage());
+                }
+                event.setCancelled(true);
+            }
+
+            return;
+        }
+
+        // Unleashing entities
+        if (entity.getType() == EntityType.LEASH_KNOT) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+                if (event.getHand() == EquipmentSlot.HAND) {
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
                 }
                 event.setCancelled(true);
             }
