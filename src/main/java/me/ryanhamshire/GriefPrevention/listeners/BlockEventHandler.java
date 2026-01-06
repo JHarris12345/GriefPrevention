@@ -78,6 +78,7 @@ import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.event.world.StructureGrowEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
@@ -1190,18 +1191,24 @@ public class BlockEventHandler implements Listener {
 
         if (!material.contains("CONCRETE")) return;
 
-        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+        // If a player is placing concrete and NOT powder, we want to keep it as concrete. Annoyingly, the placed.getType()
+        // always shows as concrete so we need to check their hand and only continue if they're holding powder
+        ItemStack hand = e.getItemInHand();
 
-        if (claim == null) return;
-        if (claim.isSettingEnabled(ClaimSetting.CONCRETE_FORMING)) return;
+        if (hand != null && hand.getType().toString().contains("_POWDER")) {
+            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
 
-        // Check if any adjacent block is water
-        for (BlockFace face : BlockFace.values()) {
-            Block adjacentBlock = placed.getRelative(face);
+            if (claim == null) return;
+            if (claim.isSettingEnabled(ClaimSetting.CONCRETE_FORMING)) return;
 
-            if (adjacentBlock.getType() == Material.WATER) {
-                placed.setType(Material.valueOf(material + "_POWDER"));
-                return;
+            // Check if any adjacent block is water
+            for (BlockFace face : BlockFace.values()) {
+                Block adjacentBlock = placed.getRelative(face);
+
+                if (adjacentBlock.getType() == Material.WATER) {
+                    placed.setType(Material.valueOf(material + "_POWDER"));
+                    return;
+                }
             }
         }
     }
