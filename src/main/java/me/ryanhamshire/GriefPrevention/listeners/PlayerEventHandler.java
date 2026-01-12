@@ -40,6 +40,7 @@ import me.ryanhamshire.GriefPrevention.tasks.WelcomeTask;
 import me.ryanhamshire.GriefPrevention.utils.BoundingBox;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
+import nl.rutgerkok.blocklocker.BlockLockerAPIv2;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
@@ -829,7 +830,7 @@ public class PlayerEventHandler implements Listener {
         if (action == Action.LEFT_CLICK_AIR) return;
 
         Player player = event.getPlayer();
-        Block clickedBlock = event.getClickedBlock(); //null returned here means interacting with air
+        Block clickedBlock = event.getClickedBlock(); // null returned here means interacting with air
         ItemStack item = event.getItem();
 
         Material clickedBlockType = null;
@@ -838,6 +839,12 @@ public class PlayerEventHandler implements Listener {
         }
         else {
             clickedBlockType = Material.AIR;
+        }
+
+        // Check if the player is trying to interact with a locked container or shop above everything else. This should always be allowed.
+        // BlockLocker api covers chest shops too so no need to check them separately
+        if (GriefPrevention.blockLockerMaterials.contains(clickedBlockType.toString())) {
+            if (BlockLockerAPIv2.isAllowed(player, clickedBlock, false)) return;
         }
 
         PlayerData playerData = null;

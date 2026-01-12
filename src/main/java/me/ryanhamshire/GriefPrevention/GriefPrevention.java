@@ -96,6 +96,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
@@ -326,6 +327,8 @@ public class GriefPrevention extends JavaPlugin {
         AddLogEntry(entry, CustomLogEntryTypes.Debug);
     }
 
+    public static Set<String> blockLockerMaterials = new HashSet<>(); // A list of every block that can be protected by block locker
+
     //initializes well...   everything
     public void onEnable() {
         long bootStart = System.currentTimeMillis();
@@ -351,6 +354,8 @@ public class GriefPrevention extends JavaPlugin {
             Plugin p = instance.getServer().getPluginManager().getPlugin("Essentials");
             if (p instanceof IEssentials) instance.essentials = (IEssentials) p;
         }
+
+        loadBlockLockerMaterials();
 
         // Set up files
         setupFiles();
@@ -1822,5 +1827,27 @@ public class GriefPrevention extends JavaPlugin {
         if (excludeSubClaims) claims.removeIf(claim -> claim.parent != null);
 
         return claims;
+    }
+
+    private void loadBlockLockerMaterials() {
+        Plugin blockLocker = Bukkit.getPluginManager().getPlugin("BlockLocker");
+        if (blockLocker == null) return;
+
+        File blockLockerConfigFile = new File(blockLocker.getDataFolder(), "config.yml");
+        if (!blockLockerConfigFile.exists()) return;
+
+        YamlConfiguration blockLockerConfig = YamlConfiguration.loadConfiguration(blockLockerConfigFile);
+
+        for (String protectableContainer: blockLockerConfig.getStringList("protectableContainers")) {
+            blockLockerMaterials.add(protectableContainer.toUpperCase());
+        }
+
+        for (String protectableDoor: blockLockerConfig.getStringList("protectableDoors")) {
+            blockLockerMaterials.add(protectableDoor.toUpperCase());
+        }
+
+        for (String protectableAttachable: blockLockerConfig.getStringList("protectableAttachables")) {
+            blockLockerMaterials.add(protectableAttachable.toUpperCase());
+        }
     }
  }

@@ -32,6 +32,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
 import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.MaterialUtils;
+import nl.rutgerkok.blocklocker.BlockLockerAPIv2;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -129,6 +130,12 @@ public class BlockEventHandler implements Listener {
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(breakEvent.getBlock().getLocation(), false, playerData.lastClaim);
         if (claim == null) return;
+
+        // Check if the player is trying to interact with a locked container or shop above everything else. This should always be allowed.
+        // BlockLocker api covers chest shops too so no need to check them separately
+        if (GriefPrevention.blockLockerMaterials.contains(breakEvent.getBlock().getType().toString())) {
+            if (BlockLockerAPIv2.isAllowed(player, breakEvent.getBlock(), false)) return;
+        }
 
         if (!claim.hasClaimPermission(breakEvent.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
             Utils.sendTimedMessage(player, ClaimPermission.BREAK_BLOCKS.getDenialMessage(), 100); // Timed message so it doesn't spam when using a trencher
