@@ -132,9 +132,11 @@ public class BlockEventHandler implements Listener {
         if (claim == null) return;
 
         // Check if the player is trying to interact with a locked container or shop above everything else. This should always be allowed.
-        // BlockLocker api covers chest shops too so no need to check them separately
+        // ToDo: Shop protection access
         if (GriefPrevention.blockLockerMaterials.contains(breakEvent.getBlock().getType().toString())) {
-            if (BlockLockerAPIv2.isAllowed(player, breakEvent.getBlock(), false)) return;
+            if (BlockLockerAPIv2.isProtected(breakEvent.getBlock())) {
+                if (BlockLockerAPIv2.isAllowed(player, breakEvent.getBlock(), false)) return;
+            }
         }
 
         if (!claim.hasClaimPermission(breakEvent.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {

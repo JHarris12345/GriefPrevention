@@ -842,9 +842,13 @@ public class PlayerEventHandler implements Listener {
         }
 
         // Check if the player is trying to interact with a locked container or shop above everything else. This should always be allowed.
-        // BlockLocker api covers chest shops too so no need to check them separately
-        if (GriefPrevention.blockLockerMaterials.contains(clickedBlockType.toString())) {
-            if (BlockLockerAPIv2.isAllowed(player, clickedBlock, false)) return;
+        // ToDo: Shop protection access
+        if (event.getClickedBlock() != null) {
+            if (GriefPrevention.blockLockerMaterials.contains(clickedBlockType.toString())) {
+                if (BlockLockerAPIv2.isProtected(event.getClickedBlock())) {
+                    if (BlockLockerAPIv2.isAllowed(player, clickedBlock, false)) return;
+                }
+            }
         }
 
         PlayerData playerData = null;
