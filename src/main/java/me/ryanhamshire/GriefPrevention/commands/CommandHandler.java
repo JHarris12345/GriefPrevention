@@ -513,11 +513,13 @@ public class CommandHandler {
             }
 
             PlayerData fromData = plugin.dataStore.getPlayerData(fromPlayer.getUniqueId());
-            for (Claim claim : new Vector<>(fromData.getClaims(true))) {
-                World world = claim.lesserBoundaryCorner.world;
-                if (world == null) continue;
+            for (Claim claim : new Vector<>(fromData.getClaims(false))) { // Don't include subclaims because apparently it throws an error when doing changeClaimOwner as it's not allowed
+                try {
+                    World world = claim.lesserBoundaryCorner.world;
+                    if (world == null) continue;
 
-                plugin.dataStore.changeClaimOwner(claim, toPlayer.getUniqueId());
+                    plugin.dataStore.changeClaimOwner(claim, toPlayer.getUniqueId());
+                } catch (Exception ignored) {}
             }
 
             // confirm
