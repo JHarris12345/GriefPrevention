@@ -261,7 +261,7 @@ public class Claim {
         if (data != null && data.ignoreClaims) return true;
 
         ClaimRole playerRole = getPlayerRole(uuid);
-        return permissions.getOrDefault(playerRole, new HashMap<>()).getOrDefault(claimPermission, claimPermission.getDefaultPermission(playerRole));
+        return doesRoleHavePermission(playerRole, claimPermission);
     }
 
     public boolean doesRoleHavePermission(ClaimRole claimRole, ClaimPermission claimPermission) {
