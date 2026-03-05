@@ -926,14 +926,21 @@ public class BlockEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onTreeGrow(StructureGrowEvent growEvent) {
-        //only take these potentially expensive steps if configured to do so
-        if (!GriefPrevention.instance.config_limitTreeGrowth) return;
-
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(growEvent.getWorld())) return;
 
         Location rootLocation = growEvent.getLocation();
         Claim rootClaim = this.dataStore.getClaimAt(rootLocation, false, null);
+
+        //prevent tree growth if CROP_GROWTH is disabled in the claim where the sapling is planted
+        if (rootClaim != null && !rootClaim.isSettingEnabled(ClaimSetting.CROP_GROWTH)) {
+            growEvent.setCancelled(true);
+            return;
+        }
+
+        //only take these potentially expensive steps if configured to do so
+        if (!GriefPrevention.instance.config_limitTreeGrowth) return;
+
         String rootOwnerName = null;
 
         //who owns the spreading block, if anyone?
