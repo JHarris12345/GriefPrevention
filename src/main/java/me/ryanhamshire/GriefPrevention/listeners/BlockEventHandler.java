@@ -936,6 +936,12 @@ public class BlockEventHandler implements Listener {
         Claim rootClaim = this.dataStore.getClaimAt(rootLocation, false, null);
         String rootOwnerName = null;
 
+        //prevent tree growth if CROP_GROWTH is disabled in the claim where the sapling is planted
+        if (rootClaim != null && !rootClaim.isSettingEnabled(ClaimSetting.CROP_GROWTH)) {
+            growEvent.setCancelled(true);
+            return;
+        }
+
         //who owns the spreading block, if anyone?
         if (rootClaim != null) {
             //tree growth in subdivisions is dependent on who owns the top level claim
