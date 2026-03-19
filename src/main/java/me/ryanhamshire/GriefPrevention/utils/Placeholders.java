@@ -58,6 +58,20 @@ public class Placeholders extends PlaceholderExpansion {
             return (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.SET_WARP_ACCESS)) ? "true" : "false";
         }
 
+        // %griefprevention_canbuild.[world].[x].[z]
+        if (identifier.startsWith("canbuild.")) {
+            World world = Bukkit.getWorld(identifier.split("\\.")[1]);
+            int x = Integer.parseInt(identifier.split("\\.")[2]);
+            int z = Integer.parseInt(identifier.split("\\.")[3]);
+
+            Location loc = new Location(world, x, 100, z);
+
+            Claim claim = plugin.dataStore.getClaimAt(loc, true, null);
+            if (claim == null) return "true";
+
+            return (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) ? "true" : "false";
+        }
+
         return null;
     }
 }
