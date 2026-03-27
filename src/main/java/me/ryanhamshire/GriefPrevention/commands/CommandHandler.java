@@ -528,9 +528,57 @@ public class CommandHandler {
             return true;
         }
 
-        // claimboot (player)
+        // claimboot (player|all)
         else if (cmd.getName().equals("claimboot")) {
             if (args.length != 1) return false;
+
+            Claim senderClaim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
+
+            if (senderClaim == null) {
+                sender.sendMessage(Utils.colour("&cYou are not standing in a claim"));
+                return true;
+            }
+
+            if (!senderClaim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BOOT_PLAYERS)) {
+                player.sendMessage(Utils.colour(ClaimPermission.BOOT_PLAYERS.getDenialMessage()));
+                return true;
+            }
+
+            if (args[0].equalsIgnoreCase("all")) {
+                List<Player> booted = new ArrayList<>();
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (target.getUniqueId().equals(player.getUniqueId())) continue;
+                    if (target.hasPermission("group.trialmod")) continue;
+                    if (senderClaim.members.containsKey(target.getUniqueId())) continue;
+
+                    Claim targetClaim = plugin.dataStore.getClaimAt(target.getLocation(), true, null);
+                    if (targetClaim == null || !targetClaim.id.equals(senderClaim.id)) continue;
+
+                    Utils.sendConsoleCommand("spawn " + target.getName());
+                    booted.add(target);
+                    target.sendMessage(Utils.colour("&cYou were sent from the claim you were on to spawn. If the claim members do not want you there, please do not go back as this would result in punishment"));
+                }
+
+                if (booted.isEmpty()) {
+                    sender.sendMessage(Utils.colour("&cNo players to boot from your claim"));
+                    return true;
+                }
+
+                // Prevent the use of /back (run later so the teleports have time to happen)
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        for (Player target : booted) {
+                            if (!target.isOnline()) continue;
+                            User user = plugin.essentials.getUser(target);
+                            user.setLastLocation(target.getLocation());
+                        }
+                    }
+                }.runTaskLater(plugin, 10);
+
+                sender.sendMessage(Utils.colour("&aBooted " + booted.size() + " player(s) from your claim"));
+                return true;
+            }
 
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
@@ -543,18 +591,7 @@ public class CommandHandler {
                 return true;
             }
 
-            Claim senderClaim = plugin.dataStore.getClaimAt(player.getLocation(), true, null);
             Claim targetClaim = plugin.dataStore.getClaimAt(target.getLocation(), true, null);
-
-            if (senderClaim == null) {
-                sender.sendMessage(Utils.colour("&cYou are not standing in a claim"));
-                return true;
-            }
-
-            if (!senderClaim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BOOT_PLAYERS)) {
-                player.sendMessage(Utils.colour(ClaimPermission.BOOT_PLAYERS.getDenialMessage()));
-                return true;
-            }
 
             if (targetClaim == null || !targetClaim.id.equals(senderClaim.id)) {
                 sender.sendMessage(Utils.colour("&c'" + args[0] + "' is not standing in the same claim as you"));
