@@ -1907,6 +1907,19 @@ public class CommandHandler {
                     } else return completions;
                 }
             }
+
+            if (command.getName().equalsIgnoreCase("claimboot")) {
+                if (commandSender instanceof Player player) {
+                    plugin.getServer().getOnlinePlayers().forEach(p -> {
+                        if (player.canSee(p)) {
+                            completions.add(p.getName());
+                        }
+                    });
+
+                    completions.add("all");
+                    return Utils.tabComplete(args[0], completions);
+                }
+            }
         }
 
         if (args.length == 2) {
