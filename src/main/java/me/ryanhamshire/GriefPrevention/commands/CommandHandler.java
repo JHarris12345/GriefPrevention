@@ -1890,6 +1890,17 @@ public class CommandHandler {
                 return Utils.tabComplete(args[0], completions);
             }
 
+            if (command.getName().equalsIgnoreCase("claimboot")) {
+                if (commandSender instanceof Player player) {
+                    completions.add("all");
+                    plugin.getServer().getOnlinePlayers().stream()
+                            .filter(p -> !p.getUniqueId().equals(player.getUniqueId()))
+                            .filter(p -> player.canSee(p))
+                            .forEach(p -> completions.add(p.getName()));
+                    return Utils.tabComplete(args[0], completions);
+                }
+            }
+
             if (command.getName().equalsIgnoreCase("untrust")) {
                 if (commandSender instanceof Player player) {
                     plugin.getServer().getOnlinePlayers().forEach(p -> completions.add(p.getName()));
