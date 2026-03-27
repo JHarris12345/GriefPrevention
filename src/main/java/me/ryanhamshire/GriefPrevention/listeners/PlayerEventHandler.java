@@ -1912,7 +1912,7 @@ public class PlayerEventHandler implements Listener {
             if (timeValue == ClaimSettingValue.NONE) {
                 player.resetPlayerTime();
             } else {
-                player.setPlayerTime((timeValue == ClaimSettingValue.DAY) ? 6000 : 18000, false);
+                player.setPlayerTime(getTickTimeForValue(timeValue), false);
             }
         }
     }
@@ -1951,8 +1951,19 @@ public class PlayerEventHandler implements Listener {
             if (timeValue == ClaimSettingValue.NONE) {
                 player.resetPlayerTime();
             } else {
-                player.setPlayerTime((timeValue == ClaimSettingValue.DAY) ? 6000 : 18000, false);
+                player.setPlayerTime(getTickTimeForValue(timeValue), false);
             }
+        }
+    }
+
+    private long getTickTimeForValue(ClaimSettingValue timeValue) {
+        switch (timeValue) {
+            case MORNING: return 1000;
+            case DAY:
+            case MIDDAY: return 6000;
+            case EVENING: return 12000;
+            case NIGHT: return 18000;
+            default: return 6000;
         }
     }
 

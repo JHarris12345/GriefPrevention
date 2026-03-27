@@ -7,6 +7,9 @@ public enum ClaimSettingValue {
     SUNNY("Sunny"),
     RAINY("Rainy"),
     DAY("Day"),
+    MORNING("Morning"),
+    MIDDAY("Midday"),
+    EVENING("Evening"),
     NIGHT("Night"),
     NONE("None");
 

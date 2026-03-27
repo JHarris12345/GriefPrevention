@@ -222,18 +222,42 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
             ClaimSettingValue currentTime = claim.getForcedTimeSetting();
             switch (currentTime) {
                 case NONE:
-                    claim.setForcedTimeSetting(ClaimSettingValue.DAY);
-                    SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to DAY" +
+                    claim.setForcedTimeSetting(ClaimSettingValue.MORNING);
+                    SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to MORNING" +
                             " for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
 
                     if (waterfall) {
                         for (Claim sub : claim.children) {
-                            sub.setForcedTimeSetting(ClaimSettingValue.DAY);
+                            sub.setForcedTimeSetting(ClaimSettingValue.MORNING);
                         }
                     }
                     break;
 
-                case DAY:
+                case MORNING:
+                    claim.setForcedTimeSetting(ClaimSettingValue.MIDDAY);
+                    SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to MIDDAY" +
+                            " for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedTimeSetting(ClaimSettingValue.MIDDAY);
+                        }
+                    }
+                    break;
+
+                case MIDDAY:
+                    claim.setForcedTimeSetting(ClaimSettingValue.EVENING);
+                    SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to EVENING" +
+                            " for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
+
+                    if (waterfall) {
+                        for (Claim sub : claim.children) {
+                            sub.setForcedTimeSetting(ClaimSettingValue.EVENING);
+                        }
+                    }
+                    break;
+
+                case EVENING:
                     claim.setForcedTimeSetting(ClaimSettingValue.NIGHT);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NIGHT" +
                             " for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
@@ -246,6 +270,7 @@ public class SettingsGUI extends GUI implements InventoryHolder, ClaimMenu {
                     break;
 
                 case NIGHT:
+                case DAY:
                     claim.setForcedTimeSetting(ClaimSettingValue.NONE);
                     SettingsChangeLogs.logToFile(player.getName() + " set the " + settingName + " setting to NONE" +
                             " for claim " + claim.id + ((waterfall) ? " and all its subclaims" : ""), true);
