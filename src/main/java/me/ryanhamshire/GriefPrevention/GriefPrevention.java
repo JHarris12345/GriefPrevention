@@ -51,7 +51,6 @@ import me.ryanhamshire.GriefPrevention.objects.enums.PistonMode;
 import me.ryanhamshire.GriefPrevention.tasks.CheckForPortalTrapTask;
 import me.ryanhamshire.GriefPrevention.tasks.DeleteUnBuilts;
 import me.ryanhamshire.GriefPrevention.tasks.DeliverClaimBlocksTask;
-import me.ryanhamshire.GriefPrevention.tasks.EntityCleanupTask;
 import me.ryanhamshire.GriefPrevention.tasks.FindUnusedClaimsTask;
 import me.ryanhamshire.GriefPrevention.tasks.RestoreNatureProcessingTask;
 import me.ryanhamshire.GriefPrevention.tasks.SendPlayerMessageTask;
@@ -416,10 +415,6 @@ public class GriefPrevention extends JavaPlugin {
 
         // Start the task for deleting un-built-on claims
         new DeleteUnBuilts(this).runTaskTimer(instance, 20 * 3600, 20 * 3600);
-
-        //start the recurring cleanup event for entities in creative worlds
-        EntityCleanupTask task = new EntityCleanupTask(0);
-        this.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, task, 20L * 60 * 2);
 
         //start recurring cleanup scan for unused claims belonging to inactive players
         FindUnusedClaimsTask task2 = new FindUnusedClaimsTask();
