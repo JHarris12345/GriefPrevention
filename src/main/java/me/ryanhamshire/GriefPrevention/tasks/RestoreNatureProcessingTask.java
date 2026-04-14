@@ -736,7 +736,7 @@ public class RestoreNatureProcessingTask implements Runnable {
             playerBlocks.add(Material.NETHER_BRICK);
             playerBlocks.add(Material.MAGMA_BLOCK);
             playerBlocks.add(Material.ANCIENT_DEBRIS);
-            playerBlocks.add(Material.CHAIN);
+            playerBlocks.add(Material.IRON_CHAIN);
             playerBlocks.add(Material.SHROOMLIGHT);
             playerBlocks.add(Material.NETHER_GOLD_ORE);
             playerBlocks.add(Material.NETHER_SPROUTS);

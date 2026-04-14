@@ -17,17 +17,21 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -264,5 +268,13 @@ public class Utils {
         if (commandWithSlash != null) textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, commandWithSlash));
 
         return textComponent;
+    }
+
+    public static UUID getCopperGolemOwner(Entity copperGolem) {
+        Plugin iCore = Bukkit.getPluginManager().getPlugin("InsanityCore");
+        if (iCore == null) return null;
+
+        String data = copperGolem.getPersistentDataContainer().get(new NamespacedKey(iCore, "copperGolemOwner"), PersistentDataType.STRING);
+        return (data == null) ? null : UUID.fromString(data);
     }
 }

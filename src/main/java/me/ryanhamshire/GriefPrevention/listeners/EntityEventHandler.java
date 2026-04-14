@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention.listeners;
 
+import io.papermc.paper.event.entity.ItemTransportingEntityValidateTargetEvent;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.objects.Claim;
@@ -28,6 +29,7 @@ import me.ryanhamshire.GriefPrevention.objects.enums.ClaimPermission;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimSetting;
 import me.ryanhamshire.GriefPrevention.objects.enums.ClaimsMode;
 import me.ryanhamshire.GriefPrevention.objects.enums.Messages;
+import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.EntityTypeUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -537,6 +539,20 @@ public class EntityEventHandler implements Listener {
 
         if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
             e.setCancelled(true);
+        }
+    }
+
+    // Prevent copper golems targeting chests in claims they don't have access to
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCopperGolemTarget(ItemTransportingEntityValidateTargetEvent e) {
+        UUID golemOwner = Utils.getCopperGolemOwner(e.getEntity());
+        if (golemOwner == null) return;
+
+        Claim claim = dataStore.getClaimAt(e.getBlock().getLocation(), true, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(golemOwner, ClaimPermission.CONTAINER_ACCESS)) {
+            e.setAllowed(false);
         }
     }
 }
