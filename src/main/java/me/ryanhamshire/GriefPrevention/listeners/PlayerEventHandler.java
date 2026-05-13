@@ -46,6 +46,7 @@ import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
 import org.bukkit.WeatherType;
@@ -84,6 +85,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -100,6 +102,7 @@ import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockIterator;
 
@@ -488,6 +491,27 @@ public class PlayerEventHandler implements Listener {
         }
     }
 
+    //admins can inspect an entity's recorded spawn reason by right-clicking it with leather
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onAdminSpawnReasonInspect(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
+        Player player = event.getPlayer();
+        if (!player.hasPermission("gp.admin")) return;
+
+        ItemStack itemInHand = instance.getItemInHand(player, event.getHand());
+        if (itemInHand == null || itemInHand.getType() != Material.LEATHER) return;
+
+        Entity entity = event.getRightClicked();
+        String spawnReason = entity.getPersistentDataContainer().get(
+                new NamespacedKey(instance, "spawn_reason"),
+                PersistentDataType.STRING);
+        if (spawnReason == null) return;
+
+        event.setCancelled(true);
+        GriefPrevention.sendMessage(player, TextMode.Info, "Spawn reason: " + spawnReason);
+    }
+
     //when a player interacts with an entity...
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
@@ -663,8 +687,15 @@ public class PlayerEventHandler implements Listener {
             }
         }
 
-        // Name tags may only be used on entities that the player is allowed to kill.
+        // Name tags require INTERACT permission in the claim.
         if (itemInHand.getType() == Material.NAME_TAG) {
+            if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+                if (event.getHand() == EquipmentSlot.HAND)
+                    GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+                event.setCancelled(true);
+                return;
+            }
+
             EntityDamageByEntityEvent damageEvent = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.CUSTOM, 0);
             instance.entityDamageHandler.onEntityDamage(damageEvent);
             if (damageEvent.isCancelled()) {
@@ -672,6 +703,29 @@ public class PlayerEventHandler implements Listener {
                 // Don't print message - damage event handler should have handled it.
                 return;
             }
+        }
+    }
+
+    //when a player reels in a fishing rod
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onPlayerFish(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) return;
+
+        Entity caught = event.getCaught();
+        if (caught == null) return;
+
+        if (!instance.claimsEnabledForWorld(caught.getWorld())) return;
+
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+        if (playerData.ignoreClaims) return;
+
+        Claim claim = this.dataStore.getClaimAt(caught.getLocation(), false, playerData.lastClaim);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
+            GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+            event.setCancelled(true);
         }
     }
 
