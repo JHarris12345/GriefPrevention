@@ -495,12 +495,12 @@ public class PlayerEventHandler implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onAdminSpawnReasonInspect(PlayerInteractEntityEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
-
         Player player = event.getPlayer();
-        if (!player.hasPermission("gp.admin")) return;
 
         ItemStack itemInHand = instance.getItemInHand(player, event.getHand());
-        if (itemInHand == null || itemInHand.getType() != Material.LEATHER) return;
+        if (itemInHand == null || itemInHand.getType() != Material.CLOCK) return;
+
+        if (!player.hasPermission("gp.admin")) return;
 
         Entity entity = event.getRightClicked();
         String spawnReason = entity.getPersistentDataContainer().get(
@@ -706,7 +706,7 @@ public class PlayerEventHandler implements Listener {
         }
     }
 
-    //when a player reels in a fishing rod
+    // when a player reels in a fishing rod
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerFish(PlayerFishEvent event) {
         if (event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) return;
@@ -726,6 +726,7 @@ public class PlayerEventHandler implements Listener {
         if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.INTERACT)) {
             GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
             event.setCancelled(true);
+            event.getHook().remove();
         }
     }
 
