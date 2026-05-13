@@ -70,6 +70,8 @@ import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
 import org.jetbrains.annotations.NotNull;
@@ -298,6 +300,26 @@ public class EntityEventHandler implements Listener {
     public void onEntitySpawn(CreatureSpawnEvent event) {
         Claim claim = GriefPrevention.instance.dataStore.getClaimAt(event.getLocation(), true, null);
         if (event.getEntityType() == EntityType.MOOSHROOM) GriefPrevention.instance.getLogger().info("Mushroom cow spawned with reason " + event.getSpawnReason() + " at " + event.getEntity().getLocation());
+
+        //tag the spawn reason on the entity for later admin inspection if the claim denies natural spawning
+        if (claim != null) {
+            boolean naturalDenied = false;
+            Entity entity = event.getEntity();
+            if (entity instanceof Monster || entity instanceof Phantom
+                    || entity instanceof Ghast || entity instanceof Slime) {
+                if (!claim.isSettingEnabled(ClaimSetting.NATURAL_MONSTER_SPAWNS)) naturalDenied = true;
+            } else if (entity instanceof Mob) {
+                if (!claim.isSettingEnabled(ClaimSetting.NATURAL_ANIMAL_SPAWNS)) naturalDenied = true;
+            }
+
+            if (naturalDenied) {
+                entity.getPersistentDataContainer().set(
+                        new NamespacedKey(instance, "spawn_reason"),
+                        PersistentDataType.STRING,
+                        event.getSpawnReason().name());
+            }
+        }
+
         if (claim != null && event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL) {
             if (event.getEntityType() == EntityType.MOOSHROOM) System.out.println(1);
             // If the entity is a monster
