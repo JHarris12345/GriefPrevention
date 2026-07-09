@@ -549,7 +549,7 @@ public class CommandHandler {
                 for (Player target : Bukkit.getOnlinePlayers()) {
                     if (target.getUniqueId().equals(player.getUniqueId())) continue;
                     if (target.hasPermission("group.trialmod")) continue;
-                    if (senderClaim.members.containsKey(target.getUniqueId())) continue;
+                    if (senderClaim.getClaimMembers(true).containsKey(target.getUniqueId())) continue;
 
                     Claim targetClaim = plugin.dataStore.getClaimAt(target.getLocation(), true, null);
                     if (targetClaim == null || !targetClaim.id.equals(senderClaim.id)) continue;
@@ -598,7 +598,7 @@ public class CommandHandler {
                 return true;
             }
 
-            if (senderClaim.members.containsKey(target.getUniqueId())) {
+            if (senderClaim.getClaimMembers(true).containsKey(target.getUniqueId())) {
                 sender.sendMessage(Utils.colour("&cYou can't boot members of the claim to spawn. Consider removing them from your claim first using &o/untrust " + target.getName()));
                 return true;
             }
