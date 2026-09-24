@@ -1408,11 +1408,8 @@ public class CommandHandler {
             }
 
             // if the player isn't in a claim or has permission to build, tell him to man up
-            boolean canBuild = false;
-            if (claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BREAK_BLOCKS) || claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
-                canBuild = true;
-            }
-            if (claim == null || canBuild) {
+            boolean canBuild = (claim == null || claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.BREAK_BLOCKS) || claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS));
+            if (canBuild) {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotTrappedHere);
                 return true;
             }
