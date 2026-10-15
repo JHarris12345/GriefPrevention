@@ -779,16 +779,21 @@ public class PlayerEventHandler implements Listener {
         if (!instance.claimsEnabledForWorld(bucketEvent.getBlockClicked().getWorld())) return;
 
         Player player = bucketEvent.getPlayer();
-        Block block = bucketEvent.getBlockClicked().getRelative(bucketEvent.getBlockFace());
-        int minLavaDistance = 10;
 
-        // Fixes #1155:
-        // Prevents waterlogging blocks placed on a claim's edge.
-        // Waterlogging a block affects the clicked block, and NOT the adjacent location relative to it.
-        if (bucketEvent.getBucket() == Material.WATER_BUCKET
-                && bucketEvent.getBlockClicked().getBlockData() instanceof Waterlogged) {
-            block = bucketEvent.getBlockClicked();
-        }
+        // Use the block the server is actually about to change, rather than guessing it from the
+        // clicked block plus the clicked face.
+        //
+        // Fixes #1155 and the mob-bucket variant of it: waterlogging a block affects the CLICKED
+        // block, not the adjacent location relative to it. The old code special-cased only
+        // Material.WATER_BUCKET, so AXOLOTL_BUCKET, COD_BUCKET, SALMON_BUCKET, PUFFERFISH_BUCKET,
+        // TROPICAL_FISH_BUCKET and TADPOLE_BUCKET skipped the correction and were checked against
+        // the wrong coordinate, letting a player outside a claim waterlog a slab inside it.
+        //
+        // PlayerBucketEvent#getBlock() is populated by the server with the block whose state will
+        // change, so it is already correct for every bucket type and every target, with no
+        // material list to maintain.
+        Block block = bucketEvent.getBlock();
+        int minLavaDistance = 10;
 
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, playerData.lastClaim);
