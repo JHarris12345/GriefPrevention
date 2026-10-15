@@ -36,6 +36,8 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EnderDragon;
+import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Ghast;
@@ -46,6 +48,9 @@ import org.bukkit.entity.Monster;
 import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Rabbit;
+import org.bukkit.entity.Ravager;
+import org.bukkit.entity.Silverfish;
 import org.bukkit.entity.Slime;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
@@ -112,6 +117,35 @@ public class EntityEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityChangeBLock(EntityChangeBlockEvent event) {
+        Entity entity = event.getEntity();
+
+        // Global mob toggles, as upstream GriefPrevention applies them. These are deliberately
+        // checked before the claim lookup below, because the config keys promise a server-wide
+        // rule rather than a claims-only one. They were previously loaded and saved but never
+        // read by any listener, so the config keys did nothing at all.
+        if (!GriefPrevention.instance.config_silverfishBreakBlocks && entity instanceof Silverfish) {
+            // Covers both directions: a silverfish burrowing into stone to make infested stone,
+            // and a silverfish emerging from infested stone.
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!GriefPrevention.instance.config_endermenMoveBlocks
+                && (entity instanceof Enderman || entity instanceof EnderDragon)) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!GriefPrevention.instance.config_rabbitsEatCrops && entity instanceof Rabbit) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (!GriefPrevention.instance.config_claims_ravagersBreakBlocks && entity instanceof Ravager) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
