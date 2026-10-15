@@ -27,6 +27,7 @@ import me.ryanhamshire.GriefPrevention.utils.Visualization;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.WeatherType;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
@@ -132,6 +133,20 @@ public class PlayerData {
     //spot where a player can't talk, used to mute new players until they've moved a little
     //this is an anti-bot strategy.
     public Location noChatLocation = null;
+
+    //tracks whether GriefPrevention itself currently has a FORCED_WEATHER override applied to this
+    //player, and what their per-player weather was beforehand so it can be handed straight back.
+    //Without this we cannot tell a claim override apart from a weather the player chose themselves
+    //with EssentialsX /pweather, and resetting unconditionally silently clobbers their choice.
+    //Session-only state, deliberately not persisted.
+    public boolean gpForcedWeatherApplied = false;
+    public WeatherType weatherBeforeGpOverride = null;
+
+    //same for FORCED_TIME. Player time has no "unset" value, so the offset and the relative flag
+    //are snapshotted instead; restoring (0, true) is exactly what resetPlayerTime() does.
+    public boolean gpForcedTimeApplied = false;
+    public long timeOffsetBeforeGpOverride = 0;
+    public boolean timeRelativeBeforeGpOverride = true;
 
     //ignore list
     //true means invisible (admin-forced ignore), false means player-created ignore

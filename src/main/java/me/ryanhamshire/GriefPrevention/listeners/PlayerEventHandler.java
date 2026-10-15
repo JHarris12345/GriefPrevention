@@ -1949,32 +1949,7 @@ public class PlayerEventHandler implements Listener {
 
         playerData.lastClaim = toClaim;
 
-        if (fromClaim == null && toClaim == null) return;
-        if (fromClaim != null && toClaim != null && fromClaim.getID().equals(toClaim.getID())) return;
-
-        // If they're moving to a non claim from a claim, reset the weather and time
-        if (toClaim == null) {
-            player.resetPlayerWeather();
-            player.resetPlayerTime();
-        }
-
-        // Set the weather and time of the new claim
-        if (toClaim != null) {
-            ClaimSettingValue weatherValue = toClaim.getForcedWeatherSetting();
-            ClaimSettingValue timeValue = toClaim.getForcedTimeSetting();
-
-            if (weatherValue == ClaimSettingValue.NONE) {
-                player.resetPlayerWeather();
-            } else {
-                player.setPlayerWeather((weatherValue == ClaimSettingValue.SUNNY) ? WeatherType.CLEAR : WeatherType.DOWNFALL);
-            }
-
-            if (timeValue == ClaimSettingValue.NONE) {
-                player.resetPlayerTime();
-            } else {
-                player.setPlayerTime(getTickTimeForValue(timeValue), false);
-            }
-        }
+        applyClaimWeatherAndTime(player, playerData, fromClaim, toClaim);
     }
 
     // Setting the claim time and weather when teleporting into a claim
@@ -1988,32 +1963,94 @@ public class PlayerEventHandler implements Listener {
 
         playerData.lastClaim = toClaim;
 
+        applyClaimWeatherAndTime(player, playerData, fromClaim, toClaim);
+    }
+
+    /**
+     * Applies or clears the FORCED_WEATHER and FORCED_TIME claim settings as a player crosses a
+     * claim boundary. Shared by {@link #onMove(PlayerMoveEvent)} and
+     * {@link #onTeleport(PlayerTeleportEvent)}, which were previously near-identical copies.
+     * <p>
+     * This used to call the global {@code resetPlayerWeather()} / {@code resetPlayerTime()} for
+     * every claim that did not have the setting bought, which is the overwhelming majority of
+     * them. That silently wiped whatever the player had chosen with EssentialsX /pweather and
+     * /ptime, leaving players stuck in, for example, permanent rain. EssentialsX applies those
+     * commands straight through the Bukkit per-player API and keeps no separate record of them, so
+     * it has no way to notice another plugin resetting them and no way to put them back.
+     * <p>
+     * Instead, GriefPrevention now tracks whether it is itself the one holding an override. If it
+     * is not, the player's weather and time are left completely alone. When GP does apply an
+     * override it first snapshots the player's existing per-player weather and time, and hands
+     * exactly that back when the override is cleared, so an EssentialsX choice survives crossing
+     * claim borders in both directions. Snapshot and restore go through the Bukkit API only, so
+     * there is no hard dependency on EssentialsX.
+     */
+    private void applyClaimWeatherAndTime(Player player, PlayerData playerData, Claim fromClaim, Claim toClaim) {
         if (fromClaim == null && toClaim == null) return;
         if (fromClaim != null && toClaim != null && fromClaim.getID().equals(toClaim.getID())) return;
 
-        // If they're teleporting to a non claim from a claim, reset the weather and time
-        if (toClaim == null) {
+        ClaimSettingValue weatherValue = (toClaim == null) ? ClaimSettingValue.NONE : toClaim.getForcedWeatherSetting();
+        ClaimSettingValue timeValue = (toClaim == null) ? ClaimSettingValue.NONE : toClaim.getForcedTimeSetting();
+
+        if (weatherValue == ClaimSettingValue.NONE) {
+            clearGpForcedWeather(player, playerData);
+        } else {
+            if (!playerData.gpForcedWeatherApplied) {
+                // null here means the player had no per-player weather of their own.
+                playerData.weatherBeforeGpOverride = player.getPlayerWeather();
+                playerData.gpForcedWeatherApplied = true;
+            }
+            player.setPlayerWeather((weatherValue == ClaimSettingValue.SUNNY) ? WeatherType.CLEAR : WeatherType.DOWNFALL);
+        }
+
+        if (timeValue == ClaimSettingValue.NONE) {
+            clearGpForcedTime(player, playerData);
+        } else {
+            if (!playerData.gpForcedTimeApplied) {
+                playerData.timeOffsetBeforeGpOverride = player.getPlayerTimeOffset();
+                playerData.timeRelativeBeforeGpOverride = player.isPlayerTimeRelative();
+                playerData.gpForcedTimeApplied = true;
+            }
+            player.setPlayerTime(getTickTimeForValue(timeValue), false);
+        }
+    }
+
+    /**
+     * Releases GriefPrevention's forced weather override, restoring whatever the player had before
+     * it was applied. Does nothing at all if GP is not currently holding an override, which is what
+     * keeps an EssentialsX /pweather choice intact.
+     */
+    private void clearGpForcedWeather(Player player, PlayerData playerData) {
+        if (!playerData.gpForcedWeatherApplied) return;
+
+        WeatherType restore = playerData.weatherBeforeGpOverride;
+        playerData.gpForcedWeatherApplied = false;
+        playerData.weatherBeforeGpOverride = null;
+
+        if (restore == null) {
             player.resetPlayerWeather();
-            player.resetPlayerTime();
+        } else {
+            player.setPlayerWeather(restore);
         }
+    }
 
-        // Set the weather and time of the new claim
-        if (toClaim != null) {
-            ClaimSettingValue weatherValue = toClaim.getForcedWeatherSetting();
-            ClaimSettingValue timeValue = toClaim.getForcedTimeSetting();
+    /**
+     * Releases GriefPrevention's forced time override, restoring whatever the player had before it
+     * was applied. Does nothing at all if GP is not currently holding an override, which is what
+     * keeps an EssentialsX /ptime choice intact.
+     */
+    private void clearGpForcedTime(Player player, PlayerData playerData) {
+        if (!playerData.gpForcedTimeApplied) return;
 
-            if (weatherValue == ClaimSettingValue.NONE) {
-                player.resetPlayerWeather();
-            } else {
-                player.setPlayerWeather((weatherValue == ClaimSettingValue.SUNNY) ? WeatherType.CLEAR : WeatherType.DOWNFALL);
-            }
+        long restoreOffset = playerData.timeOffsetBeforeGpOverride;
+        boolean restoreRelative = playerData.timeRelativeBeforeGpOverride;
+        playerData.gpForcedTimeApplied = false;
+        playerData.timeOffsetBeforeGpOverride = 0;
+        playerData.timeRelativeBeforeGpOverride = true;
 
-            if (timeValue == ClaimSettingValue.NONE) {
-                player.resetPlayerTime();
-            } else {
-                player.setPlayerTime(getTickTimeForValue(timeValue), false);
-            }
-        }
+        // Restoring (0, true) is exactly what resetPlayerTime() does, so the no-override case needs
+        // no special handling.
+        player.setPlayerTime(restoreOffset, restoreRelative);
     }
 
     private long getTickTimeForValue(ClaimSettingValue timeValue) {
