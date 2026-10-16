@@ -117,36 +117,53 @@ public class EntityEventHandler implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityChangeBLock(EntityChangeBlockEvent event) {
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+
+        // Mob block toggles. Upstream GriefPrevention applies these globally, but on this fork they
+        // are deliberately claim-scoped: the mechanics run normally in the wilderness and are only
+        // cancelled when the block the event will change sits inside a claim. Global scope would,
+        // for example, stop the server's pyrofishing crabs (which are silverfish) infesting stone
+        // anywhere on the map.
+        //
+        // EntityChangeBlockEvent is high volume, so each branch tests the entity type and then the
+        // config flag before it touches the claim store. The common case is a couple of comparisons
+        // and no claim lookup at all.
         Entity entity = event.getEntity();
 
-        // Global mob toggles, as upstream GriefPrevention applies them. These are deliberately
-        // checked before the claim lookup below, because the config keys promise a server-wide
-        // rule rather than a claims-only one. They were previously loaded and saved but never
-        // read by any listener, so the config keys did nothing at all.
-        if (!GriefPrevention.instance.config_silverfishBreakBlocks && entity instanceof Silverfish) {
+        if (entity instanceof Silverfish) {
             // Covers both directions: a silverfish burrowing into stone to make infested stone,
             // and a silverfish emerging from infested stone.
-            event.setCancelled(true);
+            if (!GriefPrevention.instance.config_silverfishBreakBlocks
+                    && this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null) != null) {
+                event.setCancelled(true);
+            }
             return;
         }
 
-        if (!GriefPrevention.instance.config_endermenMoveBlocks
-                && (entity instanceof Enderman || entity instanceof EnderDragon)) {
-            event.setCancelled(true);
+        // EnderDragon is a deliberate deviation from upstream, which lists only ENDERMAN here.
+        if (entity instanceof Enderman || entity instanceof EnderDragon) {
+            if (!GriefPrevention.instance.config_endermenMoveBlocks
+                    && this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null) != null) {
+                event.setCancelled(true);
+            }
             return;
         }
 
-        if (!GriefPrevention.instance.config_rabbitsEatCrops && entity instanceof Rabbit) {
-            event.setCancelled(true);
+        if (entity instanceof Rabbit) {
+            if (!GriefPrevention.instance.config_rabbitsEatCrops
+                    && this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null) != null) {
+                event.setCancelled(true);
+            }
             return;
         }
 
-        if (!GriefPrevention.instance.config_claims_ravagersBreakBlocks && entity instanceof Ravager) {
-            event.setCancelled(true);
+        if (entity instanceof Ravager) {
+            if (!GriefPrevention.instance.config_claims_ravagersBreakBlocks
+                    && this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null) != null) {
+                event.setCancelled(true);
+            }
             return;
         }
-
-        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
         if (claim == null) return;
