@@ -49,7 +49,12 @@ public class MembersGUI extends GUI implements InventoryHolder, ClaimMenu {
         this.claim = claim;
         this.waterfall = waterfall;
 
-        List<UUID> members = new ArrayList<>(claim.getClaimMembers(true).keySet());
+        // Members whose name can't be resolved (never joined this server) have always been hidden from
+        // the GUI. Drop them before paginating so they don't leave empty slots in the middle of a page
+        List<UUID> members = new ArrayList<>();
+        for (UUID memberUUID : claim.getClaimMembers(true).keySet()) {
+            if (Bukkit.getOfflinePlayer(memberUUID).getName() != null) members.add(memberUUID);
+        }
         this.totalPages = Math.max(1, (int) Math.ceil((double) members.size() / MEMBERS_PER_PAGE));
         this.page = Math.max(0, Math.min(page, this.totalPages - 1));
 
