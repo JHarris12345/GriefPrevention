@@ -500,31 +500,50 @@ public class CommandHandler {
             return true;
         }
 
-        // transferallclaims <fromPlayer> <toPlayer>
+        // transferallclaims <fromUUID> <toUUID>
         else if (cmd.getName().equalsIgnoreCase("transferallclaims")) {
             if (args.length != 2) return false;
 
-            OfflinePlayer fromPlayer = plugin.resolvePlayerByName(args[0]);
-            OfflinePlayer toPlayer = plugin.resolvePlayerByName(args[1]);
+            // UUIDs only, deliberately with no name fallback. Resolving a name goes through a Mojang lookup, and for
+            // an account renamed since it last joined (the usual shape of a hacked-account transfer) that lookup fails
+            // and Paper hands back a fabricated offline-mode UUID, so the command used to "succeed" on zero claims
+            UUID fromUUID = parseUUID(args[0]);
+            UUID toUUID = parseUUID(args[1]);
 
-            if (fromPlayer == null || toPlayer == null) {
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+            if (fromUUID == null || toUUID == null) {
+                sender.sendMessage(Utils.colour("&cUsage: /transferallclaims <fromUUID> <toUUID>. Both arguments must be UUIDs, player names are not accepted"));
                 return true;
             }
 
-            PlayerData fromData = plugin.dataStore.getPlayerData(fromPlayer.getUniqueId());
-            for (Claim claim : new Vector<>(fromData.getClaims(false))) { // Don't include subclaims because apparently it throws an error when doing changeClaimOwner as it's not allowed
-                try {
-                    World world = claim.lesserBoundaryCorner.world;
-                    if (world == null) continue;
-
-                    plugin.dataStore.changeClaimOwner(claim, toPlayer.getUniqueId());
-                } catch (Exception ignored) {}
+            if (fromUUID.equals(toUUID)) {
+                sender.sendMessage(Utils.colour("&cThe from and to UUIDs are the same"));
+                return true;
             }
 
-            // confirm
-            sender.sendMessage(Utils.colour("&6Transferred all of " + fromPlayer.getName() + "'s claims to " + toPlayer.getName()));
-            GriefPrevention.AddLogEntry("Transferred all of " + fromPlayer.getName() + "'s claims to " + toPlayer.getName());
+            String fromName = GriefPrevention.lookupPlayerName(fromUUID);
+            String toName = GriefPrevention.lookupPlayerName(toUUID);
+
+            PlayerData fromData = plugin.dataStore.getPlayerData(fromUUID);
+            // Copy the list: changeClaimOwner removes the claim from the source's list as it goes.
+            // Top-level claims only, subdivisions follow their parent's owner and can't be transferred directly
+            List<Claim> claims = new ArrayList<>(fromData.getClaims(false));
+            int transferred = 0;
+
+            for (Claim claim : claims) {
+                try {
+                    if (claim.lesserBoundaryCorner.world == null) continue;
+
+                    plugin.dataStore.changeClaimOwner(claim, toUUID);
+                    transferred++;
+                } catch (Exception e) {
+                    GriefPrevention.AddLogEntry("Failed to transfer claim " + claim.id + " from " + fromName + " to " + toName + ": " + e);
+                }
+            }
+
+            // confirm, with the real count so a transfer that moved nothing is visible
+            String summary = "Transferred " + transferred + " of " + claims.size() + " of " + fromName + "'s claims to " + toName;
+            sender.sendMessage(Utils.colour((transferred == claims.size() ? "&6" : "&c") + summary));
+            GriefPrevention.AddLogEntry(summary);
             return true;
         }
 
@@ -1994,5 +2013,13 @@ public class CommandHandler {
         }
 
         return true;
+    }
+
+    private static UUID parseUUID(String s) {
+        try {
+            return UUID.fromString(s);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
