@@ -890,6 +890,41 @@ public class BlockEventHandler implements Listener {
         }
     }
 
+    // A projectile hitting a wooden button presses it, hitting a target block powers it, a fire charge or
+    // flaming arrow lights candles, campfires and TNT, a bell rings, a decorated pot shatters. None of that
+    // goes through PlayerInteractEvent, so anyone could stand outside a claim and shoot its redstone
+    // (ticket bypass-claim-settings, 2026-11-06). Treat the hit exactly like the shooter clicking the block.
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    private void onProjectileHitReactiveBlock(ProjectileHitEvent event) {
+        //don't track in worlds where claims are not enabled
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
+
+        Block block = event.getHitBlock();
+        if (block == null || !reactsToProjectiles(block.getType())) return;
+
+        if (!(event.getEntity().getShooter() instanceof Player shooter)) return;
+
+        Claim claim = dataStore.getClaimAt(block.getLocation(), false, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(shooter.getUniqueId(), ClaimPermission.INTERACT)) {
+            event.setCancelled(true);
+            GriefPrevention.sendMessage(shooter, TextMode.Err, ClaimPermission.INTERACT.getDenialMessage());
+        }
+    }
+
+    private static boolean reactsToProjectiles(Material material) {
+        return Tag.BUTTONS.isTagged(material)
+                || Tag.CANDLES.isTagged(material)
+                || Tag.CANDLE_CAKES.isTagged(material)
+                || Tag.CAMPFIRES.isTagged(material)
+                || material == Material.TARGET
+                || material == Material.BELL
+                || material == Material.TNT
+                || material == Material.LIGHTNING_ROD
+                || material == Material.DECORATED_POT;
+    }
+
     //ensures dispensers can't be used to dispense a block(like water or lava) or item across a claim boundary
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onDispense(BlockDispenseEvent dispenseEvent) {

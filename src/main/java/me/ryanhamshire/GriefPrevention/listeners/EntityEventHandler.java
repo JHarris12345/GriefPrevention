@@ -33,6 +33,7 @@ import me.ryanhamshire.GriefPrevention.utils.Utils;
 import me.ryanhamshire.GriefPrevention.utils.legacies.EntityTypeUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -287,6 +288,31 @@ public class EntityEventHandler implements Listener {
                 }
             }
         }
+    }
+
+    // An arrow landing on a pressure plate, or crossing a tripwire, triggers it, and so does an item thrown
+    // onto a plate. Treat that like the shooter / thrower standing on it (ticket bypass-claim-settings).
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onProjectileTriggersPlate(EntityInteractEvent event) {
+        Material material = event.getBlock().getType();
+        if (!Tag.PRESSURE_PLATES.isTagged(material) && material != Material.TRIPWIRE) return;
+
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
+
+        UUID culprit = null;
+        if (event.getEntity() instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter) {
+            culprit = shooter.getUniqueId();
+        }
+        else if (event.getEntity() instanceof Item item) {
+            culprit = item.getThrower();
+        }
+        if (culprit == null) return;
+
+        Claim claim = dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
+        if (claim == null) return;
+
+        // No message here: the plate re-checks the entity sitting on it, so a message would repeat
+        if (!claim.hasClaimPermission(culprit, ClaimPermission.INTERACT)) event.setCancelled(true);
     }
 
     //when an item spawns...
