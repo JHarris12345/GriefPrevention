@@ -1191,7 +1191,7 @@ public abstract class DataStore {
                 boolean heightGrowing = newHeight > playerData.claimResizing.getHeight();
 
                 if ((newWidth > maxSide && widthGrowing) || (newHeight > maxSide && heightGrowing)) {
-                    player.sendMessage(Utils.colour("&cA claim cannot be expanded to more than &f" + maxSide + "&c blocks long on the X or Z side. It would be &f" + newWidth + "&cx&f" + newHeight));
+                    player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long. Yours would be " + newWidth + "x" + newHeight));
                     return;
                 }
             }
