@@ -127,6 +127,10 @@ commands:
     usage: /ExtendClaim <numberOfBlocks>
     aliases: [ expandclaim, resizeclaim ]
     permission: griefprevention.claims
+  setmaxclaimside:
+    description: Sets a per-claim override for the maximum blocks the claim you're standing in may span on the X or Z side. 0 clears it.
+    usage: /SetMaxClaimSide <blocks>
+    permission: griefprevention.setmaxclaimside
   claim:
     description: Creates a land claim centered at your current location.
     usage: /Claim [optional radius]
@@ -219,6 +223,9 @@ permissions:
   griefprevention.createclaims:
     description: Grants permission to create claims.
     default: true
+  griefprevention.setmaxclaimside:
+    description: Grants permission to set a per-claim maximum claim side override.
+    default: op
   griefprevention.admin.*:
     description: Grants all administrative functionality.
     children:

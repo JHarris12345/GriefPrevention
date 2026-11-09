@@ -1178,6 +1178,23 @@ public abstract class DataStore {
                 }
             }
 
+            //apply maximum claim side rule, but only to a side that is actually GROWING. A claim that is
+            //already over the limit (made before the limit existed, or before it was lowered) is left alone
+            //and can still be shrunk, e.g. with /expandclaim <negative number>
+            if (!player.hasPermission("griefprevention.adminclaims") && !playerData.claimResizing.isAdminClaim()) {
+                int maxSide = playerData.claimResizing.getMaxClaimSide();
+
+                if (maxSide > 0) {
+                    boolean widthGrowing = newWidth > playerData.claimResizing.getWidth();
+                    boolean heightGrowing = newHeight > playerData.claimResizing.getHeight();
+
+                    if ((newWidth > maxSide && widthGrowing) || (newHeight > maxSide && heightGrowing)) {
+                        player.sendMessage(Utils.colour("&cA claim cannot be expanded to more than &f" + maxSide + "&c blocks long on the X or Z side. It would be &f" + newWidth + "&cx&f" + newHeight));
+                        return;
+                    }
+                }
+            }
+
             //make sure player has enough blocks to make up the difference
             if (!playerData.claimResizing.isAdminClaim() && player.getName().equals(playerData.claimResizing.getOwnerName())) {
                 int newArea = newWidth * newHeight;

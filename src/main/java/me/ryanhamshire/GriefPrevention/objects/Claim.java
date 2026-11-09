@@ -84,6 +84,18 @@ public class Claim {
     // Ignored even though they may have references floating around
     public boolean inDataStore = false;
 
+    // Per-claim override of GriefPrevention.Claims.MaxClaimSide, set with /setmaxclaimside.
+    // 0 or less means "no override set", so the config value applies. Use getMaxClaimSide()
+    public int maxClaimSide = 0;
+
+    // The maximum blocks this claim may span on the X or Z axis, taking any per-claim override
+    // into account. 0 means unlimited. Never affects a claim's current size, only new claims
+    // and expansions, so a claim already over the limit simply cannot grow any further
+    public int getMaxClaimSide() {
+        if (this.maxClaimSide > 0) return this.maxClaimSide;
+        return GriefPrevention.instance.config_claims_maxClaimSide;
+    }
+
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
     public Claim(String name, ClaimCorner lesserBoundaryCorner, ClaimCorner greaterBoundaryCorner, UUID ownerID, HashMap<UUID, ClaimRole> members, HashMap<ClaimRole, HashMap<ClaimPermission, Boolean>> permissions, List<String> ownerRanks, long created, boolean builtOn, HashMap<UUID, Long> spentICoins, Long id, ArrayList<Claim> children) {
         this.modifiedDate = Calendar.getInstance().getTime();
@@ -125,6 +137,7 @@ public class Claim {
         this.created = claim.created;
         this.builtOn = claim.builtOn;
         this.spentICoins = claim.spentICoins;
+        this.maxClaimSide = claim.maxClaimSide;
     }
 
     //removes any lava above sea level in a claim

@@ -327,6 +327,7 @@ public class FlatFileDataStore extends DataStore {
         claim = new Claim(name, lesserBoundaryCorner, greaterBoundaryCorner, ownerID, members, new HashMap<>(), ownerRanks, created, builtOn, spentICoins, claimID, new ArrayList<>());
         claim.modifiedDate = new Date(lastModifiedDate);
         claim.id = claimID;
+        claim.maxClaimSide = yaml.getInt("MaxClaimSide", 0); // 0 = no per-claim override, fall back to the config
 
         start = System.currentTimeMillis();
         claim.loadPermissions(yaml);
@@ -404,6 +405,7 @@ public class FlatFileDataStore extends DataStore {
         yaml.set("OwnerRanks", claim.ownerRanks);
 
         // Claim creation time
+        yaml.set("MaxClaimSide", claim.maxClaimSide);
         yaml.set("Created", claim.created);
 
         // If it's been built on

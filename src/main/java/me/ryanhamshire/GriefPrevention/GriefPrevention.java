@@ -186,6 +186,7 @@ public class GriefPrevention extends JavaPlugin {
     public int config_claims_claimsExtendIntoGroundDistance;        //how far below the shoveled block a new claim will reach
     public int config_claims_minWidth;                                //minimum width for non-admin claims
     public int config_claims_minArea;                               //minimum area for non-admin claims
+    public int config_claims_maxClaimSide;                          //maximum blocks a non-admin claim may span on the X or Z axis. 0 for no limit. A claim can carry its own override, see Claim.getMaxClaimSide()
 
     public int config_claims_chestClaimExpirationDays;                //number of days of inactivity before an automatic chest claim will be deleted
     public int config_claims_unusedClaimExpirationDays;                //number of days of inactivity before an unused (nothing build) claim will be deleted
@@ -619,6 +620,7 @@ public class GriefPrevention extends JavaPlugin {
         this.config_claims_claimsExtendIntoGroundDistance = Math.abs(config.getInt("GriefPrevention.Claims.ExtendIntoGroundDistance", 5));
         this.config_claims_minWidth = config.getInt("GriefPrevention.Claims.MinimumWidth", 5);
         this.config_claims_minArea = config.getInt("GriefPrevention.Claims.MinimumArea", 100);
+        this.config_claims_maxClaimSide = config.getInt("GriefPrevention.Claims.MaxClaimSide", 1000);
         this.config_claims_maxDepth = config.getInt("GriefPrevention.Claims.MaximumDepth", Integer.MIN_VALUE);
         if (configVersion < 1 && this.config_claims_maxDepth == 0) {
             // If MaximumDepth is untouched in an older configuration, correct it.
@@ -861,6 +863,7 @@ public class GriefPrevention extends JavaPlugin {
         outConfig.set("GriefPrevention.Claims.ExtendIntoGroundDistance", this.config_claims_claimsExtendIntoGroundDistance);
         outConfig.set("GriefPrevention.Claims.MinimumWidth", this.config_claims_minWidth);
         outConfig.set("GriefPrevention.Claims.MinimumArea", this.config_claims_minArea);
+        outConfig.set("GriefPrevention.Claims.MaxClaimSide", this.config_claims_maxClaimSide);
         outConfig.set("GriefPrevention.Claims.MaximumDepth", this.config_claims_maxDepth);
         outConfig.set("GriefPrevention.Claims.InvestigationTool", this.config_claims_investigationTool.name());
         outConfig.set("GriefPrevention.Claims.ModificationTool", this.config_claims_modificationTool.name());

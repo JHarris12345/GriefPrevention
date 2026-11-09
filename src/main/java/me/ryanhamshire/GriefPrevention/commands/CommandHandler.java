@@ -133,6 +133,15 @@ public class CommandHandler {
             Location lc = player.getLocation().add(-radius, 0, -radius);
             Location gc = player.getLocation().add(radius, 0, radius);
 
+            // apply maximum claim side rule
+            int newWidth = Math.abs(gc.getBlockX() - lc.getBlockX()) + 1;
+            int newHeight = Math.abs(gc.getBlockZ() - lc.getBlockZ()) + 1;
+            int maxSide = GriefPrevention.instance.config_claims_maxClaimSide;
+            if (maxSide > 0 && !player.hasPermission("griefprevention.adminclaims") && (newWidth > maxSide || newHeight > maxSide)) {
+                player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long on the X or Z side. Yours would be &f" + newWidth + "&cx&f" + newHeight));
+                return true;
+            }
+
             // player must have sufficient unused claim blocks
             int area = Math.abs((gc.getBlockX() - lc.getBlockX() + 1) * (gc.getBlockZ() - lc.getBlockZ() + 1));
             int remaining = playerData.getRemainingClaimBlocks();
@@ -206,6 +215,48 @@ public class CommandHandler {
 
             plugin.dataStore.setClaimName(claim, name);
             player.sendMessage(Utils.colour("&7You set the name of your claim to &b" + name));
+            return true;
+        }
+
+        // setmaxclaimside <blocks>
+        if (cmd.getName().equalsIgnoreCase("setmaxclaimside") && player != null) {
+            if (args.length < 1) return false;
+
+            int newMax;
+            try {
+                newMax = Integer.parseInt(args[0]);
+            }
+            catch (NumberFormatException e) {
+                return false;
+            }
+
+            if (newMax < 0) {
+                player.sendMessage(Utils.colour("&cThat cannot be negative. Use &f0&c to clear the override and go back to the config value"));
+                return true;
+            }
+
+            PlayerData playerData = plugin.dataStore.getPlayerData(player.getUniqueId());
+            Claim claim = plugin.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
+            if (claim == null) {
+                player.sendMessage(Utils.colour("&cYou need to be standing in a claim to do that"));
+                return true;
+            }
+
+            //the override belongs on the top level claim, so a subdivision defers to its parent
+            if (claim.parent != null) claim = claim.parent;
+
+            claim.maxClaimSide = newMax;
+            plugin.dataStore.saveClaim(claim);
+
+            //this never resizes the claim, so say plainly where it currently stands
+            if (newMax == 0) {
+                player.sendMessage(Utils.colour("&7Cleared the max claim side override. This claim now uses the config value of &b" + GriefPrevention.instance.config_claims_maxClaimSide));
+            }
+            else {
+                player.sendMessage(Utils.colour("&7Set the max claim side for this claim to &b" + newMax));
+            }
+
+            player.sendMessage(Utils.colour("&7The claim is currently &b" + claim.getWidth() + "&7x&b" + claim.getHeight() + "&7. It has not been resized, this only limits future expansions"));
             return true;
         }
 
