@@ -133,11 +133,11 @@ public class CommandHandler {
             Location lc = player.getLocation().add(-radius, 0, -radius);
             Location gc = player.getLocation().add(radius, 0, radius);
 
-            // apply maximum claim side rule
+            // apply maximum claim side rule. No bypass, by permission or otherwise
             int newWidth = Math.abs(gc.getBlockX() - lc.getBlockX()) + 1;
             int newHeight = Math.abs(gc.getBlockZ() - lc.getBlockZ()) + 1;
             int maxSide = GriefPrevention.instance.config_claims_maxClaimSide;
-            if (maxSide > 0 && !player.hasPermission("griefprevention.adminclaims") && (newWidth > maxSide || newHeight > maxSide)) {
+            if (maxSide > 0 && (newWidth > maxSide || newHeight > maxSide)) {
                 player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long on the X or Z side. Yours would be &f" + newWidth + "&cx&f" + newHeight));
                 return true;
             }

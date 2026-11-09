@@ -1709,13 +1709,15 @@ public class PlayerEventHandler implements Listener {
 
                         return;
                     }
+                }
 
-                    //apply maximum claim side rule. A brand new claim has no override of its own, so this is the config value
-                    int maxSide = instance.config_claims_maxClaimSide;
-                    if (maxSide > 0 && (newClaimWidth > maxSide || newClaimHeight > maxSide)) {
-                        player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long on the X or Z side. Yours would be &f" + newClaimWidth + "&cx&f" + newClaimHeight));
-                        return;
-                    }
+                //apply maximum claim side rule. Deliberately OUTSIDE the admin-mode check above:
+                //there is no bypass for this limit, not by permission and not for admin claims.
+                //A brand new claim has no override of its own, so this is the config value
+                int maxSide = instance.config_claims_maxClaimSide;
+                if (maxSide > 0 && (newClaimWidth > maxSide || newClaimHeight > maxSide)) {
+                    player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long on the X or Z side. Yours would be &f" + newClaimWidth + "&cx&f" + newClaimHeight));
+                    return;
                 }
 
                 //if not an administrative claim, verify the player has enough claim blocks for this new claim
