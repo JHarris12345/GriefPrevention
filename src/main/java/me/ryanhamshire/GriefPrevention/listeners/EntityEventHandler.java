@@ -507,16 +507,26 @@ public class EntityEventHandler implements Listener {
         }
     }
 
-    //when an item places an entity rather than a block (armour stands, boats, minecarts, end crystals, cushions)
+    //when a cushion is placed
     //
-    //these never fire BlockPlaceEvent, so the only thing that used to stop them was a hardcoded list of
-    //materials in PlayerEventHandler#onPlayerInteract. Anything added to the game after that list was
-    //written went completely unprotected, which is how cushions could be placed inside other players'
-    //claims. Handling the event itself covers every entity-placing item, including future ones.
+    //a cushion is an entity, not a block, so placing one fires EntityPlaceEvent and never
+    //BlockPlaceEvent, and it is in none of the item lists in PlayerEventHandler#onPlayerInteract, so
+    //until this nothing stopped one being placed inside another player's claim.
+    //
+    //this deliberately handles cushions ONLY. Armour stands, boats, minecarts and end crystals fire the
+    //same event, but they are already checked in PlayerEventHandler against interact trust, and that is
+    //the trust level they should keep, so they are left exactly as they were. A cushion is a decoration
+    //you build with, so it asks for build trust instead.
+    //
+    //matched on the type name because EntityType.CUSHION does not exist in the API version this plugin
+    //compiles against. Note the consequence: an entity placing item added in some future version will
+    //again be unprotected until it is named here.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityPlace(EntityPlaceEvent event) {
         Player player = event.getPlayer();
         if (player == null) return;
+
+        if (!event.getEntity().getType().name().equals("CUSHION")) return;
 
         Block block = event.getBlock();
         if (!GriefPrevention.instance.claimsEnabledForWorld(block.getWorld())) return;
