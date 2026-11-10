@@ -774,6 +774,18 @@ public class PlayerEventHandler implements Listener {
     private final Set<Material> commonAdjacentBlocks_water = EnumSet.of(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE);
     private final Set<Material> commonAdjacentBlocks_lava = EnumSet.of(Material.LAVA, Material.DIRT, Material.STONE);
 
+    //a bucket that releases a mob instead of a fluid. Matched by name so buckets added in future
+    //versions are covered without editing a list, and so buckets that do not exist in the API this
+    //plugin compiles against (SULFUR_CUBE_BUCKET, for one) are still recognised at runtime
+    private static boolean isMobBucket(Material material) {
+        if (!material.name().endsWith("_BUCKET")) return false;
+
+        return material != Material.WATER_BUCKET
+                && material != Material.LAVA_BUCKET
+                && material != Material.MILK_BUCKET
+                && material != Material.POWDER_SNOW_BUCKET;
+    }
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent) {
         if (!instance.claimsEnabledForWorld(bucketEvent.getBlockClicked().getWorld())) return;
@@ -1157,6 +1169,7 @@ public class PlayerEventHandler implements Listener {
                     || materialInHand == Material.INK_SAC
                     || materialInHand == Material.GLOW_INK_SAC
                     || materialInHand == Material.HONEYCOMB
+                    || isMobBucket(materialInHand)
                     || dyes.contains(materialInHand))) {
 
                 if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());

@@ -65,6 +65,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalExitEvent;
 import org.bukkit.event.entity.ExpBottleEvent;
@@ -503,6 +504,34 @@ public class EntityEventHandler implements Listener {
         if (!claim.hasClaimPermission(event.getPlayer().getUniqueId(), ClaimPermission.BREAK_BLOCKS)) {
             event.setCancelled(true);
             GriefPrevention.sendMessage(event.getPlayer(), TextMode.Err, ClaimPermission.BREAK_BLOCKS.getDenialMessage());
+        }
+    }
+
+    //when an item places an entity rather than a block (armour stands, boats, minecarts, end crystals, cushions)
+    //
+    //these never fire BlockPlaceEvent, so the only thing that used to stop them was a hardcoded list of
+    //materials in PlayerEventHandler#onPlayerInteract. Anything added to the game after that list was
+    //written went completely unprotected, which is how cushions could be placed inside other players'
+    //claims. Handling the event itself covers every entity-placing item, including future ones.
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntityPlace(EntityPlaceEvent event) {
+        Player player = event.getPlayer();
+        if (player == null) return;
+
+        Block block = event.getBlock();
+        if (!GriefPrevention.instance.claimsEnabledForWorld(block.getWorld())) return;
+
+        //the entity is positioned before the event fires, so use where it will actually end up
+        Location location = event.getEntity().getLocation();
+        if (location.getWorld() == null) location = block.getLocation();
+
+        Claim claim = this.dataStore.getClaimAt(location, false, null);
+        if (claim == null) return;
+
+        if (!claim.hasClaimPermission(player.getUniqueId(), ClaimPermission.PLACE_BLOCKS)) {
+            event.setCancelled(true);
+            if (event.getHand() == EquipmentSlot.HAND)
+                GriefPrevention.sendMessage(player, TextMode.Err, ClaimPermission.PLACE_BLOCKS.getDenialMessage());
         }
     }
 
