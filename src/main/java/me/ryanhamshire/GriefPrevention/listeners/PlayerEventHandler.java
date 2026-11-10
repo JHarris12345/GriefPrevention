@@ -1716,7 +1716,7 @@ public class PlayerEventHandler implements Listener {
                 //A brand new claim has no override of its own, so this is the config value
                 int maxSide = instance.config_claims_maxClaimSide;
                 if (maxSide > 0 && (newClaimWidth > maxSide || newClaimHeight > maxSide)) {
-                    player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long. Yours would be " + newClaimWidth + "x" + newClaimHeight));
+                    player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long. Yours would be " + newClaimWidth + "x" + newClaimHeight + ". If you believe this claim &oneeds &cto be larger, open a ticket on our &o/discord"));
                     return;
                 }
 

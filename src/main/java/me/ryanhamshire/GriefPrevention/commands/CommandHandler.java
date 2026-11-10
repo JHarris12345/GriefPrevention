@@ -138,7 +138,7 @@ public class CommandHandler {
             int newHeight = Math.abs(gc.getBlockZ() - lc.getBlockZ()) + 1;
             int maxSide = GriefPrevention.instance.config_claims_maxClaimSide;
             if (maxSide > 0 && (newWidth > maxSide || newHeight > maxSide)) {
-                player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long. Yours would be " + newWidth + "x" + newHeight));
+                player.sendMessage(Utils.colour("&cA claim cannot be more than &f" + maxSide + "&c blocks long. Yours would be " + newWidth + "x" + newHeight + ". If you believe this claim &oneeds &cto be larger, open a ticket on our &o/discord"));
                 return true;
             }
 
