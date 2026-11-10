@@ -28,6 +28,7 @@ import me.ryanhamshire.GriefPrevention.commands.CommandHandler;
 import me.ryanhamshire.GriefPrevention.data.DataStore;
 import me.ryanhamshire.GriefPrevention.data.FlatFileDataStore;
 import me.ryanhamshire.GriefPrevention.listeners.BlockEventHandler;
+import me.ryanhamshire.GriefPrevention.listeners.EntityBreakListener;
 import me.ryanhamshire.GriefPrevention.listeners.EntityDamageHandler;
 import me.ryanhamshire.GriefPrevention.listeners.EntityEventHandler;
 import me.ryanhamshire.GriefPrevention.listeners.InventoryHandler;
@@ -429,6 +430,7 @@ public class GriefPrevention extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new InventoryHandler(this), this);
         getServer().getPluginManager().registerEvents(new WorldEventHandler(this), this);
         getServer().getPluginManager().registerEvents(new EconomyManager(this), this);
+        EntityBreakListener.register(this, dataStore);
 
         // Set up the managers
         this.economyManager = new EconomyManager(this);
