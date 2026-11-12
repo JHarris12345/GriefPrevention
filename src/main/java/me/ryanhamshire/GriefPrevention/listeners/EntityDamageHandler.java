@@ -45,6 +45,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityKnockbackByEntityEvent;
 import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -130,6 +131,36 @@ public class EntityDamageHandler implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityDamage(@NotNull EntityDamageEvent event) {
         this.handleEntityDamageEvent(event, true);
+    }
+
+    /**
+     * Stop a player knocking another player's animals around inside a claim.
+     *
+     * Cancelling the damage is not enough on its own. A spear attack still applies its knockback when the
+     * damage event was cancelled, so players were using one to shove animals right across someone's claim
+     * without ever hurting them. The rule mirrors the damage rule: if you may not hurt the animals here,
+     * you may not move them either.
+     *
+     * No denial message is sent, because the damage handler has already sent one for the same hit.
+     */
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onCreatureKnockbackByEntity(@NotNull EntityKnockbackByEntityEvent event) {
+        if (!instance.config_claims_protectCreatures) return;
+        if (!(event.getEntity() instanceof Creature)) return;
+        if (!(event.getSourceEntity() instanceof Player attacker)) return;
+        if (!instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
+
+        PlayerData playerData = this.dataStore.getPlayerData(attacker.getUniqueId());
+        Claim claim = this.dataStore.getClaimAt(event.getEntity().getLocation(), false, playerData.lastClaim);
+
+        // Not in a claim, so nothing to protect
+        if (claim == null) return;
+
+        playerData.lastClaim = claim;
+
+        if (!claim.hasClaimPermission(attacker.getUniqueId(), ClaimPermission.HURT_ANIMALS)) {
+            event.setCancelled(true);
+        }
     }
 
     //when an entity is set on fire
