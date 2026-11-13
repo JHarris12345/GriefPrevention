@@ -233,6 +233,23 @@ public class PlayerEventHandler implements Listener {
             event.setJoinMessage(null);
         }
 
+        //refresh the stored owner ranks on their claims 2 seconds after joining, so rank-locked settings and
+        //permissions stay correct for claim members while the owner is offline (previously this only updated
+        //when the owner opened their claim's settings menu). setOwnerRanks only saves a claim if it changed
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (!player.isOnline()) return;
+                for (Claim claim : new ArrayList<>(playerData.getClaims(true))) {
+                    if (claim.ownerID == null || !claim.ownerID.equals(playerID)) continue;
+                    claim.setOwnerRanks(true);
+                    for (Claim child : new ArrayList<>(claim.children)) {
+                        if (child.ownerID != null && child.ownerID.equals(playerID)) child.setOwnerRanks(true);
+                    }
+                }
+            }
+        }.runTaskLater(instance, 40L);
+
         //in case player has changed his name, on successful login, update UUID > Name mapping
         GriefPrevention.instance.cacheUUIDNamePair(player.getUniqueId(), player.getName());
         GriefPrevention.instance.uuidNameCache.put(player.getUniqueId(), player.getName());
